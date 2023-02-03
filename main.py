@@ -16,7 +16,7 @@ BACK_LEFT = 2
 class EndingCondition:
     def check(self, run):
         # this ugly thing is used because pylint wants me to use the run arg.
-        return not bool(run) # returns False, so it runs infinite.
+        return not bool(run)  # returns False, so it runs infinite.
 
 
 class OrCond(EndingCondition):
@@ -237,7 +237,7 @@ class Run:
 
     def calculate_deceleration(
         self, speed: int
-    ):# , end_speed: float, distance: float):
+    ):  # , end_speed: float, distance: float):
         """
         Calculate Deceleration
 
@@ -769,7 +769,6 @@ class MasterControlProgram:
 mcp = MasterControlProgram(PrimeHub())
 
 
-
 @mcp.run()
 def run_1(run1: Run):
     """Run 1"""
@@ -924,22 +923,6 @@ def run_4(run4: Run):
     # run4.gyro_turn(degree=-30, p_correction=1)
     # run4.gyro_drive(speed=-60, degree=-27, ending_condition=0, ending_value=20)
     # run4.drive_attachment(4, 70, duration=0.75)
-
-
-@mcp.run()
-def run_5(run5: Run):
-    """Run 5 (Testrun)"""
-    run5.drive_attachment(1, 50, duration=1)
-    run5.drive_attachment(2, 50, duration=1)
-    run5.drive_attachment(3, 50, duration=1)
-    run5.drive_attachment(4, 50, duration=1)
-    run5.gyro_turn(degree=-48, p_correction=5, ending_condition=Sec(5))
-
-
-@mcp.run(turning_degree_tolerance=5)
-def run_6(run6: Run):
-    """Run 6 (Testrun)"""
-    run6.gyro_drive(speed=50, degree=0, ending_condition=Cm(10))
 
 
 mcp.start()
