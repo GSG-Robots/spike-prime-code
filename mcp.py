@@ -16,7 +16,7 @@ BACK_LEFT = 2
 class EndingCondition:
     def check(self, run):
         # this ugly thing is used because pylint wants me to use the run arg.
-        return not bool(run)  # returns False, so it runs infinite.
+        return not bool(run)# returns False, so it runs infinite.
 
 
 class OrCond(EndingCondition):
@@ -237,7 +237,7 @@ class Run:
 
     def calculate_deceleration(
         self, speed: int
-    ):  # , end_speed: float, distance: float):
+    ):# , end_speed: float, distance: float):
         """
         Calculate Deceleration
 
@@ -724,7 +724,7 @@ class MasterControlProgram:
         #                        self.brick, selected_run, len(self.runs)
         #                    )
         #                break
-        # Mit mitllerem Knopf
+        # Nicht löschen, ich arbeite noch daran:
         while True:
             try:
                 while True:
@@ -769,19 +769,174 @@ class MasterControlProgram:
 mcp = MasterControlProgram(PrimeHub())
 
 
-@mcp.run(turning_degree_tolerance=5)
-def testrun(run6: Run):
-    """Test-Run"""
-    run6.gyro_drive(speed=50, degree=0, ending_condition=Cm(10))
+@mcp.run()
+def run_1(run1: Run):
+    """Run 1"""
+    print("Starting Run 1")
+    run1.gyro_drive(speed=100, degree=0, ending_condition=Cm(32), p_correction=4)
+    run1.gyro_drive(speed=50, degree=0, ending_condition=Cm(5), p_correction=4)
+    run1.gyro_drive(speed=-100, degree=2, ending_condition=Cm(11), p_correction=4)
+    run1.gyro_turn(degree=-40, p_correction=5)
+
+    run1.gyro_drive(speed=100, degree=-48, ending_condition=Cm(37), p_correction=3)
+    run1.gyro_turn(degree=29, p_correction=3)
+    wait_for_seconds(0.5)
+
+    run1.gyro_drive(speed=100, degree=32, ending_condition=Cm(28))
+    run1.gyro_drive(speed=-50, degree=32, ending_condition=Cm(7))
+    run1.gyro_drive(speed=100, degree=32, ending_condition=Cm(15))
+    run1.gyro_drive(speed=-50, degree=32, ending_condition=Cm(11))
+    run1.gyro_drive(speed=100, degree=32, ending_condition=Cm(22))
+
+    run1.gyro_drive(speed=-80, degree=30, ending_condition=Cm(10))
+
+    run1.gyro_turn(degree=-110, p_correction=2)
+    run1.gyro_drive(speed=80, degree=30, ending_condition=Cm(3))
+    run1.drive_attachment(FRONT_LEFT, speed=-100, duration=1)
+    wait_for_seconds(0.5)
+
+    run1.gyro_drive(speed=-80, degree=-110, ending_condition=Cm(3))
+    run1.gyro_turn(degree=-185, p_correction=2)
+
+    run1.gyro_drive(speed=100, degree=-185, ending_condition=Cm(40))
+    print("Ended Run 1")
 
 
 @mcp.run()
-def demorun(run5: Run):
-    """Demo-Run"""
-    run5.drive_attachment(1, 50, duration=1)
-    run5.drive_attachment(2, 50, duration=1)
-    run5.drive_attachment(3, 50, duration=1)
-    run5.drive_attachment(4, 50, duration=1)
+def run_2(run2: Run):
+    """Run 2"""
+    print("Starting Run 2")
+    run2.gyro_drive(speed=-100, degree=-5, ending_condition=Cm(55))
+    run2.gyro_drive(speed=-50, degree=-5, ending_condition=Cm(5))
+    # run2.gyro_drive(speed=100, degree=-5, ending_condition=Cm(10))
+    # run2.gyro_turn(degree=-15, p_correction=3)
+
+    # run2.gyro_drive(
+    #     speed=60, degree=-4, ending_condition=0, ending_value=66, p_correction=3
+    # )
+    # run2.gyro_drive(
+    #     speed=-70,
+    #     degree=5,
+    #     ending_condition=1,
+    #     ending_value=2,
+    #     acceleration=2,
+    #     p_correction=3,
+    # )
+    # wait_for_seconds(0.5)
+    # run2.gyro_turn(degree=15, p_correction=2)
+    # run2.gyro_drive(
+    #     speed=20, degree=15, ending_condition=0, ending_value=2, p_correction=5
+    # )
+    # run2.gyro_turn(degree=30, p_correction=2)
+    # run2.gyro_drive(
+    #     speed=70, degree=30, ending_condition=0, ending_value=15, p_correction=5
+    # )
+    # run2.gyro_turn(degree=-20, p_correction=2)
+    # run2.gyro_drive(
+    #     speed=100, degree=-20, ending_condition=0, ending_value=90, p_correction=4
+    # )
+
+    # # ALIGNMENT
+
+    # wait_for_seconds(0.8)
+    # run2.gyro_turn(degree=90, p_correction=4)
+    # run2.gyro_drive(speed=-50, degree=90, ending_condition=1, ending_value=1.2)
+
+
+@mcp.run()
+def run_3(run3: Run):
+    """Run 3"""
+    run3.gyro_drive(
+        speed=60,
+        degree=0,
+        ending_condition=0,
+        ending_value=10,
+        acceleration=1,
+        p_correction=0.4,
+    )
+    run3.drive_attachment(FRONT_RIGHT, 50, duration=1)
+    run3.gyro_drive(speed=50, degree=0, ending_condition=0, ending_value=2.75)
+    run3.gyro_turn(degree=30, p_correction=2)
+    run3.gyro_drive(speed=40, degree=30, ending_condition=0, ending_value=8)
+    run3.gyro_turn(degree=0, p_correction=1)
+    run3.drive_attachment(FRONT_RIGHT, -70, duration=0.75)
+    run3.gyro_drive(
+        speed=35,
+        degree=-3,
+        ending_condition=0,
+        ending_value=16,
+        acceleration=1,
+        p_correction=0.6,
+    )
+    run3.drive_attachment(BACK_RIGHT, -100, duration=1.5)
+    run3.drive_attachment(BACK_RIGHT, 100, duration=1.5)
+    run3.drive_attachment(BACK_RIGHT, -100, duration=1.5)
+    run3.drive_attachment(BACK_RIGHT, 100, duration=1.5)
+    run3.drive_attachment(BACK_RIGHT, -100, duration=1.5)
+    run3.drive_attachment(BACK_RIGHT, 100, duration=1.5)
+
+    run3.gyro_drive(
+        speed=10, degree=-0.75, ending_condition=0, ending_value=10, p_correction=0.6
+    )
+    run3.drive_attachment(FRONT_RIGHT, 100, duration=1)
+    wait_for_seconds(0.1)
+    run3.gyro_drive(speed=-50, degree=0, ending_condition=1, ending_value=1.5)
+    run3.gyro_turn(degree=30, p_correction=0.8)
+    run3.gyro_drive(speed=-100, degree=30, ending_condition=1, ending_value=3.5)
+
+    # ALIGNMENT
+    wait_for_seconds(0.5)
+    run3.gyro_turn(degree=85, p_correction=3)
+
+
+@mcp.run()
+def run_4(run4: Run):
+    """Run 4"""
+    run4.drive_attachment(FRONT_RIGHT, 100, duration=0.5)
+    run4.gyro_drive(speed=100, degree=0, ending_condition=Cm(47), p_correction=5)
+    run4.gyro_turn(degree=-35, p_correction=2)
+    run4.gyro_drive(speed=100, degree=-35, ending_condition=Cm(30))
+    run4.gyro_turn(degree=-87, p_correction=2)
+    run4.gyro_drive(speed=100, degree=-87, ending_condition=Cm(30))
+    run4.drive_attachment(FRONT_RIGHT, -100, duration=0.6)
+    run4.gyro_drive(speed=-20, degree=-85, ending_condition=Cm(5))
+    run4.drive_attachment(FRONT_RIGHT, 100, duration=0.5)
+    run4.gyro_drive(speed=-20, degree=-85, ending_condition=Cm(7))
+    run4.gyro_turn(degree=-130, p_correction=2)
+    run4.gyro_drive(speed=-100, degree=-125, ending_condition=Cm(30))
+    run4.gyro_drive(speed=100, degree=-125, ending_condition=Cm(25))
+    run4.gyro_turn(degree=-90, p_correction=2)
+    
+    
+    # run4.drive_attachment(FRONT_LEFT, 70, duration=0.75)
+    # wait_for_seconds(0.25)
+    # run4.gyro_turn(degree=-10, p_correction=1.5)
+    # wait_for_seconds(0.25)
+    # run4.gyro_drive(speed=65, degree=-10, ending_condition=0, ending_value=22)
+    # run4.gyro_turn(degree=-87, p_correction=1)
+    # wait_for_seconds(0.25)
+    # run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
+    # run4.gyro_drive(speed=80, degree=-90, ending_condition=0, ending_value=31, p_correction=1.2)
+    # run4.drive_attachment(FRONT_RIGHT, -70, duration=0.7)
+    # wait_for_seconds(0.25)
+    # run4.gyro_drive(speed=-15, degree=-90, ending_condition=1, ending_value=2.9)
+    # wait_for_seconds(0.25)
+    # run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
+    # run4.gyro_drive(speed=-35, degree=-90, ending_condition=1, ending_value=1.1)
+
+
+    # SF:
+    # run4.gyro_turn(degree=-130, p_correction=1.5)
+    # run4.gyro_drive(speed=60, degree=-130, ending_condition=1, ending_value=2.3)
+    # wait_for_seconds(0.25)
+    # run4.gyro_drive(speed=-60, degree=-130, ending_condition=1, ending_value=2.3)
+    # run4.gyro_turn(degree=-87, p_correction=1)
+
+    # Auto:
+    # run4.drive_attachment(1, -100, duration=1)
+    # run4.gyro_turn(degree=-30, p_correction=1)
+    # run4.gyro_drive(speed=-60, degree=-27, ending_condition=0, ending_value=20)
+    # run4.drive_attachment(4, 70, duration=0.75)
 
 
 mcp.start()
