@@ -16,7 +16,7 @@ BACK_LEFT = 2
 class EndingCondition:
     def check(self, run):
         # this ugly thing is used because pylint wants me to use the run arg.
-        return not bool(run)# returns False, so it runs infinite.
+        return not bool(run)  # returns False, so it runs infinite.
 
 
 class OrCond(EndingCondition):
@@ -237,7 +237,7 @@ class Run:
 
     def calculate_deceleration(
         self, speed: int
-    ):# , end_speed: float, distance: float):
+    ):  # , end_speed: float, distance: float):
         """
         Calculate Deceleration
 
@@ -906,8 +906,7 @@ def run_4(run4: Run):
     run4.gyro_drive(speed=-100, degree=-125, ending_condition=Cm(30))
     run4.gyro_drive(speed=100, degree=-125, ending_condition=Cm(25))
     run4.gyro_turn(degree=-90, p_correction=2)
-    
-    
+
     # run4.drive_attachment(FRONT_LEFT, 70, duration=0.75)
     # wait_for_seconds(0.25)
     # run4.gyro_turn(degree=-10, p_correction=1.5)
@@ -923,7 +922,6 @@ def run_4(run4: Run):
     # wait_for_seconds(0.25)
     # run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
     # run4.gyro_drive(speed=-35, degree=-90, ending_condition=1, ending_value=1.1)
-
 
     # SF:
     # run4.gyro_turn(degree=-130, p_correction=1.5)

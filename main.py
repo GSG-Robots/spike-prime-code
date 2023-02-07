@@ -800,7 +800,6 @@ def run_1(run1: Run):
 
     run1.gyro_drive(speed=100, degree=-185, ending_condition=Cm(40))
 
-
     # run1.gyro_drive(speed=40, degree=-125, ending_condition=Cm(3))# 135
     # wait_for_seconds(0.5)
     # run1.drive_attachment(FRONT_LEFT, -100, duration=1)
@@ -905,7 +904,7 @@ def run_4(run4: Run):
     run4.gyro_drive(speed=100, degree=-87, ending_condition=Cm(23))
     run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
     run4.gyro_drive(speed=40, degree=-87, ending_condition=Cm(2))
-    
+
     # run4.gyro_drive(speed=100, degree=0, ending_condition=0, ending_value=19.75)
     # wait_for_seconds(0.5)
     # run4.gyro_turn(degree=-31, p_correction=2.1)
@@ -926,7 +925,6 @@ def run_4(run4: Run):
     # wait_for_seconds(0.25)
     # run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
     # run4.gyro_drive(speed=-35, degree=-90, ending_condition=1, ending_value=1.1)
-    
 
     # SF:
     # run4.gyro_turn(degree=-130, p_correction=1.5)
