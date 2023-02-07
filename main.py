@@ -773,23 +773,33 @@ mcp = MasterControlProgram(PrimeHub())
 def run_1(run1: Run):
     """Run 1"""
     print("Starting Run 1")
-    run1.gyro_drive(speed=70, degree=0, ending_condition=Cm(33), p_correction=4)
-    run1.gyro_drive(speed=40, degree=0, ending_condition=Cm(5), p_correction=4)
-    run1.gyro_drive(speed=-80, degree=2, ending_condition=Cm(28), p_correction=4)
-    run1.gyro_turn(degree=-48, p_correction=5)
-    # run1.gyro_drive(speed=60, degree=-48, ending_condition=Cm(31), p_correction=3)
-    # run1.gyro_turn(degree=32, p_correction=4)
-    # wait_for_seconds(0.5)
+    run1.gyro_drive(speed=100, degree=0, ending_condition=Cm(32), p_correction=4)
+    run1.gyro_drive(speed=50, degree=0, ending_condition=Cm(5), p_correction=4)
+    run1.gyro_drive(speed=-100, degree=2, ending_condition=Cm(11), p_correction=4)
+    run1.gyro_turn(degree=-40, p_correction=5)
 
-    # run1.gyro_drive(speed=50, degree=45, ending_condition=Cm(28))
-    # run1.gyro_drive(speed=-40, degree=45, ending_condition=Sec(1.1))
-    # run1.gyro_drive(speed=50, degree=45, ending_condition=Cm(13))
-    # run1.gyro_drive(speed=-40, degree=45, ending_condition=Sec(1.1))
-    # run1.gyro_drive(speed=50, degree=45, ending_condition=Cm(13))
-    # run1.gyro_drive(speed=-25, degree=45, ending_condition=Sec(1.1))
+    run1.gyro_drive(speed=100, degree=-48, ending_condition=Cm(37), p_correction=3)
+    run1.gyro_turn(degree=29, p_correction=3)
+    wait_for_seconds(0.5)
 
-    # run1.gyro_turn(degree=-100, p_correction=2)# 110
-    # wait_for_seconds(0.5)
+    run1.gyro_drive(speed=100, degree=32, ending_condition=Cm(28))
+    run1.gyro_drive(speed=-50, degree=32, ending_condition=Cm(7))
+    run1.gyro_drive(speed=100, degree=32, ending_condition=Cm(15))
+    run1.gyro_drive(speed=-50, degree=32, ending_condition=Cm(11))
+    run1.gyro_drive(speed=100, degree=32, ending_condition=Cm(22))
+
+    run1.gyro_drive(speed=-80, degree=30, ending_condition=Cm(10))
+
+    run1.gyro_turn(degree=-110, p_correction=2)
+    run1.gyro_drive(speed=80, degree=30, ending_condition=Cm(3))
+    run1.drive_attachment(FRONT_LEFT, speed=-100, duration=1)
+    wait_for_seconds(0.5)
+
+    run1.gyro_drive(speed=-80, degree=-110, ending_condition=Cm(3))
+    run1.gyro_turn(degree=-185, p_correction=2)
+
+    run1.gyro_drive(speed=100, degree=-185, ending_condition=Cm(40))
+
 
     # run1.gyro_drive(speed=40, degree=-125, ending_condition=Cm(3))# 135
     # wait_for_seconds(0.5)
@@ -888,28 +898,35 @@ def run_3(run3: Run):
 @mcp.run()
 def run_4(run4: Run):
     """Run 4"""
-    run4.gyro_drive(speed=60, degree=0, ending_condition=0, ending_value=19.75)
-    wait_for_seconds(0.5)
-    run4.gyro_turn(degree=-31, p_correction=2.1)
-    wait_for_seconds(0.5)
-    run4.gyro_drive(speed=40, degree=-45, ending_condition=0, ending_value=6)
-    run4.drive_attachment(FRONT_LEFT, 70, duration=0.75)
-    wait_for_seconds(0.25)
-    run4.gyro_turn(degree=-10, p_correction=1.5)
-    wait_for_seconds(0.25)
-    run4.gyro_drive(speed=65, degree=-10, ending_condition=0, ending_value=22)
-    run4.gyro_turn(degree=-87, p_correction=1)
-    wait_for_seconds(0.25)
+    run4.gyro_drive(speed=100, degree=0, ending_condition=Cm(40))
+    run4.gyro_turn(degree=-35, p_correction=2)
+    run4.gyro_drive(speed=100, degree=-35, ending_condition=Cm(35))
+    run4.gyro_turn(degree=-85, p_correction=2)
+    run4.gyro_drive(speed=100, degree=-87, ending_condition=Cm(23))
     run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
-    run4.gyro_drive(
-        speed=80, degree=-90, ending_condition=0, ending_value=31, p_correction=1.2
-    )
-    run4.drive_attachment(FRONT_RIGHT, -70, duration=0.7)
-    wait_for_seconds(0.25)
-    run4.gyro_drive(speed=-15, degree=-90, ending_condition=1, ending_value=2.9)
-    wait_for_seconds(0.25)
-    run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
-    run4.gyro_drive(speed=-35, degree=-90, ending_condition=1, ending_value=1.1)
+    run4.gyro_drive(speed=40, degree=-87, ending_condition=Cm(2))
+
+    # run4.gyro_drive(speed=100, degree=0, ending_condition=0, ending_value=19.75)
+    # wait_for_seconds(0.5)
+    # run4.gyro_turn(degree=-31, p_correction=2.1)
+    # wait_for_seconds(0.5)
+    # run4.gyro_drive(speed=40, degree=-45, ending_condition=0, ending_value=6)
+    # run4.drive_attachment(FRONT_LEFT, 70, duration=0.75)
+    # wait_for_seconds(0.25)
+    # run4.gyro_turn(degree=-10, p_correction=1.5)
+    # wait_for_seconds(0.25)
+    # run4.gyro_drive(speed=65, degree=-10, ending_condition=0, ending_value=22)
+    # run4.gyro_turn(degree=-87, p_correction=1)
+    # wait_for_seconds(0.25)
+    # run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
+    # run4.gyro_drive(speed=80, degree=-90, ending_condition=0, ending_value=31, p_correction=1.2)
+    # run4.drive_attachment(FRONT_RIGHT, -70, duration=0.7)
+    # wait_for_seconds(0.25)
+    # run4.gyro_drive(speed=-15, degree=-90, ending_condition=1, ending_value=2.9)
+    # wait_for_seconds(0.25)
+    # run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
+    # run4.gyro_drive(speed=-35, degree=-90, ending_condition=1, ending_value=1.1)
+
 
     # SF:
     # run4.gyro_turn(degree=-130, p_correction=1.5)
