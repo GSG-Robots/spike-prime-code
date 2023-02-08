@@ -628,7 +628,10 @@ class MasterControlProgram:
         defargs = {}
         defargs.update(defaults)
         defargs.update(run_entry[1])
-        return run_entry[0](Run(self.brick, **defargs))
+        print("Starting Run {}".format(run))
+        result = run_entry[0](Run(self.brick, **defargs))
+        print("Ended Run {}".format(run))
+        return result
 
     def start(
         self,
@@ -897,13 +900,20 @@ def run_3(run3: Run):
 @mcp.run()
 def run_4(run4: Run):
     """Run 4"""
-    run4.gyro_drive(speed=100, degree=0, ending_condition=Cm(40))
+    run4.drive_attachment(FRONT_RIGHT, 100, duration=0.5)
+    run4.gyro_drive(speed=100, degree=0, ending_condition=Cm(47), p_correction=5)
     run4.gyro_turn(degree=-35, p_correction=2)
-    run4.gyro_drive(speed=100, degree=-35, ending_condition=Cm(35))
-    run4.gyro_turn(degree=-85, p_correction=2)
-    run4.gyro_drive(speed=100, degree=-87, ending_condition=Cm(23))
-    run4.drive_attachment(FRONT_RIGHT, 70, duration=0.5)
-    run4.gyro_drive(speed=40, degree=-87, ending_condition=Cm(2))
+    run4.gyro_drive(speed=100, degree=-35, ending_condition=Cm(28))
+    run4.gyro_turn(degree=-87, p_correction=2)
+    run4.gyro_drive(speed=100, degree=-90, ending_condition=Cm(29))
+    run4.drive_attachment(FRONT_RIGHT, -100, duration=0.6)
+    run4.gyro_drive(speed=-20, degree=-87, ending_condition=Cm(6))
+    run4.drive_attachment(FRONT_RIGHT, 100, duration=0.5)
+    run4.gyro_drive(speed=-30, degree=-87, ending_condition=Cm(6))
+    run4.gyro_turn(degree=-130, p_correction=2)
+    run4.gyro_drive(speed=-100, degree=-125, ending_condition=Cm(25))
+    run4.gyro_drive(speed=100, degree=-125, ending_condition=Cm(25))
+    run4.gyro_turn(degree=-90, p_correction=2)
 
     # run4.gyro_drive(speed=100, degree=0, ending_condition=0, ending_value=19.75)
     # wait_for_seconds(0.5)
