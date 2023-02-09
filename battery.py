@@ -1,0 +1,1 @@
+import hub,spike;spike.PrimeHub().light_matrix.write(str(hub.battery.capacity_left())+"%")
