@@ -93,10 +93,9 @@ class Run:
         light_sensors: list[str] = None,
         correction_values: list[float] = None,
         tire_radius: float = 2.6,
-        light_black_value: int = 10,
-        light_middle_value: int = 50,
-        turning_degree_tolerance: int = 2,
-        inverted: bool = False
+        light_black_value: int = 16,
+        light_middle_value: int = 65,
+        turning_degree_tolerance: int = 2
     ):
         """
         Initiation of Run
@@ -118,12 +117,6 @@ class Run:
             light_sensors = ["A", "F"]
         if correction_values is None:
             correction_values = [0.5, 0, 0, 0, 0, 0, 1, 1, 1]
-        if inverted is True:
-            speed_factor = -1
-        elif isinstance(inverted, int):
-            speed_factor = inverted
-        else:
-            speed_factor = 1
         self.left_motor = Motor(engines[0])
         self.right_motor = Motor(engines[1])
         self.driving_motors = MotorPair(engines[0], engines[1])
@@ -151,7 +144,6 @@ class Run:
         self.deceleration_counter = 0
         self.attachment_started = False
         self.attachment_stopped = False
-        self.speed_factor = speed_factor
         self.brick.motion_sensor.reset_yaw_angle()
         if (
             self.gear_selector.get_position() <= 90
@@ -237,7 +229,6 @@ class Run:
         speed: given speed
         duration: time of acceleration
         """
-        speed *= self.speed_factor
         if self.acceleration_counter < 50:
             if self.timer.now() >= ((self.acceleration_counter * duration) / 50):
                 self.acceleration_counter += 1
@@ -256,7 +247,6 @@ class Run:
         distane: distance of deceleration
         """
         raise NotImplementedError("deceleration does not work")
-        # speed *= self.speed_factor
         # if (
         #    (
         #        (
@@ -297,7 +287,6 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         """
-        speed *= self.speed_factor
         if attachment_start is None:
             attachment_start = [0, 0, 0]
         self.reset_timer_and_ending_condition()
@@ -503,7 +492,6 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         """
-        speed *= self.speed_factor
         if attachment_start is None:
             attachment_start = [0, 0, 0]
         self.reset_timer_and_ending_condition()
@@ -536,7 +524,7 @@ class Run:
                 )
                 differential = error_value - last_error
                 integral += last_error
-                corrector = (
+                corrector = floor(
                     integral * i_correction
                     + differential * d_correction
                     + error_value * p_correction
@@ -551,6 +539,7 @@ class Run:
                     attachment_stopped = True
         else:
             while not ending_condition.check(self):
+                print(light_sensor.get_reflected_light())
                 error_value = left_factor * (
                     light_sensor.get_reflected_light() - self.light_middle_value
                 )
@@ -562,21 +551,24 @@ class Run:
                     + error_value * p_correction
                 )
                 last_error = error_value
-                self.driving_motors.start_tank(speed - corrector, speed + corrector)
-                if (
-                    attachment_start[1] != 0
-                    and not attachment_started
-                    and self.timer.now() >= attachment_start[1]
-                ):
-                    self.drive_attachment(attachment_start[0], attachment_start[2])
-                    attachment_started = True
-                if (
-                    attachment_stop != 0
-                    and not attachment_stopped
-                    and self.timer.now() >= attachment_stop
-                ):
-                    self.stop_attachment()
-                    attachment_stopped = True
+                left_corrector  = floor(corrector * (1 if front_sensor else 2))
+                right_corrector = floor(corrector * (2 if front_sensor else 1))
+                self.driving_motors.start_tank(speed - left_corrector, speed + right_corrector)
+                #if (
+                #    attachment_start[1] != 0
+                #    and not attachment_started
+                #    and self.timer.now() >= attachment_start[1]
+                #):
+                #    self.drive_attachment(attachment_start[0], attachment_start[2])
+                #    attachment_started = True
+                #if (
+                #    attachment_stop != 0
+                #    and not attachment_stopped
+                #    and self.timer.now() >= attachment_stop
+                #):
+                #    self.stop_attachment()
+                #    attachment_stopped = True
+                
         self.driving_motors.stop()
 
 
@@ -789,7 +781,12 @@ def testrun(run: Run):
     """Testrun"""
     run.gyro_drive(speed=100, degree=0, ending_condition=AndCond(Sec(3), Deg(90)), p_correction=4)
 
-mcp.run(inverted=True)(testrun)
+@mcp.run()
+def lf_test(run: Run):
+    """LFTest"""
+    #while True:
+    #    print(run.front_light_sensor.get_reflected_light())
+    run.line_follower(50, True, Cm(200), p_correction=.1)
 
 @mcp.run()
 def demorun(run: Run):
