@@ -14,12 +14,15 @@ BACK_LEFT = 1
 
 
 class EndingCondition:
+    """Ending Condition: Infinite and Base"""
     def check(self, run):
+        """Returns if the EndingCondition is fulfiled"""
         # this ugly thing is used because pylint wants me to use the run arg.
         return not bool(run)  # returns False, so it runs infinite.
 
 
 class OrCond(EndingCondition):
+    """Ending Condition: Or"""
     def __init__(
         self, condition_a: EndingCondition, condition_b: EndingCondition
     ) -> None:
@@ -31,6 +34,7 @@ class OrCond(EndingCondition):
 
 
 class AndCond(EndingCondition):
+    """Ending Condition: And"""
     def __init__(
         self, condition_a: EndingCondition, condition_b: EndingCondition
     ) -> None:
@@ -42,6 +46,7 @@ class AndCond(EndingCondition):
 
 
 class Cm(EndingCondition):
+    """Ending Condition: Centimeter"""
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -58,6 +63,7 @@ class Cm(EndingCondition):
 
 
 class Sec(EndingCondition):
+    """Ending Condition: Seconds"""
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -66,6 +72,7 @@ class Sec(EndingCondition):
 
 
 class Line(EndingCondition):
+    """Ending Condition: Line"""
     def check(self, run):
         return (
             run.front_light_sensor.get_reflected_light() < run.light_black_value + 5
@@ -74,6 +81,7 @@ class Line(EndingCondition):
 
 
 class Deg(EndingCondition):
+    """Ending Condition: Degrees"""
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -86,6 +94,7 @@ class Deg(EndingCondition):
 
 
 class Run:
+    """Run-Class for contolling the robot."""
     def __init__(
         self,
         brick: PrimeHub,
@@ -582,6 +591,7 @@ class MasterControlProgram:
         self.brick = brick
 
     def run(self, **defaults):
+        """Decorator for a run"""
         def decorator(func):
             self.runs.append((func, defaults))
             return func
@@ -589,6 +599,7 @@ class MasterControlProgram:
         return decorator
 
     def light_up_display(self, brick: PrimeHub, number=int, max_number=int):
+        """Show number on display with styled lines"""
         brightness = 70
         brick.light_matrix.write(number)
         brick.light_matrix.set_pixel(0, 1, brightness=brightness)
@@ -624,13 +635,21 @@ class MasterControlProgram:
             brick.light_matrix.set_pixel(4, 4, brightness=brightness)
 
     def start_run(self, run, **defaults):
+        """Start a run by ID
+
+        Args:
+            run (int): Run-ID
+
+        Returns:
+            Any: Result of run-func
+        """
         run_entry = self.runs[run - 1]
         defargs = {}
         defargs.update(defaults)
         defargs.update(run_entry[1])
-        print("Starting Run {}".format(run))
+        print("Starting Run {}".format(run)) # pylint: disable=consider-using-f-string
         result = run_entry[0](Run(self.brick, **defargs))
-        print("Ended Run {}".format(run))
+        print("Ended Run {}".format(run)) # pylint: disable=consider-using-f-string
         return result
 
     def start(
@@ -909,7 +928,7 @@ def run_4(run4: Run):
     run4.drive_attachment(FRONT_RIGHT, -100, duration=0.6)
     run4.gyro_drive(speed=-20, degree=-86, ending_condition=Cm(6))
     run4.drive_attachment(FRONT_RIGHT, 100, duration=0.5)
-    #run4.gyro_drive(speed=-30, degree=-86, ending_condition=Cm(4))
+    # run4.gyro_drive(speed=-30, degree=-86, ending_condition=Cm(4))
     run4.gyro_turn(degree=-130, p_correction=2)
     run4.gyro_drive(speed=-100, degree=-125, ending_condition=Cm(25))
     run4.gyro_drive(speed=100, degree=-125, ending_condition=Cm(25))
@@ -949,16 +968,16 @@ def run_4(run4: Run):
     # run4.gyro_drive(speed=-60, degree=-27, ending_condition=0, ending_value=20)
     # run4.drive_attachment(4, 70, duration=0.75)
 
+
 @mcp.run()
 def run_5(run5: Run):
     """Run 5"""
-    run5.drive_attachment(FRONT_RIGHT,20,duration=1)
-    run5.gyro_drive(speed=40,degree=0,ending_condition=Cm(50))
-    run5.drive_attachment(FRONT_RIGHT,50,duration=2.5)
-    run5.drive_attachment(FRONT_RIGHT,-60,duration=1)
-    run5.drive_attachment(FRONT_RIGHT,80,duration=0.5)
-    run5.gyro_drive(speed=-60,degree=0,ending_condition=Cm(70))
-
+    run5.drive_attachment(FRONT_RIGHT, 20, duration=1)
+    run5.gyro_drive(speed=40, degree=0, ending_condition=Cm(50))
+    run5.drive_attachment(FRONT_RIGHT, 50, duration=2.5)
+    run5.drive_attachment(FRONT_RIGHT, -60, duration=1)
+    run5.drive_attachment(FRONT_RIGHT, 80, duration=0.5)
+    run5.gyro_drive(speed=-60, degree=0, ending_condition=Cm(70))
 
 
 mcp.start()
