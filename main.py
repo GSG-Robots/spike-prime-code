@@ -1,4 +1,4 @@
-# LEGO type:standard slot:3 autostart
+# LEGO type:standard slot:0 autostart
 """
 Current Program, uses PEP8 conform names and has the new MasterControlProgram class
 This is work in progress so there is no docstr on new elements.
@@ -7,10 +7,10 @@ from math import fabs, floor, pi
 from spike import PrimeHub, Motor, ColorSensor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
 
-FRONT_RIGHT = 3
-FRONT_LEFT = 4
-BACK_RIGHT = 1
-BACK_LEFT = 2
+FRONT_RIGHT = 2
+FRONT_LEFT = 3
+BACK_RIGHT = 4
+BACK_LEFT = 1
 
 
 class EndingCondition:
@@ -948,6 +948,17 @@ def run_4(run4: Run):
     # run4.gyro_turn(degree=-30, p_correction=1)
     # run4.gyro_drive(speed=-60, degree=-27, ending_condition=0, ending_value=20)
     # run4.drive_attachment(4, 70, duration=0.75)
+
+@mcp.run()
+def run_5(run5: Run):
+    """Run 5"""
+    run5.drive_attachment(FRONT_RIGHT,20,duration=1)
+    run5.gyro_drive(speed=40,degree=0,ending_condition=Cm(50))
+    run5.drive_attachment(FRONT_RIGHT,50,duration=2.5)
+    run5.drive_attachment(FRONT_RIGHT,-60,duration=1)
+    run5.drive_attachment(FRONT_RIGHT,80,duration=0.5)
+    run5.gyro_drive(speed=-60,degree=0,ending_condition=Cm(70))
+
 
 
 mcp.start()
