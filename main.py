@@ -101,6 +101,7 @@ class Run:
         engines: list[str] = None,
         light_sensors: list[str] = None,
         correction_values: list[float] = None,
+        hold_attachment: int = 1,
         tire_radius: float = 2.6,
         light_black_value: int = 10,
         light_middle_value: int = 50,
@@ -161,6 +162,7 @@ class Run:
             self.gear_selector.run_to_position(0, "shortest path", 100)
         else:
             self.gear_selector.run_to_position(0, "counterclockwise", 100)
+        self.select_gear(hold_attachment)
 
     def select_gear(self, target_gear: int):
         """
