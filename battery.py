@@ -1,3 +1,4 @@
+# LEGO type:standard slot:9 autostart
 """Short run to show battery state"""
 
 import hub # type: ignore # pylint: disable=import-error
