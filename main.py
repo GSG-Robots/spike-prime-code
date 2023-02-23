@@ -7,6 +7,7 @@ from math import fabs, floor, pi
 from spike import PrimeHub, Motor, ColorSensor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
 
+
 FRONT_RIGHT = 2
 FRONT_LEFT = 3
 BACK_RIGHT = 4
@@ -14,15 +15,17 @@ BACK_LEFT = 1
 
 
 class EndingCondition:
-    """Ending Condition: Infinite and Base"""
+    """Ending Condition: Infinite and Base for other Ending Conditions"""
+
     def check(self, run):
-        """Returns if the EndingCondition is fulfiled"""
+        """Returns if the EndingCondition is fulfilled"""
         # this ugly thing is used because pylint wants me to use the run arg.
         return not bool(run)  # returns False, so it runs infinite.
 
 
 class OrCond(EndingCondition):
     """Ending Condition: Or"""
+
     def __init__(
         self, condition_a: EndingCondition, condition_b: EndingCondition
     ) -> None:
@@ -35,6 +38,7 @@ class OrCond(EndingCondition):
 
 class AndCond(EndingCondition):
     """Ending Condition: And"""
+
     def __init__(
         self, condition_a: EndingCondition, condition_b: EndingCondition
     ) -> None:
@@ -47,6 +51,7 @@ class AndCond(EndingCondition):
 
 class Cm(EndingCondition):
     """Ending Condition: Centimeter"""
+
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -64,6 +69,7 @@ class Cm(EndingCondition):
 
 class Sec(EndingCondition):
     """Ending Condition: Seconds"""
+
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -73,6 +79,7 @@ class Sec(EndingCondition):
 
 class Line(EndingCondition):
     """Ending Condition: Line"""
+
     def check(self, run):
         return (
             run.front_light_sensor.get_reflected_light() < run.light_black_value + 5
@@ -82,6 +89,7 @@ class Line(EndingCondition):
 
 class Deg(EndingCondition):
     """Ending Condition: Degrees"""
+
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -95,6 +103,7 @@ class Deg(EndingCondition):
 
 class Run:
     """Run-Class for contolling the robot."""
+
     def __init__(
         self,
         brick: PrimeHub,
@@ -582,7 +591,7 @@ class Run:
 class MasterControlProgram:
     """Master Control Program managing and starting all runs"""
 
-    def __init__(self, brick) -> None:
+    def __init__(self, brick: PrimeHub) -> None:
         """
         init Master Control Program
 
@@ -590,10 +599,11 @@ class MasterControlProgram:
         brick: Brick of Robot
         """
         self.runs: list[tuple[callable, dict[str, any]]] = []
-        self.brick = brick
+        self.brick: PrimeHub = brick
 
     def run(self, **defaults):
         """Decorator for a run"""
+
         def decorator(func):
             self.runs.append((func, defaults))
             return func
@@ -608,7 +618,7 @@ class MasterControlProgram:
         brick.light_matrix.set_pixel(0, 3, brightness=brightness)
         brick.light_matrix.set_pixel(4, 1, brightness=brightness)
         brick.light_matrix.set_pixel(4, 3, brightness=brightness)
-        if number == 0:
+        if number == max_number + 1:
             brick.light_matrix.off()
             brick.light_matrix.set_pixel(1, 1, brightness=100)
             brick.light_matrix.set_pixel(2, 2, brightness=100)
@@ -649,9 +659,9 @@ class MasterControlProgram:
         defargs = {}
         defargs.update(defaults)
         defargs.update(run_entry[1])
-        print("Starting Run {}".format(run)) # pylint: disable=consider-using-f-string
+        print("Starting Run {}".format(run))  # pylint: disable=consider-using-f-string
         result = run_entry[0](Run(self.brick, **defargs))
-        print("Ended Run {}".format(run)) # pylint: disable=consider-using-f-string
+        print("Ended Run {}".format(run))  # pylint: disable=consider-using-f-string
         return result
 
     def start(
@@ -688,86 +698,33 @@ class MasterControlProgram:
         selected_run = 1
         print("Starting MC")
         self.light_up_display(self.brick, selected_run, len(self.runs))
-        # while True:
-        #    if self.brick.left_button.is_pressed():
-        #        while True:
-        #            if self.brick.right_button.is_pressed():
-        #                self.brick.left_button.wait_until_released()
-        #                self.brick.right_button.wait_until_released()
-        #                print("Play run ", selected_run)
-        #                self.start_run(
-        #                    selected_run,
-        #                    engines=engines,
-        #                    light_sensors=light_sensors,
-        #                    correction_values=correction_values,
-        #                    tire_radius=tire_radius,
-        #                    light_black_value=light_black_value,
-        #                    light_middle_value=light_middle_value,
-        #                    turning_degree_tolerance=turning_degree_tolerance,
-        #                )
-        #                if selected_run < len(self.runs):
-        #                    selected_run += 1
-        #                    self.light_up_display(
-        #                        self.brick, selected_run, len(self.runs)
-        #                    )
-        #                break
-        #            elif not self.brick.left_button.is_pressed():
-        #                if selected_run > 1:
-        #                    selected_run -= 1
-        #                    self.light_up_display(
-        #                        self.brick, selected_run, len(self.runs)
-        #                    )
-        #                break
-
-        #    if self.brick.right_button.is_pressed():
-        #        while True:
-        #            if self.brick.left_button.is_pressed():
-        #                self.brick.right_button.wait_until_released()
-        #                self.brick.left_button.wait_until_released()
-        #                print("Play run ", selected_run)
-        #                self.start_run(
-        #                    selected_run,
-        #                    engines=engines,
-        #                    light_sensors=light_sensors,
-        #                    correction_values=correction_values,
-        #                    tire_radius=tire_radius,
-        #                    light_black_value=light_black_value,
-        #                    light_middle_value=light_middle_value,
-        #                    turning_degree_tolerance=turning_degree_tolerance,
-        #                )
-        #                if selected_run < len(self.runs):
-        #                    selected_run += 1
-        #                    self.light_up_display(
-        #                        self.brick, selected_run, len(self.runs)
-        #                    )
-        #                break
-        #            elif not self.brick.right_button.is_pressed():
-        #                if selected_run < len(self.runs):
-        #                    selected_run += 1
-        #                    self.light_up_display(
-        #                        self.brick, selected_run, len(self.runs)
-        #                    )
-        #                break
-        # Nicht löschen, ich arbeite noch daran:
         while True:
             try:
                 while True:
                     if self.brick.left_button.is_pressed():
-                        self.brick.left_button.wait_until_released()
-                        if selected_run > 0:
+                        # self.brick.left_button.wait_until_released()
+                        time = 0
+                        while self.brick.left_button.is_pressed() and time < 3:
+                            time += 1
+                            wait_for_seconds(0.1)
+                        if selected_run > 1:
                             selected_run -= 1
                             self.light_up_display(
                                 self.brick, selected_run, len(self.runs)
                             )
                     if self.brick.right_button.is_pressed():
-                        self.brick.right_button.wait_until_released()
-                        if selected_run < len(self.runs):
+                        # self.brick.right_button.wait_until_released()
+                        time = 0
+                        while self.brick.right_button.is_pressed() and time < 3:
+                            time += 1
+                            wait_for_seconds(0.1)
+                        if selected_run < len(self.runs) + 1:
                             selected_run += 1
                             self.light_up_display(
                                 self.brick, selected_run, len(self.runs)
                             )
             except KeyboardInterrupt as err:
-                if selected_run == 0:
+                if selected_run == len(self.runs) + 1:
                     raise SystemExit from err
                 try:
                     self.start_run(
@@ -796,7 +753,6 @@ mcp = MasterControlProgram(PrimeHub())
 @mcp.run()
 def run_1(run1: Run):
     """Run 1"""
-    print("Starting Run 1")
     run1.gyro_drive(speed=100, degree=0, ending_condition=Cm(32), p_correction=4)
     run1.gyro_drive(speed=50, degree=0, ending_condition=Cm(5), p_correction=4)
     run1.gyro_drive(speed=-100, degree=2, ending_condition=Cm(11), p_correction=4)
@@ -833,43 +789,31 @@ def run_1(run1: Run):
     # MotorPair("D", "C").move(-60, "cm", speed=100)
     # run1.gyro_drive(speed=-100, degree=-165, ending_condition=0, ending_value=38)
 
-    print("Ended Run 1")
-
 
 @mcp.run()
 def run_2(run2: Run):
     """Run 2"""
-    print("Starting Run 2")
-    run2.gyro_drive(
-        speed=60, degree=-4, ending_condition=0, ending_value=66, p_correction=3
-    )
+    run2.gyro_drive(speed=60, degree=-2, ending_condition=Cm(66), p_correction=3)
     run2.gyro_drive(
         speed=-70,
         degree=5,
-        ending_condition=1,
-        ending_value=2,
+        ending_condition=Sec(2),
         acceleration=2,
         p_correction=3,
     )
     wait_for_seconds(0.5)
-    run2.gyro_turn(degree=15, p_correction=2)
-    run2.gyro_drive(
-        speed=20, degree=15, ending_condition=0, ending_value=2, p_correction=5
-    )
+    run2.gyro_turn(degree=-15, p_correction=2)
+    run2.gyro_drive(speed=-20, degree=-15, ending_condition=Cm(10), p_correction=5)
     run2.gyro_turn(degree=30, p_correction=2)
-    run2.gyro_drive(
-        speed=70, degree=30, ending_condition=0, ending_value=15, p_correction=5
-    )
+    run2.gyro_drive(speed=70, degree=30, ending_condition=Cm(15), p_correction=5)
     run2.gyro_turn(degree=-20, p_correction=2)
-    run2.gyro_drive(
-        speed=100, degree=-20, ending_condition=0, ending_value=90, p_correction=4
-    )
+    run2.gyro_drive(speed=100, degree=-20, ending_condition=Cm(90), p_correction=4)
 
     # ALIGNMENT
 
     wait_for_seconds(0.8)
     run2.gyro_turn(degree=90, p_correction=4)
-    run2.gyro_drive(speed=-50, degree=90, ending_condition=1, ending_value=1.2)
+    run2.gyro_drive(speed=-50, degree=90, ending_condition=Sec(1.2))
 
 
 @mcp.run()
@@ -974,11 +918,11 @@ def run_4(run4: Run):
 @mcp.run()
 def run_5(run5: Run):
     """Run 5"""
-    run5.drive_attachment(FRONT_RIGHT, 20, duration=1)
+
     run5.gyro_drive(speed=40, degree=0, ending_condition=Cm(50))
-    run5.drive_attachment(FRONT_RIGHT, 50, duration=2.5)
+    run5.drive_attachment(FRONT_RIGHT, 50, duration=1.5)
     run5.drive_attachment(FRONT_RIGHT, -60, duration=1)
-    run5.drive_attachment(FRONT_RIGHT, 80, duration=0.5)
+    run5.drive_attachment(FRONT_LEFT, 50, duration=1.5)
     run5.gyro_drive(speed=-60, degree=0, ending_condition=Cm(70))
 
 
