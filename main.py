@@ -8,10 +8,10 @@ from spike import PrimeHub, Motor, ColorSensor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
 
 
-FRONT_RIGHT = 2
-FRONT_LEFT = 3
-BACK_RIGHT = 4
-BACK_LEFT = 1
+FRONT_RIGHT = 3
+FRONT_LEFT = 4
+BACK_RIGHT = 1
+BACK_LEFT = 2
 
 
 class EndingCondition:
@@ -799,7 +799,7 @@ def run_2(run2: Run):
     # run2.drive_attachment(3, -100, duration=.5)
     # run2.drive_attachment(4, -100, duration=.5)
     
-    run2.gyro_drive(speed=65, degree=0, ending_condition=Cm(52), p_correction=2)
+    run2.gyro_drive(speed=90, degree=0, ending_condition=Cm(53), p_correction=2)
     run2.drive_attachment(BACK_LEFT, speed=100, duration=.5)
     run2.drive_attachment(FRONT_RIGHT, speed=100, duration=.4)
     run2.drive_attachment(FRONT_RIGHT, speed=-100, duration=.4)
@@ -808,7 +808,7 @@ def run_2(run2: Run):
     run2.drive_attachment(FRONT_LEFT, speed=-100, duration=.5)
     wait_for_seconds(.5)
     run2.drive_attachment(BACK_LEFT, speed=-100, duration=.5)
-    run2.gyro_drive(speed=65, degree=0, ending_condition=Cm(18), p_correction=2)
+    run2.gyro_drive(speed=65, degree=0, ending_condition=Cm(16), p_correction=2)
     
     run2.drive_attachment(BACK_RIGHT, speed=-100, duration=1.3)
     run2.gyro_drive(speed=65, degree=0, ending_condition=Cm(15), p_correction=2)
@@ -951,10 +951,13 @@ def run_5(run5: Run):
 @mcp.run()
 def run_6(run6: Run):
     """Run 6"""
-    # run6.drive_attachment(1, 100, duration=.5)
-    # run6.drive_attachment(2, 100, duration=.5)
-    # run6.drive_attachment(3, -100, duration=.5)
-    # run6.drive_attachment(4, -100, duration=.5)
-    run6.drive_attachment(1, -100, duration=.5)
+    run6.drive_attachment(1, 100, duration=.5)
+    run6.drive_attachment(2, 100, duration=.5)
+    run6.drive_attachment(3, -100, duration=.5)
+    run6.drive_attachment(4, -100, duration=.5)
+    run6.drive_attachment(FRONT_LEFT, 100, duration=.5)
+    run6.drive_attachment(FRONT_RIGHT, 100, duration=.5)
+    run6.drive_attachment(BACK_LEFT, -100, duration=.5)
+    run6.drive_attachment(BACK_RIGHT, -100, duration=.5)
 
 mcp.start()
