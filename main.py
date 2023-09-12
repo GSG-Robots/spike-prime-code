@@ -16,8 +16,9 @@ BACK_LEFT = 2
 
 class EndingCondition:
     """Ending Condition: Infinite and Base for other Ending Conditions"""
-    #Depending on which ending condition is chosen, the function returns True as long as it is not
-    #valid, then False
+
+    # Depending on which ending condition is chosen, the function returns True as long as it is not
+    # valid, then False
     def check(self, run):
         """Returns if the EndingCondition is fulfilled"""
         # this ugly thing is used because pylint wants me to use the run arg.
@@ -52,7 +53,8 @@ class AndCond(EndingCondition):
 
 class Cm(EndingCondition):
     """Ending Condition: Centimeter"""
-    #Checks if given Ending Value is fulfilled
+
+    # Checks if given Ending Value is fulfilled
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -70,7 +72,8 @@ class Cm(EndingCondition):
 
 class Sec(EndingCondition):
     """Ending Condition: Seconds"""
-    #Checks if given Ending Value is fulfilled
+
+    # Checks if given Ending Value is fulfilled
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -80,7 +83,8 @@ class Sec(EndingCondition):
 
 class Line(EndingCondition):
     """Ending Condition: Line"""
-    #Checks if given Ending Value is fulfilled
+
+    # Checks if given Ending Value is fulfilled
     def check(self, run):
         return (
             run.front_light_sensor.get_reflected_light() < run.light_black_value + 5
@@ -90,7 +94,8 @@ class Line(EndingCondition):
 
 class Deg(EndingCondition):
     """Ending Condition: Degrees"""
-    #Checks if given Ending Value is fulfilled
+
+    # Checks if given Ending Value is fulfilled
     def __init__(self, value: int) -> None:
         self.value = value
 
@@ -101,6 +106,7 @@ class Deg(EndingCondition):
             <= self.value + run.turning_degree_tolerance
         )
 
+OrCond(Cm(10), Sec(7))
 
 class Run:
     """Run-Class for contolling the robot."""
@@ -131,8 +137,8 @@ class Run:
         lightMiddleValue: The middle Lightvalue between Black and White
         turningDegreeTolerance: Tolerance when turning for a degree
         """
-        
-        #Setting all variables that don't change during the runs, i.e. the Motorports
+
+        # Setting all variables that don't change during the runs, i.e. the Motorports
         if engines is None:
             engines = ["D", "C", "B", "E"]
         if light_sensors is None:
@@ -167,8 +173,8 @@ class Run:
         self.attachment_started = False
         self.attachment_stopped = False
         self.brick.motion_sensor.reset_yaw_angle()
-        
-        #Resetting Gyro-Sensor and Transmission
+
+        # Resetting Gyro-Sensor and Transmission
         if (
             self.gear_selector.get_position() <= 90
             or self.gear_selector.get_position() >= 270
@@ -186,7 +192,7 @@ class Run:
         targetGear: Wanted Gear (4:Front-Left, 3:Back-Left, 1:Front-Right, 2:Back-Right)
         """
 
-        #Turn gearSelector until right gear is selected
+        # Turn gearSelector until right gear is selected
         if self.selected_gear < target_gear:
             self.gear_selector.run_to_position(
                 int(58 * (target_gear - 1)), "clockwise", 100
@@ -215,18 +221,18 @@ class Run:
         degree: Distance of Movement in Degrees
         resistance: Move until hitting resistance
         """
-        #Stop possible movement, select chosen gear
+        # Stop possible movement, select chosen gear
         self.drive_shaft.stop()
         self.select_gear(attachment_index)
-        #If a duration is given, run the attachement for the given time
+        # If a duration is given, run the attachement for the given time
         if duration != 0:
             self.drive_shaft.run_for_seconds(duration, speed)
-        #If a degree is given, run the attachement until the degree is reached
+        # If a degree is given, run the attachement until the degree is reached
         elif degree != 0:
             self.drive_shaft.run_for_degrees(
                 int(degree * (speed / fabs(speed))), int(fabs(speed))
             )
-        #If neither are given, run the attachement forever or until it gets resistance
+        # If neither are given, run the attachement forever or until it gets resistance
         else:
             self.drive_shaft.start(speed)
             if resistance:
@@ -237,14 +243,14 @@ class Run:
 
     def stop_attachment(self):
         """Stop attachment drive"""
-        #Stop possible movement
+        # Stop possible movement
         self.drive_shaft.stop()
 
     def reset_timer_and_ending_condition(self):
         """
         Resets Ending Conditions and Timer
         """
-        #Reset all timers, motors and counters
+        # Reset all timers, motors and counters
         self.timer.reset()
         self.left_motor.set_degrees_counted(0)
         self.right_motor.set_degrees_counted(0)
@@ -261,16 +267,15 @@ class Run:
         speed: given speed
         duration: time of acceleration
         """
-        #Given the target-speed and the progress X, the function returns the target-speed*(X/50)
-        #If another 1/50 is reached, the progress-counter is increased
+        # Given the target-speed and the progress X, the function returns the target-speed*(X/50)
+        # If another 1/50 is reached, the progress-counter is increased
         if self.acceleration_counter < 50:
             if self.timer.now() >= ((self.acceleration_counter * duration) / 50):
                 self.acceleration_counter += 1
             return (speed * self.acceleration_counter) / 50
         return int(speed)
 
-    def calculate_deceleration(
-        self, speed: int):#, distance: float):
+    def calculate_deceleration(self, speed: int):  # , distance: float):
         """
         Calculate Deceleration
 
@@ -279,18 +284,20 @@ class Run:
         endSpeed: final speed to finish on
         distane: distance of deceleration
         """
-        #Given the target-speed and the progress X, the function returns the target-speed*((50-X)/50)
-        #If another 1/50 is reached, the progress-counter is increased
+        # Given the target-speed and the progress X, the function returns the target-speed*((50-X)/50)
+        # If another 1/50 is reached, the progress-counter is increased
         if (
-           (
-               (
-                   self.right_motor.get_degrees_counted()
-                   + self.right_motor.get_degrees_counted()
-               )
-               / 720
-           )
-        ) >= fabs((self.deceleration_counter  / 50)): #missing distance
-           self.deceleration_counter += 1
+            (
+                (
+                    self.right_motor.get_degrees_counted()
+                    + self.right_motor.get_degrees_counted()
+                )
+                / 720
+            )
+        ) >= fabs(
+            (self.deceleration_counter / 50)
+        ):  # missing distance
+            self.deceleration_counter += 1
         return int((speed * (50 - self.deceleration_counter)) / 50)
 
     def gyro_drive(
@@ -321,7 +328,7 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         """
-        #Resetting everything
+        # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
         self.reset_timer_and_ending_condition()
@@ -336,21 +343,21 @@ class Run:
             i_correction = self.i_correction_gyro_drive
         if d_correction == 0:
             d_correction = self.d_correction_gyro_drive
-        if deceleration!=0:
+        if deceleration != 0:
             ending_value = ending_value - deceleration
         degree = degree - 360 * floor((degree + 180) / 360)
         if isinstance(ending_condition, Deg):
             ending_condition.value = ending_condition.value - 360 * floor(
                 (degree + 180) / 360
             )
-        #If an Attachement is started or stopped during the movement, start this loop
+        # If an Attachement is started or stopped during the movement, start this loop
         if attachment_start[1] != 0 or attachment_stop != 0:
             while not ending_condition.check(self):
-                #The new sensor value is retreaved and the error-value calculated
+                # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
                 if abs(error_value) > 180:
                     error_value -= 360
-                #The necessary values for the PID-Controller get calculated
+                # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += error_value
                 corrector = (
@@ -359,12 +366,12 @@ class Run:
                     + error_value * p_correction
                 )
                 last_error = error_value
-                #The robot corrects according to the PID-Controller and Acceleration
+                # The robot corrects according to the PID-Controller and Acceleration
                 self.driving_motors.start_tank(
                     int(self.calculate_acceleration(speed + corrector, acceleration)),
                     int(self.calculate_acceleration(speed - corrector, acceleration)),
                 )
-                #If an attachementStart is planned, check the timer and start the Attachement
+                # If an attachementStart is planned, check the timer and start the Attachement
                 if (
                     attachment_start[1] != 0
                     and not attachment_started
@@ -372,7 +379,7 @@ class Run:
                 ):
                     self.drive_attachment(attachment_start[0], attachment_start[2])
                     attachment_started = True
-                #If an atachementStop is planned, check the timer and stop the Attachement
+                # If an atachementStop is planned, check the timer and stop the Attachement
                 if (
                     attachment_stop != 0
                     and not attachment_stopped
@@ -380,14 +387,14 @@ class Run:
                 ):
                     self.stop_attachment()
                     attachment_stopped = True
-        #If there won't be any Attachement use, start this loop
+        # If there won't be any Attachement use, start this loop
         else:
             while not ending_condition.check(self):
-                #The new sensor value is retreaved and the error-value calculated
+                # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
                 if abs(error_value) > 180:
                     error_value -= 360
-                #The necessary values for the PID-Controller get calculated
+                # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += error_value
                 corrector = (
@@ -396,13 +403,13 @@ class Run:
                     + error_value * p_correction
                 )
                 last_error = error_value
-                #The robot corrects according to the PID-Controller
+                # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
                     int(self.calculate_acceleration(speed + corrector, acceleration)),
                     int(self.calculate_acceleration(speed - corrector, acceleration)),
                 )
-        #If deceleration is wanted, stop the above loops early to start decelerating
-        #The PID-Loop stays the same, the speed only gets decelerated before being put into the motors
+        # If deceleration is wanted, stop the above loops early to start decelerating
+        # The PID-Loop stays the same, the speed only gets decelerated before being put into the motors
         if deceleration != 0:
             while self.deceleration_counter <= 50:
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
@@ -420,7 +427,7 @@ class Run:
                     self.calculate_deceleration(speed + corrector),
                     self.calculate_deceleration(speed - corrector),
                 )
-        #The motors come to a full-stop
+        # The motors come to a full-stop
         self.driving_motors.stop()
 
     def gyro_turn(
@@ -445,7 +452,7 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         """
-        #Resetting everything
+        # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
         self.reset_timer_and_ending_condition()
@@ -460,32 +467,32 @@ class Run:
         if d_correction == 0:
             d_correction = self.d_correction_gyro_turn
         degree = degree - 360 * floor((degree + 180) / 360)
-        #If an Attachement is started or stopped during the movement, start this loop
+        # If an Attachement is started or stopped during the movement, start this loop
         if attachment_start[1] != 0 or attachment_stop != 0:
             while (
                 not degree - self.turning_degree_tolerance
                 < self.brick.motion_sensor.get_yaw_angle()
                 < degree + self.turning_degree_tolerance
             ) and not ending_condition.check(self):
-                #The new sensor value is retreaved and the error-value calculated
+                # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
                 if abs(error_value) > 180:
                     error_value -= 360
-                #The necessary values for the PID-Controller get calculated
+                # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += last_error
-                #The robot corrects according to the PID-Controller
+                # The robot corrects according to the PID-Controller
                 corrector = (
                     integral * i_correction
                     + differential * d_correction
                     + error_value * p_correction
                 )
                 last_error = error_value
-                #If an attachementStart is planned, check the timer and start the Attachement
+                # If an attachementStart is planned, check the timer and start the Attachement
                 self.driving_motors.start_tank(
                     attachment_start[2] - corrector, attachment_start[2] + corrector
                 )
-                #If an attachementStart is planned, check the timer and start the Attachement
+                # If an attachementStart is planned, check the timer and start the Attachement
                 if (
                     attachment_start[1] != 0
                     and not attachment_started
@@ -493,7 +500,7 @@ class Run:
                 ):
                     self.drive_attachment(attachment_start[0], attachment_start[2])
                     attachment_started = True
-                #If an atachementStop is planned, check the timer and stop the Attachement
+                # If an atachementStop is planned, check the timer and stop the Attachement
                 if (
                     attachment_stop != 0
                     and not attachment_stopped
@@ -501,18 +508,18 @@ class Run:
                 ):
                     self.stop_attachment()
                     attachment_stopped = True
-        #If there won't be any Attachement use, start this loop
+        # If there won't be any Attachement use, start this loop
         else:
             while (
                 not degree - self.turning_degree_tolerance
                 <= self.brick.motion_sensor.get_yaw_angle()
                 <= degree + self.turning_degree_tolerance
             ) and not ending_condition.check(self):
-                #The new sensor value is retreaved and the error-value
+                # The new sensor value is retreaved and the error-value
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
                 if abs(error_value) > 180:
                     error_value -= 360
-                #The necessary values for the PID-Controller get calculated
+                # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += last_error
                 corrector = (
@@ -521,9 +528,9 @@ class Run:
                     + error_value * p_correction
                 )
                 last_error = error_value
-                #The robot corrects according to the PID-Controller
+                # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(int(corrector), int(-corrector))
-        #The motors come to a full-stop
+        # The motors come to a full-stop
         self.driving_motors.stop()
 
     def line_follower(
@@ -552,7 +559,7 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         """
-        #Resetting everything
+        # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
         self.reset_timer_and_ending_condition()
@@ -574,14 +581,14 @@ class Run:
             left_factor = -1
         else:
             left_factor = 1
-        #If an atachementStop is planned, check the timer and stop the Attachement
+        # If an atachementStop is planned, check the timer and stop the Attachement
         if attachment_start[1] != 0 or attachment_stop != 0:
             while not ending_condition.check(self):
-                #The new sensor value is retreaved and the error-value calculated
+                # The new sensor value is retreaved and the error-value calculated
                 error_value = left_factor * (
                     light_sensor.get_reflected_light() - self.light_middle_value
                 )
-                #The necessary values for the PID-Controller get calculated
+                # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += last_error
                 corrector = (
@@ -590,17 +597,17 @@ class Run:
                     + error_value * p_correction
                 )
                 last_error = error_value
-                #The robot corrects according to the PID-Controller
+                # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(speed - corrector, speed + corrector)
-                #If an attachementStart is planned, check the timer and start the Attachement
+                # If an attachementStart is planned, check the timer and start the Attachement
                 if not attachment_started and self.timer.now() >= attachment_start[1]:
                     self.drive_attachment(attachment_start[0], attachment_start[2])
                     attachment_started = True
-                #If an atachementStop is planned, check the timer and stop the Attachement
+                # If an atachementStop is planned, check the timer and stop the Attachement
                 if not attachment_stopped and self.timer.now() >= attachment_stop:
                     self.stop_attachment()
                     attachment_stopped = True
-        #If there won't be any Attachement use, start this loop
+        # If there won't be any Attachement use, start this loop
         else:
             while not ending_condition.check(self):
                 error_value = left_factor * (
@@ -743,7 +750,7 @@ class MasterControlProgram:
         print("Starting MC")
         self.light_up_display(self.brick, selected_run, len(self.runs))
         while True:
-            #It checks for button presses to increase, decrease or start the chosen run
+            # It checks for button presses to increase, decrease or start the chosen run
             try:
                 while True:
                     if self.brick.left_button.is_pressed():
@@ -767,11 +774,10 @@ class MasterControlProgram:
                                 self.brick, selected_run, len(self.runs)
                             )
             except KeyboardInterrupt as err:
-                               
                 if selected_run == len(self.runs) + 1:
                     raise SystemExit from err
                 try:
-                    #Starting the Runs
+                    # Starting the Runs
                     self.start_run(
                         selected_run,
                         engines=engines,
@@ -798,7 +804,7 @@ mcp = MasterControlProgram(PrimeHub())
 @mcp.run()
 def run_1(run1: Run):
     """Run 1"""
-    #We drive to the TV and solve the mission, then turn left
+    # We drive to the TV and solve the mission, then turn left
     run1.gyro_drive(speed=100, degree=0, ending_condition=Cm(30), p_correction=4)
     wait_for_seconds(0.5)
     run1.gyro_drive(speed=50, degree=0, ending_condition=Cm(9), p_correction=4)
@@ -809,7 +815,7 @@ def run_1(run1: Run):
     run1.gyro_turn(degree=28, p_correction=3)
     wait_for_seconds(0.5)
 
-    #We drive forward, turn toward the windmill and solve the mission
+    # We drive forward, turn toward the windmill and solve the mission
     run1.gyro_drive(speed=70, degree=32, ending_condition=Cm(28))
     run1.gyro_drive(speed=-50, degree=32, ending_condition=Cm(7))
     run1.gyro_drive(speed=100, degree=32, ending_condition=Cm(15))
@@ -818,13 +824,13 @@ def run_1(run1: Run):
 
     run1.gyro_drive(speed=-80, degree=30, ending_condition=Cm(10))
 
-    #We turn back to Toy-Factory and leave some energy cells there
+    # We turn back to Toy-Factory and leave some energy cells there
     run1.gyro_turn(degree=-110, p_correction=2)
     run1.gyro_drive(speed=80, degree=30, ending_condition=Cm(3), p_correction=0.2)
     run1.drive_attachment(FRONT_LEFT, speed=-100, duration=1)
     wait_for_seconds(0.5)
 
-    #We drive back to the base
+    # We drive back to the base
     run1.gyro_drive(speed=-100, degree=-110, ending_condition=Cm(3))
     run1.gyro_turn(degree=-185, p_correction=2)
 
@@ -838,22 +844,22 @@ def run_2(run2: Run):
     # run2.drive_attachment(2, 100, duration=.5)
     # run2.drive_attachment(3, -100, duration=.5)
     # run2.drive_attachment(4, -100, duration=.5)
-    #The robot drives along the border, solves the mission and then gets to the other base
+    # The robot drives along the border, solves the mission and then gets to the other base
     run2.gyro_drive(speed=100, degree=-0.6, ending_condition=Cm(45), p_correction=1)
-    wait_for_seconds(.25)
+    wait_for_seconds(0.25)
     run2.gyro_drive(speed=20, degree=0, ending_condition=Cm(7))
-    run2.drive_attachment(BACK_LEFT, speed=100, duration=.7)
-    run2.drive_attachment(FRONT_RIGHT, speed=100, duration=.6)
-    wait_for_seconds(.25)
-    run2.drive_attachment(FRONT_RIGHT, speed=-100, duration=.6)
+    run2.drive_attachment(BACK_LEFT, speed=100, duration=0.7)
+    run2.drive_attachment(FRONT_RIGHT, speed=100, duration=0.6)
+    wait_for_seconds(0.25)
+    run2.drive_attachment(FRONT_RIGHT, speed=-100, duration=0.6)
     run2.drive_attachment(FRONT_LEFT, speed=-100, duration=2.5)
-    wait_for_seconds(.5)
+    wait_for_seconds(0.5)
     run2.drive_attachment(BACK_LEFT, speed=-100, duration=1)
     run2.gyro_drive(speed=100, degree=0, ending_condition=Cm(15), p_correction=2)
-    #It collects the water
+    # It collects the water
     run2.drive_attachment(BACK_RIGHT, speed=-100, duration=1.7)
     run2.gyro_drive(speed=65, degree=0, ending_condition=Cm(10), p_correction=2)
-    wait_for_seconds(.5)
+    wait_for_seconds(0.5)
     run2.drive_attachment(BACK_RIGHT, speed=100, duration=1.8)
     run2.gyro_drive(speed=100, degree=-10, ending_condition=Cm(65), p_correction=2)
 
@@ -861,15 +867,17 @@ def run_2(run2: Run):
 @mcp.run()
 def run_3(run3: Run):
     """Run 3"""
-    run3.gyro_drive(speed=100,degree=0,ending_condition=Cm(20),acceleration=1,p_correction=0.4)
+    run3.gyro_drive(
+        speed=100, degree=0, ending_condition=Cm(20), acceleration=1, p_correction=0.4
+    )
     run3.drive_attachment(FRONT_RIGHT, 50, duration=1)
     run3.gyro_drive(speed=70, degree=0, ending_condition=Cm(10))
     run3.gyro_turn(degree=30, p_correction=2)
     run3.gyro_drive(speed=70, degree=30, ending_condition=Cm(12.5))
     run3.gyro_turn(degree=4, p_correction=3)
     run3.drive_attachment(FRONT_RIGHT, -70, duration=0.75)
-    run3.gyro_drive(speed=50,degree=0.2,ending_condition=Cm(21),p_correction=2)
-    
+    run3.gyro_drive(speed=50, degree=0.2, ending_condition=Cm(21), p_correction=2)
+
     run3.drive_attachment(BACK_RIGHT, -100, duration=1.5)
     run3.drive_attachment(BACK_RIGHT, 100, duration=1.5)
     run3.drive_attachment(BACK_RIGHT, -100, duration=1.5)
@@ -904,7 +912,7 @@ def run_5(run5: Run):
     run5.gyro_turn(degree=-35, p_correction=2)
     run5.gyro_drive(speed=100, degree=-35, ending_condition=Cm(26))
     run5.gyro_turn(degree=-86, p_correction=2)
-    wait_for_seconds(.25)
+    wait_for_seconds(0.25)
     run5.gyro_drive(speed=80, degree=-90, ending_condition=Cm(32), p_correction=2)
     run5.drive_attachment(FRONT_RIGHT, -100, duration=0.6)
     run5.gyro_drive(speed=-20, degree=-90, ending_condition=Cm(7))
@@ -953,10 +961,17 @@ def run_5(run5: Run):
 @mcp.run()
 def run_6(run6: Run):
     """Run 6"""
-    run6.drive_attachment(FRONT_LEFT, 100, duration=.5)
-    run6.drive_attachment(FRONT_RIGHT, 100, duration=.5)
-    run6.drive_attachment(BACK_LEFT, -100, duration=.5)
-    run6.drive_attachment(BACK_RIGHT, -100, duration=.5)
+    run6.drive_attachment(FRONT_LEFT, 100, duration=0.5)
+    run6.drive_attachment(FRONT_RIGHT, 100, duration=0.5)
+    run6.drive_attachment(BACK_LEFT, -100, duration=0.5)
+    run6.drive_attachment(BACK_RIGHT, -100, duration=0.5)
+
+@mcp.run()
+def run_7(run: Run):
+    run.drive_attachment(FRONT_LEFT, 100, duration=.5)
+    run.gyro_drive(57, 0, Cm(22))
+    run.gyro_turn(180, p_correction=1)
+    run.gyro_turn(0, p_correction=1)
 
 
 mcp.start()
