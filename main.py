@@ -809,20 +809,24 @@ def run_1(run: Run):
     run.gyro_turn(30, p_correction=0.7)
 
 @mcp.run()
-def mc(run: Run):
+def motorcontrol(run: Run):
+    """ Motorcontrol """
     while True:
         # It checks for button presses to increase, decrease or start the chosen run
         try:
-            motor = 0
+            wait_for_seconds(0.1)
+            motor = 1
             while True:
                 if run.brick.left_button.is_pressed():
                     time = 0
                     while run.brick.left_button.is_pressed() and time < 3:
                         time += 1
                         wait_for_seconds(0.1)
+                    if run.brick.right_button.is_pressed():
+                        raise KeyboardInterrupt
                     if motor > 1:
                         motor -= 1
-                        run.light_up_display(
+                        mcp.light_up_display(
                             run.brick, motor, 4
                         )
                 if run.brick.right_button.is_pressed():
@@ -830,15 +834,22 @@ def mc(run: Run):
                     while run.brick.right_button.is_pressed() and time < 3:
                         time += 1
                         wait_for_seconds(0.1)
+                    if run.brick.left_button.is_pressed():
+                        raise KeyboardInterrupt
                     if motor < 4:
                         motor += 1
-                        run.light_up_display(
+                        mcp.light_up_display(
                             run.brick, motor, 4
                         )
         except KeyboardInterrupt:
+            wait_for_seconds(0.4)
             try:
+                print(1, motor)
                 run.drive_attachment(motor, 100)
+                while True: pass
             except KeyboardInterrupt:
+                print(2, motor)
                 run.drive_shaft.stop()
+                wait_for_seconds(0.4)
 
 mcp.start()
