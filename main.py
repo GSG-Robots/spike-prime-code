@@ -807,7 +807,38 @@ def run_1(run: Run):
     run.gyro_turn(-34, p_correction=0.7)
     run.gyro_drive(100, -34, Cm(40))
     run.gyro_turn(30, p_correction=0.7)
-    
-    
+
+@mcp.run()
+def mc(run: Run):
+    while True:
+        # It checks for button presses to increase, decrease or start the chosen run
+        try:
+            motor = 0
+            while True:
+                if run.brick.left_button.is_pressed():
+                    time = 0
+                    while run.brick.left_button.is_pressed() and time < 3:
+                        time += 1
+                        wait_for_seconds(0.1)
+                    if motor > 1:
+                        motor -= 1
+                        run.light_up_display(
+                            run.brick, motor, 4
+                        )
+                if run.brick.right_button.is_pressed():
+                    time = 0
+                    while run.brick.right_button.is_pressed() and time < 3:
+                        time += 1
+                        wait_for_seconds(0.1)
+                    if motor < 4:
+                        motor += 1
+                        run.light_up_display(
+                            run.brick, motor, 4
+                        )
+        except KeyboardInterrupt:
+            try:
+                run.drive_attachment(motor, 100)
+            except KeyboardInterrupt:
+                run.drive_shaft.stop()
 
 mcp.start()
