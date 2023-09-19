@@ -755,23 +755,27 @@ mcp = MasterControlProgram(PrimeHub())
 @mcp.run()
 def run_1(run: Run):
     """Green Run"""
-    run.gyro_drive(speed=100, degree=0, ending_condition=Cm(7.5), p_correction=4)
-    run.gyro_turn(-35, p_correction=1.5)
-    run.gyro_drive(speed=100, degree=-30, ending_condition=Cm(35), p_correction=2)
-    run.gyro_turn(35, ending_condition=Sec(2), p_correction=1)
-    run.gyro_turn(-5, p_correction=1)
-    run.gyro_drive(speed=50, degree=-5, ending_condition=Cm(5.5), p_correction=4)
-    run.gyro_turn(45, p_correction=1)
-    run.gyro_drive(speed=40, degree=45, ending_condition=Cm(10), p_correction=2)
+    run.gyro_drive(speed=100, degree=0, ending_condition=Cm(24), p_correction=4)
+    run.gyro_turn(-45, p_correction=0.75)
+    run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(28), p_correction=2)
+    run.gyro_turn(45, p_correction=.5)
+    run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=.5)
     run.drive_attachment(FRONT_RIGHT, -70, duration=1)
     run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(13.5), p_correction=4)
-    run.gyro_turn(30, ending_condition=Sec(2), p_correction=1)
+    run.gyro_turn(42.5, p_correction=1)
     run.drive_attachment(BACK_LEFT, 100, duration=1)
     run.drive_attachment(BACK_LEFT, -100, duration=0.5)
-    run.gyro_drive(speed=100, degree=30, ending_condition=Cm(10), p_correction=4)
-    run.gyro_turn(-20, p_correction=1)
-    run.gyro_drive(speed=-100, degree=-20, ending_condition=Cm(75), p_correction=4)
+    run.gyro_drive(speed=100, degree=45, ending_condition=Cm(5), p_correction=4)
+    run.drive_attachment(BACK_LEFT, 100, duration=0.5)
+    run.gyro_turn(-5, p_correction=1)
+    run.gyro_drive(speed=-100, degree=-10, ending_condition=Cm(4), p_correction=4)
+    run.gyro_turn(50, p_correction=1)
+    run.gyro_turn(-25, p_correction=1)
+    run.gyro_drive(speed=-100, degree=-25, ending_condition=Cm(75), p_correction=4)
     
+    # reset (remove in prod)
+    run.drive_attachment(BACK_LEFT, -100, duration=1)
+
 
 @mcp.run()
 def run_2(run: Run):
@@ -789,7 +793,12 @@ def run_2(run: Run):
     run.gyro_turn(-50, p_correction=1)
     run.gyro_drive(speed=80, degree=-50, ending_condition=Cm(32), p_correction=4)
 
-    
+@mcp.run()
+def run_3(run: Run):
+    """Red Run"""
+    run.drive_attachment(FRONT_LEFT, 100, duration=2)
+    run.drive_attachment(FRONT_LEFT, -100, duration=1)
+
 @mcp.run()
 def test(run: Run):  
     """Run all attachment motors"""
