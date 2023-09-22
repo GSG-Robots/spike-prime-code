@@ -725,7 +725,6 @@ class MasterControlProgram:
                                 self.brick, selected_run, len(self.runs)
                             )
             except KeyboardInterrupt as err:
-                
                 if selected_run == len(self.runs) + 1:
                     raise SystemExit from err
                 try:
@@ -758,8 +757,8 @@ def run_1(run: Run):
     run.gyro_drive(speed=100, degree=0, ending_condition=Cm(24), p_correction=4)
     run.gyro_turn(-45, p_correction=0.75)
     run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(28), p_correction=2)
-    run.gyro_turn(45, p_correction=.5)
-    run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=.5)
+    run.gyro_turn(45, p_correction=0.5)
+    run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=0.5)
     run.drive_attachment(FRONT_RIGHT, -70, duration=1)
     run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(13.5), p_correction=4)
     run.gyro_turn(42.5, p_correction=1)
@@ -772,7 +771,7 @@ def run_1(run: Run):
     run.gyro_turn(50, p_correction=1)
     run.gyro_turn(-25, p_correction=1)
     run.gyro_drive(speed=-100, degree=-25, ending_condition=Cm(75), p_correction=4)
-    
+
     # reset (remove in prod)
     run.drive_attachment(BACK_LEFT, -100, duration=1)
 
@@ -780,31 +779,37 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Blue Run"""
-    run.drive_attachment(FRONT_LEFT, 50, duration=2)
-    run.gyro_drive(speed=80, degree=0, ending_condition=Cm(37), p_correction=4)
-    run.drive_attachment(FRONT_LEFT, -50, duration=2)
+    run.drive_attachment(FRONT_LEFT, 50, duration=2.2)
+    run.gyro_drive(speed=80, degree=0, ending_condition=Cm(39), p_correction=4)
+    run.drive_attachment(FRONT_LEFT, -50, duration=2.2)
     run.gyro_drive(speed=-80, degree=0, ending_condition=Cm(10), p_correction=4)
     run.gyro_turn(-45, p_correction=1)
-    run.gyro_drive(speed=80, degree=-45, ending_condition=Cm(2), p_correction=4)
-    run.drive_attachment(FRONT_LEFT, 50, duration=2)
-    run.gyro_drive(speed=-80, degree=-45, ending_condition=Cm(2), p_correction=4)
+    run.gyro_drive(speed=80, degree=-45, ending_condition=Cm(4), p_correction=4)
+    run.drive_attachment(FRONT_LEFT, 50, duration=2.2)
+    run.gyro_drive(speed=-80, degree=-45, ending_condition=Cm(4), p_correction=4)
     run.gyro_turn(0, p_correction=1)
     run.gyro_drive(speed=-80, degree=0, ending_condition=Cm(24), p_correction=4)
     run.gyro_turn(-50, p_correction=1)
     run.gyro_drive(speed=80, degree=-50, ending_condition=Cm(32), p_correction=4)
 
+
 @mcp.run()
 def run_3(run: Run):
     """Red Run"""
-    run.drive_attachment(FRONT_LEFT, 100, duration=2)
-    run.drive_attachment(FRONT_LEFT, -100, duration=1)
+    run.drive_attachment(FRONT_LEFT, -100, duration=6)
+    run.gyro_drive(-30, 0, Cm(5))
+    run.gyro_turn(-15, p_correction=1)
+    run.gyro_drive(30, -15, Cm(8))
+    run.drive_attachment(FRONT_RIGHT, -100, duration=19)
+
 
 @mcp.run()
-def test(run: Run):  
+def test(run: Run):
     """Run all attachment motors"""
     run.drive_attachment(1, 100, duration=1)
     run.drive_attachment(2, 100, duration=1)
     run.drive_attachment(3, 100, duration=1)
     run.drive_attachment(4, 100, duration=1)
+
 
 mcp.start()
