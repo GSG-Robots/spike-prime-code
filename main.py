@@ -809,7 +809,7 @@ def run_1(run: Run):
     run.gyro_turn(30, p_correction=0.7)
 
 @mcp.run()
-def motorcontrol(run: Run):
+def motorcontrol_2(run: Run):
     """ Motorcontrol """
     while True:
         # It checks for button presses to increase, decrease or start the chosen run
