@@ -866,7 +866,7 @@ def test(run: Run):
     run.drive_attachment(4, 100, duration=1)
 
 @mcp.run()
-def motorcontrol_2(run: Run):
+def motorcontrol_5(run: Run):
     """ Motorcontrol """
     while True:
         # It checks for button presses to increase, decrease or start the chosen run
