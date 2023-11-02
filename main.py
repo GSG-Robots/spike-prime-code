@@ -530,11 +530,8 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(int(corrector), int(-corrector))
-<<<<<<< HEAD
                 print(self.brick.motion_sensor.get_yaw_angle())
-=======
         # The motors come to a full-stop
->>>>>>> dev/add-motorcontrol
         self.driving_motors.stop()
 
     def line_follower(
@@ -833,18 +830,12 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Blue Run"""
-    run.drive_attachment(FRONT_LEFT, 50, duration=2.2)
-    run.gyro_drive(speed=80, degree=0, ending_condition=Cm(39), p_correction=4)
-    run.drive_attachment(FRONT_LEFT, -50, duration=2.2)
-    run.gyro_drive(speed=-80, degree=0, ending_condition=Cm(10), p_correction=4)
-    run.gyro_turn(-45, p_correction=1)
-    run.gyro_drive(speed=80, degree=-45, ending_condition=Cm(4), p_correction=4)
-    run.drive_attachment(FRONT_LEFT, 50, duration=2.2)
-    run.gyro_drive(speed=-80, degree=-45, ending_condition=Cm(4), p_correction=4)
-    run.gyro_turn(0, p_correction=1)
-    run.gyro_drive(speed=-80, degree=0, ending_condition=Cm(24), p_correction=4)
-    run.gyro_turn(-50, p_correction=1)
-    run.gyro_drive(speed=80, degree=-50, ending_condition=Cm(32), p_correction=4)
+    run.gyro_drive(75, -3, Cm(35))
+    run.drive_attachment(FRONT_LEFT, -100, duration=1)
+    run.gyro_drive(-75, -3, Cm(17.5))
+    run.gyro_turn(-40, p_correction=1)
+    run.gyro_drive(75, -40, Cm(10))
+    run.drive_attachment(FRONT_LEFT, 100, duration=1)
 
 
 @mcp.run()
@@ -903,7 +894,8 @@ def motorcontrol_5(run: Run):
             try:
                 print(1, motor)
                 run.drive_attachment(motor, 100)
-                while True: pass
+                while True:
+                    pass
             except KeyboardInterrupt:
                 print(2, motor)
                 run.drive_shaft.stop()
