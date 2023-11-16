@@ -9,9 +9,9 @@ from spike import PrimeHub, Motor, ColorSensor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
 
 
-FRONT_RIGHT = 3
+FRONT_RIGHT = 1
 FRONT_LEFT = 4
-BACK_RIGHT = 1
+BACK_RIGHT = 3
 BACK_LEFT = 2
 
 
@@ -797,7 +797,9 @@ class MasterControlProgram:
                             Motor(port).stop()
                         except RuntimeError:
                             pass
-                    continue
+                self.light_up_display(
+                    self.brick, selected_run, len(self.runs)
+                )
 
 
 mcp = MasterControlProgram(PrimeHub())
@@ -831,6 +833,7 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Blue Run"""
+    run.drive_attachment(BACK_LEFT, 50, duration=.75)
     run.drive_attachment(BACK_RIGHT, -10, duration=1)
     time.sleep(1)
     run.drive_attachment(BACK_RIGHT, -40, duration=2)
@@ -855,18 +858,22 @@ def test(run: Run):
     run.drive_attachment(3, 100, duration=1)
     run.drive_attachment(4, 100, duration=1)
 
+@mcp.run()
 def motorcontrol_5(run: Run):
     """Motorcontrol"""
     while True:
         # It checks for button presses to increase, decrease or start the chosen run
         try:
+            mcp.light_up_display(run.brick, 1, 4)
             wait_for_seconds(0.1)
             motor = 1
             while True:
+                if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
+                    return
                 if run.brick.left_button.is_pressed():
-                    time = 0
-                    while run.brick.left_button.is_pressed() and time < 3:
-                        time += 1
+                    time_ = 0
+                    while run.brick.left_button.is_pressed() and time_ < 3:
+                        time_ += 1
                         wait_for_seconds(0.1)
                     if run.brick.right_button.is_pressed():
                         raise KeyboardInterrupt
@@ -874,9 +881,9 @@ def motorcontrol_5(run: Run):
                         motor -= 1
                         mcp.light_up_display(run.brick, motor, 4)
                 if run.brick.right_button.is_pressed():
-                    time = 0
-                    while run.brick.right_button.is_pressed() and time < 3:
-                        time += 1
+                    time_ = 0
+                    while run.brick.right_button.is_pressed() and time_ < 3:
+                        time_ += 1
                         wait_for_seconds(0.1)
                     if run.brick.left_button.is_pressed():
                         raise KeyboardInterrupt
@@ -886,25 +893,73 @@ def motorcontrol_5(run: Run):
         except KeyboardInterrupt:
             speed = 100
             is_inverted = motor in (FRONT_RIGHT, BACK_LEFT)
+            mcp.brick.light_matrix.off()
+            mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
             try:
                 while True:
+                    if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
+                        return
                     if run.brick.right_button.is_pressed():
                         speed=100
-                        PrimeHub().light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
+                        mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
                     if run.brick.left_button.is_pressed():
                         speed=-100
-                        PrimeHub().light_matrix.show_image("GO_LEFT" if is_inverted else "GO_RIGHT")
+                        mcp.brick.light_matrix.show_image("GO_LEFT" if is_inverted else "GO_RIGHT")
             except KeyboardInterrupt:
                 wait_for_seconds(0.4)
                 try:
                     print(1, motor)
                     run.drive_attachment(motor, speed)
                     while True:
-                        pass    
+                        if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
+                            return  
                 except KeyboardInterrupt:
                     print(2, motor)
                     run.drive_shaft.stop()
                     wait_for_seconds(0.4)
-
+@mcp.run()
+def motorcontrol_6(run: Run):
+    motor = 1
+    last_motor = -1
+    try:
+        while True:
+            if run.brick.left_button.is_pressed():
+                motor -= 1
+                run.brick.left_button.wait_until_released()
+                wait_for_seconds(0.1)
+            if run.brick.right_button.is_pressed():
+                motor += 1
+                run.brick.right_button.wait_until_released()
+                wait_for_seconds(0.1)
+            if motor < 1:
+                motor = 4
+            if motor > 4:
+                motor = 1
+            if last_motor != motor:
+                last_motor = motor
+                mcp.light_up_display(run.brick, motor, 4)
+    except KeyboardInterrupt:
+        speed = 100
+        is_inverted = motor in (BACK_RIGHT, FRONT_RIGHT)
+        mcp.brick.light_matrix.off()
+        mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
+        try:
+            while True:
+                if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
+                    return
+                if run.brick.right_button.is_pressed():
+                    speed=100
+                    mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
+                if run.brick.left_button.is_pressed():
+                    speed=-100
+                    mcp.brick.light_matrix.show_image("GO_LEFT" if is_inverted else "GO_RIGHT")
+        except KeyboardInterrupt:
+            try:
+                run.drive_attachment(motor, speed)
+                while True:
+                    wait_for_seconds(0.1)
+            except KeyboardInterrupt:
+                run.drive_shaft.stop()
+                wait_for_seconds(1.0)
 
 mcp.start()
