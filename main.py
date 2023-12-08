@@ -9,9 +9,9 @@ from spike import PrimeHub, Motor, ColorSensor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
 
 
-FRONT_RIGHT = 1
+FRONT_RIGHT = 3
 FRONT_LEFT = 4
-BACK_RIGHT = 3
+BACK_RIGHT = 1
 BACK_LEFT = 2
 
 
@@ -808,9 +808,9 @@ mcp = MasterControlProgram(PrimeHub())
 @mcp.run()
 def run_1(run: Run):
     """Green Run"""
-    run.gyro_drive(speed=100, degree=0, ending_condition=Cm(24), p_correction=4)
+    run.gyro_drive(speed=100, degree=0, ending_condition=Cm(30), p_correction=4)
     run.gyro_turn(-45, p_correction=0.75)
-    run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(28), p_correction=2)
+    run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(25), p_correction=2)
     run.gyro_turn(45, p_correction=0.5)
     run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=0.5)
     run.drive_attachment(FRONT_RIGHT, -70, duration=1)
@@ -832,12 +832,14 @@ def run_1(run: Run):
 
 @mcp.run()
 def run_2(run: Run):
-    """Blue Run"""
-    run.drive_attachment(BACK_LEFT, 50, duration=.75)
-    run.drive_attachment(BACK_RIGHT, -10, duration=1)
-    time.sleep(1)
-    run.drive_attachment(BACK_RIGHT, -40, duration=2)
-    
+    """Blue Run; Biene Mayo"""
+    run.gyro_drive(100, 0, Cm(62.5))
+    run.drive_attachment(BACK_LEFT, 100, duration=1)
+    run.drive_attachment(FRONT_RIGHT, 100, duration=1)
+    run.gyro_drive(-20, 0, Cm(5))
+    run.drive_attachment(BACK_RIGHT, -20, duration=1)
+    run.drive_attachment(BACK_RIGHT, -40, duration=1)
+    run.gyro_drive(-20, 0, Cm(10))
 
 
 @mcp.run()
@@ -853,10 +855,10 @@ def run_3(run: Run):
 @mcp.run()
 def test(run: Run):
     """Run all attachment motors"""
-    run.drive_attachment(1, 100, duration=1)
-    run.drive_attachment(2, 100, duration=1)
-    run.drive_attachment(3, 100, duration=1)
-    run.drive_attachment(4, 100, duration=1)
+    run.drive_attachment(1, 100, duration=2)
+    run.drive_attachment(2, 100, duration=2)
+    run.drive_attachment(3, 100, duration=2)
+    run.drive_attachment(4, 100, duration=2)
 
 @mcp.run()
 def motorcontrol_5(run: Run):
@@ -919,25 +921,39 @@ def motorcontrol_5(run: Run):
                     wait_for_seconds(0.4)
 @mcp.run()
 def motorcontrol_6(run: Run):
-    motor = 1
-    last_motor = -1
+    select = 1
+    last_select = -1
+    motor = FRONT_RIGHT
     try:
         while True:
             if run.brick.left_button.is_pressed():
-                motor -= 1
+                select -= 1
                 run.brick.left_button.wait_until_released()
                 wait_for_seconds(0.1)
             if run.brick.right_button.is_pressed():
-                motor += 1
+                select += 1
                 run.brick.right_button.wait_until_released()
                 wait_for_seconds(0.1)
-            if motor < 1:
-                motor = 4
-            if motor > 4:
-                motor = 1
-            if last_motor != motor:
-                last_motor = motor
-                mcp.light_up_display(run.brick, motor, 4)
+            if select < 1:
+                select = 4
+            if select > 4:
+                select = 1
+            if last_select != select:
+                last_select = select
+                #mcp.light_up_display(run.brick, motor, 4)
+                mcp.brick.light_matrix.off()
+                if select == 1:
+                    mcp.brick.light_matrix.set_pixel(0, 0, 100)
+                    motor = FRONT_LEFT
+                if select == 2:
+                    mcp.brick.light_matrix.set_pixel(4, 0, 100)
+                    motor = FRONT_RIGHT
+                if select == 3:
+                    mcp.brick.light_matrix.set_pixel(0, 4, 100)
+                    motor = BACK_LEFT
+                if select == 4:
+                    mcp.brick.light_matrix.set_pixel(4, 4, 100)
+                    motor = BACK_RIGHT
     except KeyboardInterrupt:
         speed = 100
         is_inverted = motor in (BACK_RIGHT, FRONT_RIGHT)
@@ -961,5 +977,9 @@ def motorcontrol_6(run: Run):
             except KeyboardInterrupt:
                 run.drive_shaft.stop()
                 wait_for_seconds(1.0)
-
+@mcp.run()
+def run_7(run: Run):
+    run.drive_attachment(BACK_RIGHT, -100, duration=1.5)
+    run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
+    
 mcp.start()
