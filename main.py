@@ -7,13 +7,15 @@ from math import fabs, floor, pi
 import time
 from spike import PrimeHub, Motor, ColorSensor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
+from micropython import const
+
+FRONT_RIGHT = const(3)
+FRONT_LEFT = const(4)
+BACK_RIGHT = const(1)
+BACK_LEFT = const(2)
 
 
-FRONT_RIGHT = 3
-FRONT_LEFT = 4
-BACK_RIGHT = 1
-BACK_LEFT = 2
-
+_100 = const(100)
 
 class EndingCondition:
     """Ending Condition: Infinite and Base for other Ending Conditions"""
@@ -107,7 +109,6 @@ class Deg(EndingCondition):
             <= self.value + run.turning_degree_tolerance
         )
 
-OrCond(Cm(10), Sec(7))
 
 class Run:
     """Run-Class for contolling the robot."""
@@ -141,9 +142,9 @@ class Run:
 
         # Setting all variables that don't change during the runs, i.e. the Motorports
         if engines is None:
-            engines = ["D", "C", "B", "E"]
+            engines = ["D", "C", "F", "E"]
         if light_sensors is None:
-            light_sensors = ["A", "F"]
+            light_sensors = ["A", "B"]
         if correction_values is None:
             correction_values = [0.5, 0, 0, 0, 0, 0, 1, 1, 1]
         self.left_motor = Motor(engines[0])
@@ -176,17 +177,19 @@ class Run:
         self.brick.motion_sensor.reset_yaw_angle()
 
         # Resetting Gyro-Sensor and Transmission
+        self.gear_selector.set_stall_detection(True)
+        self.gear_selector.set_stop_action("brake")
         if (
             self.gear_selector.get_position() <= 90
             or self.gear_selector.get_position() >= 270
         ):
-            self.gear_selector.run_to_position(0, "shortest path", 100)
+            self.gear_selector.run_to_position(0, "shortest path", _100)
         else:
-            self.gear_selector.run_to_position(0, "counterclockwise", 100)
+            self.gear_selector.run_to_position(0, "counterclockwise", _100)
         self.select_gear(hold_attachment)
 
     def select_gear(self, target_gear: int):
-        """+
+        """
         Gear Selection
 
         Parameters:
@@ -194,15 +197,21 @@ class Run:
         """
 
         # Turn gearSelector until right gear is selected
-        if self.selected_gear < target_gear:
-            self.gear_selector.run_to_position(
-                int(58 * (target_gear - 1)), "clockwise", 100
-            )
-        elif self.selected_gear > target_gear:
-            self.gear_selector.run_to_position(
-                int(58 * (target_gear - 1)), "counterclockwise", 100
-            )
-        self.selected_gear = target_gear
+        try:
+            if self.selected_gear < target_gear:
+                self.gear_selector.run_to_position(
+                    int(58 * (target_gear - 1)), "clockwise", 100
+                )
+            elif self.selected_gear > target_gear:
+                self.gear_selector.run_to_position(
+                    int(58 * (target_gear - 1)), "counterclockwise", 100
+                )
+            self.selected_gear = target_gear
+        except KeyboardInterrupt as e:
+            self.gear_selector.set_stall_detection(True)
+            self.select_gear(target_gear=target_gear)
+            self.gear_selector.set_stall_detection(False)
+            raise e
 
     def drive_attachment(
         self,
@@ -531,7 +540,6 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(int(corrector), int(-corrector))
-                print(self.brick.motion_sensor.get_yaw_angle())
         # The motors come to a full-stop
         self.driving_motors.stop()
 
@@ -714,7 +722,7 @@ class MasterControlProgram:
         defargs.update(run_entry[1])
         print("Starting Run {}".format(run))  # pylint: disable=consider-using-f-string
         result = run_entry[0](Run(self.brick, **defargs))
-        print("Ended Run {}".format(run))  # pylint: disable=consider-using-f-string
+        print("Run {} ended".format(run))  # pylint: disable=consider-using-f-string
         return result
 
     def start(
@@ -743,13 +751,13 @@ class MasterControlProgram:
         turningDegreeTolerance: Tolerance when turning for a degree
         """
         if engines is None:
-            engines = ["D", "C", "B", "E"]
+            engines = ["D", "C", "F", "E"]
         if light_sensors is None:
-            light_sensors = ["A", "F"]
+            light_sensors = ["A", "B"]
         if correction_values is None:
             correction_values = [0.5, 0, 0, 0, 0, 0, 0, 0, 0]
         selected_run = 1
-        print("Starting MC")
+        print("Starting MasterControl")
         self.light_up_display(self.brick, selected_run, len(self.runs))
         while True:
             # It checks for button presses to increase, decrease or start the chosen run
@@ -791,15 +799,13 @@ class MasterControlProgram:
                         turning_degree_tolerance=turning_degree_tolerance,
                     )
                 except KeyboardInterrupt:
-                    print("Run stopped")
+                    print("Run stopped forcefully")
                     for port in ["A", "B", "C", "D", "E", "F"]:
                         try:
                             Motor(port).stop()
                         except RuntimeError:
                             pass
-                self.light_up_display(
-                    self.brick, selected_run, len(self.runs)
-                )
+                self.light_up_display(self.brick, selected_run, len(self.runs))
 
 
 mcp = MasterControlProgram(PrimeHub())
@@ -808,43 +814,6 @@ mcp = MasterControlProgram(PrimeHub())
 @mcp.run()
 def run_1(run: Run):
     """Green Run"""
-    run.gyro_drive(speed=100, degree=0, ending_condition=Cm(30), p_correction=4)
-    run.gyro_turn(-45, p_correction=0.75)
-    run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(25), p_correction=2)
-    run.gyro_turn(45, p_correction=0.5)
-    run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=0.5)
-    run.drive_attachment(FRONT_RIGHT, -70, duration=1)
-    run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(13.5), p_correction=4)
-    run.gyro_turn(42.5, p_correction=1)
-    run.drive_attachment(BACK_LEFT, 100, duration=1)
-    run.drive_attachment(BACK_LEFT, -100, duration=0.5)
-    run.gyro_drive(speed=100, degree=45, ending_condition=Cm(5), p_correction=4)
-    run.drive_attachment(BACK_LEFT, 100, duration=0.5)
-    run.gyro_turn(-5, p_correction=1)
-    run.gyro_drive(speed=-100, degree=-10, ending_condition=Cm(4), p_correction=4)
-    run.gyro_turn(50, p_correction=1)
-    run.gyro_turn(-25, p_correction=1)
-    run.gyro_drive(speed=-100, degree=-25, ending_condition=Cm(75), p_correction=4)
-
-    # reset (remove in prod)
-    run.drive_attachment(BACK_LEFT, -100, duration=1)
-
-
-@mcp.run()
-def run_2(run: Run):
-    """Blue Run; Biene Mayo"""
-    run.gyro_drive(100, 0, Cm(62.5))
-    run.drive_attachment(BACK_LEFT, 100, duration=1)
-    run.drive_attachment(FRONT_RIGHT, 100, duration=1)
-    run.gyro_drive(-20, 0, Cm(5))
-    run.drive_attachment(BACK_RIGHT, -20, duration=1)
-    run.drive_attachment(BACK_RIGHT, -40, duration=1)
-    run.gyro_drive(-20, 0, Cm(10))
-
-
-@mcp.run()
-def run_3(run: Run):
-    """Red Run"""
     run.drive_attachment(FRONT_LEFT, -100, duration=6)
     run.gyro_drive(-30, 0, Cm(5))
     run.gyro_turn(-15, p_correction=1)
@@ -853,74 +822,60 @@ def run_3(run: Run):
 
 
 @mcp.run()
-def test(run: Run):
-    """Run all attachment motors"""
-    run.drive_attachment(1, 100, duration=2)
-    run.drive_attachment(2, 100, duration=2)
-    run.drive_attachment(3, 100, duration=2)
-    run.drive_attachment(4, 100, duration=2)
+def run_2(run: Run):
+    """Biene Mayo"""
+    run.gyro_drive(_100, 0, Cm(60))
+    run.drive_attachment(BACK_LEFT, _100, duration=1)
+    run.drive_attachment(FRONT_RIGHT, _100, duration=1)
+    # run.gyro_drive(-20, 0, Cm(5))
+    run.drive_attachment(BACK_RIGHT, -10, duration=1)
+    time.sleep(0.2)
+    run.drive_attachment(BACK_RIGHT, -40, duration=1)
+    run.gyro_drive(-20, 0, Cm(10))
+
 
 @mcp.run()
-def motorcontrol_5(run: Run):
-    """Motorcontrol"""
-    while True:
-        # It checks for button presses to increase, decrease or start the chosen run
-        try:
-            mcp.light_up_display(run.brick, 1, 4)
-            wait_for_seconds(0.1)
-            motor = 1
-            while True:
-                if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
-                    return
-                if run.brick.left_button.is_pressed():
-                    time_ = 0
-                    while run.brick.left_button.is_pressed() and time_ < 3:
-                        time_ += 1
-                        wait_for_seconds(0.1)
-                    if run.brick.right_button.is_pressed():
-                        raise KeyboardInterrupt
-                    if motor > 1:
-                        motor -= 1
-                        mcp.light_up_display(run.brick, motor, 4)
-                if run.brick.right_button.is_pressed():
-                    time_ = 0
-                    while run.brick.right_button.is_pressed() and time_ < 3:
-                        time_ += 1
-                        wait_for_seconds(0.1)
-                    if run.brick.left_button.is_pressed():
-                        raise KeyboardInterrupt
-                    if motor < 4:
-                        motor += 1
-                        mcp.light_up_display(run.brick, motor, 4)
-        except KeyboardInterrupt:
-            speed = 100
-            is_inverted = motor in (FRONT_RIGHT, BACK_LEFT)
-            mcp.brick.light_matrix.off()
-            mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
-            try:
-                while True:
-                    if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
-                        return
-                    if run.brick.right_button.is_pressed():
-                        speed=100
-                        mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
-                    if run.brick.left_button.is_pressed():
-                        speed=-100
-                        mcp.brick.light_matrix.show_image("GO_LEFT" if is_inverted else "GO_RIGHT")
-            except KeyboardInterrupt:
-                wait_for_seconds(0.4)
-                try:
-                    print(1, motor)
-                    run.drive_attachment(motor, speed)
-                    while True:
-                        if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
-                            return  
-                except KeyboardInterrupt:
-                    print(2, motor)
-                    run.drive_shaft.stop()
-                    wait_for_seconds(0.4)
+def run_3(run: Run):
+    """Grey Run"""
+    run.gyro_drive(speed=_100, degree=0, ending_condition=Cm(30), p_correction=4)
+    run.gyro_turn(-45, p_correction=0.75)
+    run.gyro_drive(speed=_100, degree=-45, ending_condition=Cm(25), p_correction=2)
+    run.gyro_turn(45, p_correction=0.5)
+    run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=0.5)
+    run.drive_attachment(FRONT_RIGHT, -70, duration=1)
+    run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(13.5), p_correction=4)
+    run.gyro_turn(42.5, p_correction=1)
+    run.drive_attachment(BACK_LEFT, _100, duration=1)
+    run.drive_attachment(BACK_LEFT, -_100, duration=0.5)
+    run.gyro_drive(speed=_100, degree=45, ending_condition=Cm(5), p_correction=4)
+    run.drive_attachment(BACK_LEFT, _100, duration=0.5)
+    run.gyro_turn(-5, p_correction=1)
+    run.gyro_drive(speed=-_100, degree=-10, ending_condition=Cm(4), p_correction=4)
+    run.gyro_turn(50, p_correction=1)
+    run.gyro_turn(-25, p_correction=1)
+    run.gyro_drive(speed=-_100, degree=-25, ending_condition=Cm(75), p_correction=4)
+
+    # reset (remove in prod)
+    run.drive_attachment(BACK_LEFT, -_100, duration=1)
+
 @mcp.run()
-def motorcontrol_6(run: Run):
+def run_4(run: Run):
+    """Red Run"""
+    ...
+
+
+@mcp.run()
+def test(run: Run):
+    """Run all attachment motors"""
+
+    run.drive_attachment(1, _100, duration=2)
+    run.drive_attachment(2, _100, duration=2)
+    run.drive_attachment(3, _100, duration=2)
+    run.drive_attachment(4, _100, duration=2)
+
+
+@mcp.run()
+def motorcontrol(run: Run):
     select = 1
     last_select = -1
     motor = FRONT_RIGHT
@@ -940,35 +895,42 @@ def motorcontrol_6(run: Run):
                 select = 1
             if last_select != select:
                 last_select = select
-                #mcp.light_up_display(run.brick, motor, 4)
+                # mcp.light_up_display(run.brick, motor, 4)
                 mcp.brick.light_matrix.off()
                 if select == 1:
-                    mcp.brick.light_matrix.set_pixel(0, 0, 100)
+                    mcp.brick.light_matrix.set_pixel(0, 0, _100)
                     motor = FRONT_LEFT
                 if select == 2:
-                    mcp.brick.light_matrix.set_pixel(4, 0, 100)
+                    mcp.brick.light_matrix.set_pixel(4, 0, _100)
                     motor = FRONT_RIGHT
                 if select == 3:
-                    mcp.brick.light_matrix.set_pixel(0, 4, 100)
+                    mcp.brick.light_matrix.set_pixel(0, 4, _100)
                     motor = BACK_LEFT
                 if select == 4:
-                    mcp.brick.light_matrix.set_pixel(4, 4, 100)
+                    mcp.brick.light_matrix.set_pixel(4, 4, _100)
                     motor = BACK_RIGHT
     except KeyboardInterrupt:
-        speed = 100
+        speed = _100
         is_inverted = motor in (BACK_RIGHT, FRONT_RIGHT)
         mcp.brick.light_matrix.off()
         mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
         try:
             while True:
-                if run.brick.left_button.is_pressed() and run.brick.right_button.is_pressed():
+                if (
+                    run.brick.left_button.is_pressed()
+                    and run.brick.right_button.is_pressed()
+                ):
                     return
                 if run.brick.right_button.is_pressed():
-                    speed=100
-                    mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
+                    speed = _100
+                    mcp.brick.light_matrix.show_image(
+                        "GO_RIGHT" if is_inverted else "GO_LEFT"
+                    )
                 if run.brick.left_button.is_pressed():
-                    speed=-100
-                    mcp.brick.light_matrix.show_image("GO_LEFT" if is_inverted else "GO_RIGHT")
+                    speed = -_100
+                    mcp.brick.light_matrix.show_image(
+                        "GO_LEFT" if is_inverted else "GO_RIGHT"
+                    )
         except KeyboardInterrupt:
             try:
                 run.drive_attachment(motor, speed)
@@ -977,9 +939,6 @@ def motorcontrol_6(run: Run):
             except KeyboardInterrupt:
                 run.drive_shaft.stop()
                 wait_for_seconds(1.0)
-@mcp.run()
-def run_7(run: Run):
-    run.drive_attachment(BACK_RIGHT, -100, duration=1.5)
-    run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
-    
+
+
 mcp.start()
