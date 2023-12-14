@@ -1,14 +1,17 @@
 # LEGO type:standard slot:0 autostart
+# pylint: disable=too-many-lines
+# pylint: disable=c-extension-no-member
 """
 Current Program, uses PEP8 conform names and has the new MasterControlProgram class
 This is work in progress so there is no docstr on new elements.
 """
-from math import fabs, floor, pi
 import time
+from math import fabs, floor, pi
+
 import hub
-from spike import PrimeHub, Motor, ColorSensor, MotorPair
-from spike.control import wait_for_seconds, wait_until, Timer
 from micropython import const
+from spike import ColorSensor, Motor, MotorPair, PrimeHub
+from spike.control import Timer, wait_for_seconds, wait_until
 
 FRONT_RIGHT = const(3)
 FRONT_LEFT = const(4)
@@ -20,8 +23,12 @@ DEBUG_MODE = True
 _100 = const(100)
 
 
-class BatteryLowError(KeyboardInterrupt):
+class BatteryLowError(SystemExit):
     """Error raised when in debug mode and running motors while battery low."""
+
+
+class RobotReset(SystemExit):
+    """Error raised to restart the robot."""
 
 
 class EndingCondition:
@@ -215,7 +222,7 @@ class Run:
         if not self.debug_mode:
             return
         if hub.battery.capacity_left() < 80:
-            raise BatteryLowError
+            raise BatteryLowError("Battery capacity got below 80%")
 
     def select_gear(self, target_gear: int):
         """
@@ -236,11 +243,11 @@ class Run:
                     int(58 * (target_gear - 1)), "counterclockwise", 100
                 )
             self.selected_gear = target_gear
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt as e2:
             self.gear_selector.set_stall_detection(True)
             self.select_gear(target_gear=target_gear)
             self.gear_selector.set_stall_detection(False)
-            raise e
+            raise e2
 
     def drive_attachment(
         self,
@@ -769,6 +776,16 @@ class MasterControlProgram:
         print("Run {} ended".format(run))  # pylint: disable=consider-using-f-string
         return result
 
+    def turn_light_off(self):
+        """
+        Turn the light of all color sensors off.
+        """
+        for x in ["A", "B", "C", "D", "E", "F"]:
+            try:
+                ColorSensor(x).light_up_all(0)
+            except RuntimeError:
+                pass
+
     def start(
         self,
         engines: list[str] = None,
@@ -802,11 +819,17 @@ class MasterControlProgram:
             correction_values = [0.5, 0, 0, 0, 0, 0, 0, 0, 0]
         selected_run = 1
         print("Starting MasterControl")
+        self.turn_light_off()
         self.light_up_display(self.brick, selected_run, len(self.runs))
         while True:
             # It checks for button presses to increase, decrease or start the chosen run
             try:
                 while True:
+                    if (
+                        self.brick.left_button.is_pressed()
+                        and self.brick.right_button.is_pressed()
+                    ):
+                        raise RobotReset()
                     if self.brick.left_button.is_pressed():
                         time_ = 0
                         while self.brick.left_button.is_pressed() and time_ < 3:
@@ -842,6 +865,7 @@ class MasterControlProgram:
                         light_middle_value=light_middle_value,
                         turning_degree_tolerance=turning_degree_tolerance,
                     )
+                    self.turn_light_off()
                 except KeyboardInterrupt:
                     print("Run stopped forcefully")
                     for port in ["A", "B", "C", "D", "E", "F"]:
@@ -852,7 +876,7 @@ class MasterControlProgram:
                 self.light_up_display(self.brick, selected_run, len(self.runs))
 
 
-mcp = MasterControlProgram(PrimeHub(), debug_mode=True)
+mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 
 
 @mcp.run()
@@ -901,7 +925,7 @@ def run_3(run: Run):
 
 
 @mcp.run()
-def run_4(run: Run): # pylint: disable=unused-argument
+def run_4(run: Run):  # pylint: disable=unused-argument
     """Red Run"""
 
 
@@ -985,5 +1009,10 @@ def motorcontrol(run: Run):
 
 try:
     mcp.start()
-except BatteryLowError:
+except BatteryLowError as e:
+    mcp.brick.light_matrix.write("!")
     mcp.brick.speaker.beep(65, 1)
+    raise e
+except RobotReset as e:
+    hub.power_off(fast=True, restart=True)
+    raise e
