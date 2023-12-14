@@ -5,6 +5,7 @@ This is work in progress so there is no docstr on new elements.
 """
 from math import fabs, floor, pi
 import time
+import hub
 from spike import PrimeHub, Motor, ColorSensor, MotorPair
 from spike.control import wait_for_seconds, wait_until, Timer
 from micropython import const
@@ -14,8 +15,14 @@ FRONT_LEFT = const(4)
 BACK_RIGHT = const(1)
 BACK_LEFT = const(2)
 
+DEBUG_MODE = True
 
 _100 = const(100)
+
+
+class BatteryLowError(KeyboardInterrupt):
+    """Error raised when in debug mode and running motors while battery low."""
+
 
 class EndingCondition:
     """Ending Condition: Infinite and Base for other Ending Conditions"""
@@ -124,6 +131,7 @@ class Run:
         light_black_value: int = 10,
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,
+        debug_mode: bool = False,
     ):
         """
         Initiation of Run
@@ -138,6 +146,7 @@ class Run:
         lightBlackValue: The Lightvalue of Black
         lightMiddleValue: The middle Lightvalue between Black and White
         turningDegreeTolerance: Tolerance when turning for a degree
+        debug_mode: Whether to add debug features. Currently only used for battery low exceptions.
         """
 
         # Setting all variables that don't change during the runs, i.e. the Motorports
@@ -175,6 +184,15 @@ class Run:
         self.attachment_started = False
         self.attachment_stopped = False
         self.brick.motion_sensor.reset_yaw_angle()
+        self.debug_mode = debug_mode
+
+        if self.debug_mode:
+            PrimeHub().speaker.beep(60, 0.2)
+            PrimeHub().speaker.beep(80, 0.2)
+            PrimeHub().speaker.beep(60, 0.2)
+            PrimeHub().speaker.beep(80, 0.2)
+
+        self.check_battery()
 
         # Resetting Gyro-Sensor and Transmission
         self.gear_selector.set_stall_detection(True)
@@ -188,6 +206,17 @@ class Run:
             self.gear_selector.run_to_position(0, "counterclockwise", _100)
         self.select_gear(hold_attachment)
 
+    def check_battery(self):
+        """
+        Check if the battery is low and raise an error if it is below 80%.
+        Only ran when in debug mode.
+        """
+
+        if not self.debug_mode:
+            return
+        if hub.battery.capacity_left() < 80:
+            raise BatteryLowError
+
     def select_gear(self, target_gear: int):
         """
         Gear Selection
@@ -195,7 +224,7 @@ class Run:
         Parameters:
         targetGear: Wanted Gear (4:Front-Left, 3:Back-Left, 1:Front-Right, 2:Back-Right)
         """
-
+        self.check_battery()
         # Turn gearSelector until right gear is selected
         try:
             if self.selected_gear < target_gear:
@@ -231,6 +260,7 @@ class Run:
         degree: Distance of Movement in Degrees
         resistance: Move until hitting resistance
         """
+        self.check_battery()
         # Stop possible movement, select chosen gear
         self.drive_shaft.stop()
         self.select_gear(attachment_index)
@@ -254,6 +284,7 @@ class Run:
     def stop_attachment(self):
         """Stop attachment drive"""
         # Stop possible movement
+        self.check_battery()
         self.drive_shaft.stop()
 
     def reset_timer_and_ending_condition(self):
@@ -294,7 +325,8 @@ class Run:
         endSpeed: final speed to finish on
         distane: distance of deceleration
         """
-        # Given the target-speed and the progress X, the function returns the target-speed*((50-X)/50)
+        # Given the target-speed and the progress X,
+        # the function returns the target-speed*((50-X)/50)
         # If another 1/50 is reached, the progress-counter is increased
         if (
             (
@@ -338,6 +370,7 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         """
+        self.check_battery()
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
@@ -419,7 +452,8 @@ class Run:
                     int(self.calculate_acceleration(speed - corrector, acceleration)),
                 )
         # If deceleration is wanted, stop the above loops early to start decelerating
-        # The PID-Loop stays the same, the speed only gets decelerated before being put into the motors
+        # The PID-Loop stays the same,
+        # the speed only gets decelerated before being put into the motors
         if deceleration != 0:
             while self.deceleration_counter <= 50:
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
@@ -449,6 +483,7 @@ class Run:
         d_correction: int = 0,
         attachment_start: list[int] = None,
         attachment_stop: int = 0,
+        speed_multiplier: float = 1,
     ):
         """
         PID-Gyro-Tank-Turn
@@ -461,7 +496,9 @@ class Run:
         d_correction: D-Correction-Value
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
+        speed_multiplier: Factor to multiply speed by.
         """
+        self.check_battery()
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
@@ -500,7 +537,8 @@ class Run:
                 last_error = error_value
                 # If an attachementStart is planned, check the timer and start the Attachement
                 self.driving_motors.start_tank(
-                    attachment_start[2] - corrector, attachment_start[2] + corrector
+                    round((attachment_start[2] - corrector) * speed_multiplier),
+                    round((attachment_start[2] + corrector) * speed_multiplier),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
                 if (
@@ -539,7 +577,10 @@ class Run:
                 )
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
-                self.driving_motors.start_tank(int(corrector), int(-corrector))
+                self.driving_motors.start_tank(
+                    round(int(corrector) * speed_multiplier),
+                    round(int(-corrector) * speed_multiplier),
+                )
         # The motors come to a full-stop
         self.driving_motors.stop()
 
@@ -569,6 +610,7 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         """
+        self.check_battery()
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
@@ -652,7 +694,7 @@ class Run:
 class MasterControlProgram:
     """Master Control Program managing and starting all runs"""
 
-    def __init__(self, brick: PrimeHub) -> None:
+    def __init__(self, brick: PrimeHub, **defaults) -> None:
         """
         init Master Control Program
 
@@ -661,6 +703,7 @@ class MasterControlProgram:
         """
         self.runs: list[tuple[callable, dict[str, any]]] = []
         self.brick: PrimeHub = brick
+        self.defaults = defaults
 
     def run(self, **defaults):
         """Decorator for a run"""
@@ -718,6 +761,7 @@ class MasterControlProgram:
         """
         run_entry = self.runs[run - 1]
         defargs = {}
+        defargs.update(self.defaults)
         defargs.update(defaults)
         defargs.update(run_entry[1])
         print("Starting Run {}".format(run))  # pylint: disable=consider-using-f-string
@@ -764,9 +808,9 @@ class MasterControlProgram:
             try:
                 while True:
                     if self.brick.left_button.is_pressed():
-                        time = 0
-                        while self.brick.left_button.is_pressed() and time < 3:
-                            time += 1
+                        time_ = 0
+                        while self.brick.left_button.is_pressed() and time_ < 3:
+                            time_ += 1
                             wait_for_seconds(0.1)
                         if selected_run > 1:
                             selected_run -= 1
@@ -774,9 +818,9 @@ class MasterControlProgram:
                                 self.brick, selected_run, len(self.runs)
                             )
                     if self.brick.right_button.is_pressed():
-                        time = 0
-                        while self.brick.right_button.is_pressed() and time < 3:
-                            time += 1
+                        time_ = 0
+                        while self.brick.right_button.is_pressed() and time_ < 3:
+                            time_ += 1
                             wait_for_seconds(0.1)
                         if selected_run < len(self.runs) + 1:
                             selected_run += 1
@@ -808,17 +852,14 @@ class MasterControlProgram:
                 self.light_up_display(self.brick, selected_run, len(self.runs))
 
 
-mcp = MasterControlProgram(PrimeHub())
+mcp = MasterControlProgram(PrimeHub(), debug_mode=True)
 
 
 @mcp.run()
 def run_1(run: Run):
     """Green Run"""
-    run.drive_attachment(FRONT_LEFT, -100, duration=6)
-    run.gyro_drive(-30, 0, Cm(5))
-    run.gyro_turn(-15, p_correction=1)
-    run.gyro_drive(30, -15, Cm(8))
-    run.drive_attachment(FRONT_RIGHT, -100, duration=19)
+    run.gyro_drive(100, 2, ending_condition=Cm(50), p_correction=1.4)
+    run.gyro_turn(45, speed_multiplier=0.75)
 
 
 @mcp.run()
@@ -858,10 +899,10 @@ def run_3(run: Run):
     # reset (remove in prod)
     run.drive_attachment(BACK_LEFT, -_100, duration=1)
 
+
 @mcp.run()
-def run_4(run: Run):
+def run_4(run: Run): # pylint: disable=unused-argument
     """Red Run"""
-    ...
 
 
 @mcp.run()
@@ -876,6 +917,7 @@ def test(run: Run):
 
 @mcp.run()
 def motorcontrol(run: Run):
+    """Motorcontrol"""
     select = 1
     last_select = -1
     motor = FRONT_RIGHT
@@ -941,4 +983,7 @@ def motorcontrol(run: Run):
                 wait_for_seconds(1.0)
 
 
-mcp.start()
+try:
+    mcp.start()
+except BatteryLowError:
+    mcp.brick.speaker.beep(65, 1)

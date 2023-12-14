@@ -17,7 +17,7 @@ while True:
     try:
         height = round(hub.battery.capacity_left() / 10)
 
-        delay = .1 if hub.battery.charger_detect() is not False else 0
+        delay = 0.1 if hub.battery.charger_detect() is not False else 0
 
         if height >= 0:
             hb.light_matrix.set_pixel(2, 0, 0)
@@ -51,13 +51,13 @@ while True:
         time.sleep(delay)
         if height >= 10:
             hb.light_matrix.set_pixel(2, 4, 100)
-            
+
         time.sleep(1)
-        
+
         if hb.left_button.was_pressed():
             hb.light_matrix.set_pixel(1, 4, 100)
             hb.light_matrix.set_pixel(3, 4, 100)
-            
+
         if hb.right_button.was_pressed():
             hb.light_matrix.set_pixel(1, 4, 0)
             hb.light_matrix.set_pixel(3, 4, 0)
