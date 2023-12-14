@@ -7,6 +7,12 @@ import spike
 
 hb = spike.PrimeHub()
 
+for x in ["A", "B", "C", "D", "E", "F"]:
+    try:
+        spike.ColorSensor(x).light_up_all(0)
+    except RuntimeError:
+        pass
+
 hb.light_matrix.set_pixel(0, 0, 50)
 hb.light_matrix.set_pixel(4, 0, 50)
 hb.light_matrix.set_pixel(0, 4, 50)
