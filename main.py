@@ -1,4 +1,5 @@
 # LEGO type:standard slot:0 autostart
+# OTTOS PROGRAMMIERUNG IN PYTHON
 # pylint: disable=too-many-lines
 # pylint: disable=c-extension-no-member
 """
@@ -139,6 +140,7 @@ class Run:
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,
         debug_mode: bool = False,
+        display_as: str | int = None
     ):
         """
         Initiation of Run
@@ -192,6 +194,7 @@ class Run:
         self.attachment_stopped = False
         self.brick.motion_sensor.reset_yaw_angle()
         self.debug_mode = debug_mode
+        self.display_as = display_as
 
         if self.debug_mode:
             PrimeHub().speaker.beep(60, 0.2)
@@ -721,41 +724,66 @@ class MasterControlProgram:
 
         return decorator
 
-    def light_up_display(self, brick: PrimeHub, number=int, max_number=int):
+    def light_up_display(self, brick: PrimeHub, number: int, max_number: int):
         """Show number on display with styled lines"""
-        brightness = 70
-        brick.light_matrix.write(number)
-        brick.light_matrix.set_pixel(0, 1, brightness=brightness)
-        brick.light_matrix.set_pixel(0, 3, brightness=brightness)
-        brick.light_matrix.set_pixel(4, 1, brightness=brightness)
-        brick.light_matrix.set_pixel(4, 3, brightness=brightness)
+        brightness_70 = const(70)
+        if number - 1 < max_number:
+            display_as = self.runs[number - 1][1].get("display_as", number)
+        else:
+            display_as = number
+        if display_as == "X":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(1, 4, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 0, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
+            brick.light_matrix.set_pixel(3, 4, brightness=_100)
+        elif display_as == "C":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 2, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 0, brightness=_100)
+            brick.light_matrix.set_pixel(3, 4, brightness=_100)
+        else:
+            brick.light_matrix.write(display_as)
+        brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
+        brick.light_matrix.set_pixel(0, 3, brightness=brightness_70)
+        brick.light_matrix.set_pixel(4, 1, brightness=brightness_70)
+        brick.light_matrix.set_pixel(4, 3, brightness=brightness_70)
         if number == max_number + 1:
             brick.light_matrix.off()
-            brick.light_matrix.set_pixel(1, 1, brightness=100)
-            brick.light_matrix.set_pixel(2, 2, brightness=100)
-            brick.light_matrix.set_pixel(3, 3, brightness=100)
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
 
-            brick.light_matrix.set_pixel(1, 3, brightness=100)
-            brick.light_matrix.set_pixel(3, 1, brightness=100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
 
-            brick.light_matrix.set_pixel(0, 1, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 3, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 1, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 3, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 4, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 2, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 2, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 4, brightness=brightness)
+            brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 3, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 1, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 3, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 4, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 2, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 2, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 4, brightness=brightness_70)
         if number == 1:
-            brick.light_matrix.set_pixel(0, 4, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 2, brightness=brightness)
+            brick.light_matrix.set_pixel(0, 4, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 2, brightness=brightness_70)
         if number == max_number:
-            brick.light_matrix.set_pixel(4, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 2, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 4, brightness=brightness)
+            brick.light_matrix.set_pixel(4, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 2, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 4, brightness=brightness_70)
 
     def start_run(self, run, **defaults):
         """Start a run by ID
@@ -838,8 +866,7 @@ class MasterControlProgram:
                         if selected_run > 1:
                             selected_run -= 1
                             self.light_up_display(
-                                self.brick, selected_run, len(self.runs)
-                            )
+                                self.brick, selected_run, len(self.runs))
                     if self.brick.right_button.is_pressed():
                         time_ = 0
                         while self.brick.right_button.is_pressed() and time_ < 3:
@@ -848,8 +875,7 @@ class MasterControlProgram:
                         if selected_run < len(self.runs) + 1:
                             selected_run += 1
                             self.light_up_display(
-                                self.brick, selected_run, len(self.runs)
-                            )
+                                self.brick, selected_run, len(self.runs))
             except KeyboardInterrupt as err:
                 if selected_run == len(self.runs) + 1:
                     raise SystemExit from err
@@ -881,7 +907,7 @@ mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 
 @mcp.run()
 def run_1(run: Run):
-    """Green Run"""
+    """Froggy Run (Grün)"""
     run.gyro_drive(100, 2, ending_condition=Cm(50), p_correction=1.4)
     run.gyro_turn(45, speed_multiplier=0.75)
 
@@ -889,19 +915,15 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Biene Mayo"""
-    run.gyro_drive(_100, 0, Cm(60))
-    run.drive_attachment(BACK_LEFT, _100, duration=1)
-    run.drive_attachment(FRONT_RIGHT, _100, duration=1)
-    # run.gyro_drive(-20, 0, Cm(5))
-    run.drive_attachment(BACK_RIGHT, -10, duration=1)
-    time.sleep(0.2)
-    run.drive_attachment(BACK_RIGHT, -40, duration=1)
-    run.gyro_drive(-20, 0, Cm(10))
+    run.gyro_drive(_100, 0, Cm(56))
+    run.drive_attachment(FRONT_RIGHT, -50, duration=1.25)
+    run.drive_attachment(BACK_RIGHT, -100, duration=3.75)
+    run.gyro_drive(-50, 0, Cm(10))
 
 
 @mcp.run()
 def run_3(run: Run):
-    """Grey Run"""
+    """Hässlicher Run (Grau)"""
     run.gyro_drive(speed=_100, degree=0, ending_condition=Cm(30), p_correction=4)
     run.gyro_turn(-45, p_correction=0.75)
     run.gyro_drive(speed=_100, degree=-45, ending_condition=Cm(25), p_correction=2)
@@ -926,20 +948,20 @@ def run_3(run: Run):
 
 @mcp.run()
 def run_4(run: Run):  # pylint: disable=unused-argument
-    """Red Run"""
+    """Tatütata Run (Rot)"""
 
 
-@mcp.run()
+@mcp.run(display_as="X")
 def test(run: Run):
     """Run all attachment motors"""
 
-    run.drive_attachment(1, _100, duration=2)
-    run.drive_attachment(2, _100, duration=2)
-    run.drive_attachment(3, _100, duration=2)
-    run.drive_attachment(4, _100, duration=2)
+    run.drive_attachment(1, _100, duration=1)
+    run.drive_attachment(2, _100, duration=1)
+    run.drive_attachment(3, _100, duration=1)
+    run.drive_attachment(4, _100, duration=1)
 
 
-@mcp.run()
+@mcp.run(display_as="C")
 def motorcontrol(run: Run):
     """Motorcontrol"""
     select = 1
