@@ -6,6 +6,7 @@ import hub  # type: ignore # pylint: disable=import-error
 import spike
 
 hb = spike.PrimeHub()
+went_on_80 = -1
 
 for x in ["A", "B", "C", "D", "E", "F"]:
     try:
@@ -21,7 +22,25 @@ hb.light_matrix.set_pixel(4, 4, 50)
 
 while True:
     try:
-        height = round(hub.battery.capacity_left() / 10)
+        cap = hub.battery.capacity_left()
+        height = round(cap / 10)
+        if cap >= 80:
+            if went_on_80 == -1:
+                went_on_80 = time.time()
+        else:
+            went_on_80 = -1
+        if went_on_80 != -1 and time.time() - went_on_80 > 60*5:
+            hb.light_matrix.set_pixel(0, 0, 100)
+            hb.light_matrix.set_pixel(4, 0, 100)
+            hb.light_matrix.set_pixel(0, 4, 100)
+            hb.light_matrix.set_pixel(4, 4, 100)
+            hb.speaker.beep(70, 0.2)
+            time.sleep(0.1)
+            hb.speaker.beep(65, 0.3)
+            hb.light_matrix.set_pixel(0, 0, 50)
+            hb.light_matrix.set_pixel(4, 0, 50)
+            hb.light_matrix.set_pixel(0, 4, 50)
+            hb.light_matrix.set_pixel(4, 4, 50)
 
         delay = 0.1 if hub.battery.charger_detect() is not False else 0
 
