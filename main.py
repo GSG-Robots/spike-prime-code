@@ -28,8 +28,8 @@ class BatteryLowError(SystemExit):
     """Error raised when in debug mode and running motors while battery low."""
 
 
-class RobotReset(SystemExit):
-    """Error raised to restart the robot."""
+class EnterDebugMenu(SystemExit):
+    ...
 
 
 class EndingCondition:
@@ -140,7 +140,7 @@ class Run:
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,
         debug_mode: bool = False,
-        display_as: str | int = None
+        display_as: str | int = None,
     ):
         """
         Initiation of Run
@@ -494,6 +494,8 @@ class Run:
         attachment_start: list[int] = None,
         attachment_stop: int = 0,
         speed_multiplier: float = 1,
+        speed_multiplier_left: float = None,
+        speed_multiplier_right: float = None,
     ):
         """
         PID-Gyro-Tank-Turn
@@ -507,8 +509,16 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         speed_multiplier: Factor to multiply speed by.
+        speed_multiplier_left: Factor to multiply speed by on left side.
+        speed_multiplier_right: Factor to multiply speed by on right side.
         """
         self.check_battery()
+
+        if speed_multiplier_left is None:
+            speed_multiplier_left = speed_multiplier
+        if speed_multiplier_right is None:
+            speed_multiplier_right = speed_multiplier
+
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
@@ -547,8 +557,8 @@ class Run:
                 last_error = error_value
                 # If an attachementStart is planned, check the timer and start the Attachement
                 self.driving_motors.start_tank(
-                    round((attachment_start[2] - corrector) * speed_multiplier),
-                    round((attachment_start[2] + corrector) * speed_multiplier),
+                    round((attachment_start[2] - corrector) * speed_multiplier_left),
+                    round((attachment_start[2] + corrector) * speed_multiplier_right),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
                 if (
@@ -588,8 +598,8 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
-                    round(int(corrector) * speed_multiplier),
-                    round(int(-corrector) * speed_multiplier),
+                    round(int(corrector) * speed_multiplier_left),
+                    round(int(-corrector) * speed_multiplier_right),
                 )
         # The motors come to a full-stop
         self.driving_motors.stop()
@@ -751,6 +761,30 @@ class MasterControlProgram:
             brick.light_matrix.set_pixel(2, 4, brightness=_100)
             brick.light_matrix.set_pixel(3, 0, brightness=_100)
             brick.light_matrix.set_pixel(3, 4, brightness=_100)
+        elif display_as == "R":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 2, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(1, 4, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(3, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
+        elif display_as == "D":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 2, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(1, 4, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
+            brick.light_matrix.set_pixel(3, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
         else:
             brick.light_matrix.write(display_as)
         brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
@@ -823,6 +857,7 @@ class MasterControlProgram:
         light_black_value: int = 10,
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,
+        no_debug_menu: bool = False,
     ):
         """
         start Master Control Program
@@ -838,6 +873,7 @@ class MasterControlProgram:
         lightBlackValue: The Lightvalue of Black
         lightMiddleValue: The middle Lightvalue between Black and White
         turningDegreeTolerance: Tolerance when turning for a degree
+        no_debug_menu: Whether to disable the debug menu
         """
         if engines is None:
             engines = ["D", "C", "F", "E"]
@@ -854,10 +890,11 @@ class MasterControlProgram:
             try:
                 while True:
                     if (
-                        self.brick.left_button.is_pressed()
+                        not no_debug_menu
+                        and self.brick.left_button.is_pressed()
                         and self.brick.right_button.is_pressed()
                     ):
-                        raise RobotReset()
+                        raise EnterDebugMenu()
                     if self.brick.left_button.is_pressed():
                         time_ = 0
                         while self.brick.left_button.is_pressed() and time_ < 3:
@@ -866,7 +903,8 @@ class MasterControlProgram:
                         if selected_run > 1:
                             selected_run -= 1
                             self.light_up_display(
-                                self.brick, selected_run, len(self.runs))
+                                self.brick, selected_run, len(self.runs)
+                            )
                     if self.brick.right_button.is_pressed():
                         time_ = 0
                         while self.brick.right_button.is_pressed() and time_ < 3:
@@ -875,7 +913,8 @@ class MasterControlProgram:
                         if selected_run < len(self.runs) + 1:
                             selected_run += 1
                             self.light_up_display(
-                                self.brick, selected_run, len(self.runs))
+                                self.brick, selected_run, len(self.runs)
+                            )
             except KeyboardInterrupt as err:
                 if selected_run == len(self.runs) + 1:
                     raise SystemExit from err
@@ -907,7 +946,7 @@ mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 
 @mcp.run()
 def run_1(run: Run):
-    """Froggy Run (Grün)"""
+    """Giftschlange Run (Grün)"""
     run.gyro_drive(100, 2, ending_condition=Cm(50), p_correction=1.4)
     run.gyro_turn(45, speed_multiplier=0.75)
 
@@ -915,15 +954,23 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Biene Mayo"""
-    run.gyro_drive(_100, 0, Cm(56))
+    run.gyro_drive(70, 0, Cm(50.5), p_correction=1)
     run.drive_attachment(FRONT_RIGHT, -50, duration=1.25)
-    run.drive_attachment(BACK_RIGHT, -100, duration=3.75)
-    run.gyro_drive(-50, 0, Cm(10))
+    run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
+    run.select_gear(BACK_LEFT)
+    run.gyro_turn(20, speed_multiplier=1.6, speed_multiplier_left=0, p_correction=1.2)
+    run.gyro_drive(-50, 23, Cm(7), p_correction=1)
+    run.gyro_turn(45, speed_multiplier_right=0, p_correction=2)
+    run.drive_attachment(BACK_RIGHT, 100, duration=3)
+    run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
+    run.gyro_drive(70, 0, Cm(25), p_correction=1)
+    run.drive_attachment(FRONT_LEFT, -25, duration=1.25)
+    run.drive_attachment(FRONT_LEFT, 75, duration=1)
 
 
 @mcp.run()
 def run_3(run: Run):
-    """Hässlicher Run (Grau)"""
+    """Nashorn Run (Grau)"""
     run.gyro_drive(speed=_100, degree=0, ending_condition=Cm(30), p_correction=4)
     run.gyro_turn(-45, p_correction=0.75)
     run.gyro_drive(speed=_100, degree=-45, ending_condition=Cm(25), p_correction=2)
@@ -1029,12 +1076,28 @@ def motorcontrol(run: Run):
                 wait_for_seconds(1.0)
 
 
-try:
-    mcp.start()
-except BatteryLowError as e:
-    mcp.brick.light_matrix.write("!")
-    mcp.brick.speaker.beep(65, 1)
-    raise e
-except RobotReset as e:
-    hub.power_off(fast=True, restart=True)
-    raise e
+debug_menu = MasterControlProgram(PrimeHub())
+
+
+@debug_menu.run(display_as="R")
+def restart(run):
+    hub.power_off(True, True)
+
+
+@debug_menu.run(display_as="D")
+def enbug(run):
+    mcp.defaults["debug_mode"] = False
+
+
+while True:
+    try:
+        mcp.start()
+    except BatteryLowError as e:
+        mcp.brick.light_matrix.write("!")
+        mcp.brick.speaker.beep(65, 1)
+        raise e
+    except EnterDebugMenu as e:
+        try:
+            debug_menu.start(no_debug_menu=True)
+        except SystemExit:
+            continue
