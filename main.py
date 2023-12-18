@@ -963,9 +963,12 @@ def run_2(run: Run):
     run.gyro_turn(45, speed_multiplier_right=0, p_correction=2)
     run.drive_attachment(BACK_RIGHT, 100, duration=3)
     run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
-    run.gyro_drive(70, 0, Cm(25), p_correction=1)
-    run.drive_attachment(FRONT_LEFT, -25, duration=1.25)
-    run.drive_attachment(FRONT_LEFT, 75, duration=1)
+    run.gyro_drive(70, 0, Cm(28), p_correction=1)
+    run.drive_attachment(FRONT_LEFT, -25, duration=2.5)
+    run.drive_attachment(FRONT_LEFT, 100, duration=0.75)
+    run.gyro_drive(100, 0, Cm(40), p_correction=1)
+    run.gyro_turn(-125, p_correction=1.2)
+    run.gyro_drive(50, -125, Cm(48), p_correction=1)
 
 
 @mcp.run()
