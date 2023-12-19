@@ -785,8 +785,10 @@ class MasterControlProgram:
             brick.light_matrix.set_pixel(3, 1, brightness=_100)
             brick.light_matrix.set_pixel(3, 2, brightness=_100)
             brick.light_matrix.set_pixel(3, 3, brightness=_100)
-        else:
+        elif isinstance(display_as, int):
             brick.light_matrix.write(display_as)
+        else:
+            brick.light_matrix.write(number)
         brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
         brick.light_matrix.set_pixel(0, 3, brightness=brightness_70)
         brick.light_matrix.set_pixel(4, 1, brightness=brightness_70)
@@ -961,37 +963,36 @@ def run_2(run: Run):
     run.gyro_turn(20, speed_multiplier=1.6, speed_multiplier_left=0, p_correction=1.2)
     run.gyro_drive(-50, 23, Cm(7), p_correction=1)
     run.gyro_turn(45, speed_multiplier_right=0, p_correction=2)
-    run.drive_attachment(BACK_RIGHT, 100, duration=3)
+    run.drive_attachment(BACK_RIGHT, _100, duration=3)
     run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
     run.gyro_drive(70, 0, Cm(28), p_correction=1)
     run.drive_attachment(FRONT_LEFT, -25, duration=2.5)
-    run.drive_attachment(FRONT_LEFT, 100, duration=0.75)
+    run.drive_attachment(FRONT_LEFT, _100, duration=0.75)
     run.gyro_drive(100, 0, Cm(40), p_correction=1)
-    run.gyro_turn(-125, p_correction=1.2)
+    time.sleep(2)
+    run.gyro_turn(-140, p_correction=1.2)
+    run.gyro_turn(-105, p_correction=1.2)
     run.gyro_drive(50, -125, Cm(48), p_correction=1)
 
 
 @mcp.run()
 def run_3(run: Run):
     """Nashorn Run (Grau)"""
-    run.gyro_drive(speed=_100, degree=0, ending_condition=Cm(30), p_correction=4)
+    run.gyro_drive(speed=_100, degree=0, ending_condition=Cm(38), p_correction=4)
     run.gyro_turn(-45, p_correction=0.75)
-    run.gyro_drive(speed=_100, degree=-45, ending_condition=Cm(25), p_correction=2)
+    run.gyro_drive(speed=_100, degree=-45, ending_condition=Cm(19), p_correction=2)
     run.gyro_turn(45, p_correction=0.5)
     run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=0.5)
-    run.drive_attachment(FRONT_RIGHT, -70, duration=1)
-    run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(13.5), p_correction=4)
+    run.drive_attachment(FRONT_RIGHT, -70, duration=0.3)
+    run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(8), p_correction=4)
     run.gyro_turn(42.5, p_correction=1)
+    run.drive_attachment(BACK_LEFT, _100, duration=3)
+    run.gyro_drive(speed=-20, degree=45, ending_condition=cm(5), p_correction=4)
+    run.drive_attachment(BACK_LEFT, -_100, duration=3)
     run.drive_attachment(BACK_LEFT, _100, duration=1)
-    run.drive_attachment(BACK_LEFT, -_100, duration=0.5)
-    run.gyro_drive(speed=_100, degree=45, ending_condition=Cm(5), p_correction=4)
-    run.drive_attachment(BACK_LEFT, _100, duration=0.5)
+    run.gyro_drive(speed=40, degree=-45, ending_condition=cm(8), p_correction=4)
     run.gyro_turn(-5, p_correction=1)
     run.gyro_drive(speed=-_100, degree=-10, ending_condition=Cm(4), p_correction=4)
-    run.gyro_turn(50, p_correction=1)
-    run.gyro_turn(-25, p_correction=1)
-    run.gyro_drive(speed=-_100, degree=-25, ending_condition=Cm(75), p_correction=4)
-
     # reset (remove in prod)
     run.drive_attachment(BACK_LEFT, -_100, duration=1)
 
@@ -1001,17 +1002,16 @@ def run_4(run: Run):  # pylint: disable=unused-argument
     """Tatütata Run (Rot)"""
 
 
-@mcp.run(display_as="X")
+@mcp.run(display_as="T", debug_mode=False)
 def test(run: Run):
     """Run all attachment motors"""
-
     run.drive_attachment(1, _100, duration=1)
     run.drive_attachment(2, _100, duration=1)
     run.drive_attachment(3, _100, duration=1)
     run.drive_attachment(4, _100, duration=1)
 
 
-@mcp.run(display_as="C")
+@mcp.run(display_as="C", debug_mode=False)
 def motorcontrol(run: Run):
     """Motorcontrol"""
     select = 1
