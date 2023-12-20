@@ -29,6 +29,7 @@ class BatteryLowError(SystemExit):
 
 
 class EnterDebugMenu(SystemExit):
+    """Error raised when debug menu should be started."""
     ...
 
 
@@ -761,6 +762,15 @@ class MasterControlProgram:
             brick.light_matrix.set_pixel(2, 4, brightness=_100)
             brick.light_matrix.set_pixel(3, 0, brightness=_100)
             brick.light_matrix.set_pixel(3, 4, brightness=_100)
+        elif display_as == "T":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 1, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(2, 3, brightness=_100)
+            brick.light_matrix.set_pixel(2, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 0, brightness=_100)
         elif display_as == "R":
             brick.light_matrix.off()
             brick.light_matrix.set_pixel(1, 0, brightness=_100)
@@ -957,7 +967,7 @@ def run_1(run: Run):
 def run_2(run: Run):
     """Biene Mayo"""
     run.gyro_drive(70, 0, Cm(50.5), p_correction=1)
-    run.drive_attachment(FRONT_RIGHT, -50, duration=1.25)
+    run.drive_attachment(FRONT_RIGHT, -50, duration=2.5)
     run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
     run.select_gear(BACK_LEFT)
     run.gyro_turn(20, speed_multiplier=1.6, speed_multiplier_left=0, p_correction=1.2)
@@ -966,13 +976,16 @@ def run_2(run: Run):
     run.drive_attachment(BACK_RIGHT, _100, duration=3)
     run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
     run.gyro_drive(70, 0, Cm(28), p_correction=1)
-    run.drive_attachment(FRONT_LEFT, -25, duration=2.5)
+    run.drive_attachment(FRONT_LEFT, -30, duration=2.5)
     run.drive_attachment(FRONT_LEFT, _100, duration=0.75)
-    run.gyro_drive(100, 0, Cm(40), p_correction=1)
-    time.sleep(2)
-    run.gyro_turn(-140, p_correction=1.2)
-    run.gyro_turn(-105, p_correction=1.2)
-    run.gyro_drive(50, -125, Cm(48), p_correction=1)
+    run.gyro_drive(100, 0, Cm(50), p_correction=1)
+    run.gyro_drive(-50, 0, Cm(10.5), p_correction=1)
+    time.sleep(1)
+    run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
+    run.gyro_drive(20, -90, Cm(4), p_correction=1)
+    run.gyro_turn(-200, p_correction=1.2)
+    run.gyro_turn(-135, p_correction=1.2, speed_multiplier=0.5)
+    run.gyro_drive(50, -135, Cm(9), p_correction=1)
 
 
 @mcp.run()
@@ -983,14 +996,14 @@ def run_3(run: Run):
     run.gyro_drive(speed=_100, degree=-45, ending_condition=Cm(19), p_correction=2)
     run.gyro_turn(45, p_correction=0.5)
     run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=0.5)
-    run.drive_attachment(FRONT_RIGHT, -70, duration=0.3)
+    run.drive_attachment(FRONT_RIGHT, -70, duration=1)
     run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(8), p_correction=4)
     run.gyro_turn(42.5, p_correction=1)
-    run.drive_attachment(BACK_LEFT, _100, duration=3)
-    run.gyro_drive(speed=-20, degree=45, ending_condition=cm(5), p_correction=4)
+    run.drive_attachment(BACK_LEFT, _100, duration=2.5)
+    run.gyro_drive(speed=-20, degree=45, ending_condition=Cm(9), p_correction=4)
     run.drive_attachment(BACK_LEFT, -_100, duration=3)
     run.drive_attachment(BACK_LEFT, _100, duration=1)
-    run.gyro_drive(speed=40, degree=-45, ending_condition=cm(8), p_correction=4)
+    run.gyro_drive(speed=40, degree=-45, ending_condition=Cm(8), p_correction=4)
     run.gyro_turn(-5, p_correction=1)
     run.gyro_drive(speed=-_100, degree=-10, ending_condition=Cm(4), p_correction=4)
     # reset (remove in prod)
@@ -1000,7 +1013,8 @@ def run_3(run: Run):
 @mcp.run()
 def run_4(run: Run):  # pylint: disable=unused-argument
     """Tatütata Run (Rot)"""
-
+    run.drive_attachment(BACK_LEFT, _100, duration=5)
+    run.drive_attachment(BACK_LEFT, -_100, duration=5)
 
 @mcp.run(display_as="T", debug_mode=False)
 def test(run: Run):
@@ -1084,11 +1098,13 @@ debug_menu = MasterControlProgram(PrimeHub())
 
 @debug_menu.run(display_as="R")
 def restart(run):
+    """Restart the robot."""
     hub.power_off(True, True)
 
 
 @debug_menu.run(display_as="D")
 def enbug(run):
+    """Disable debug menu."""
     mcp.defaults["debug_mode"] = False
 
 
