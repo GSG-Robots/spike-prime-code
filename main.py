@@ -966,7 +966,7 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Biene Mayo"""
-    run.gyro_drive(70, 0, Cm(50.5), p_correction=1)
+    run.gyro_drive(70, -1, Cm(51), p_correction=1)
     run.drive_attachment(FRONT_RIGHT, -50, duration=2.5)
     run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
     run.select_gear(BACK_LEFT)
@@ -979,13 +979,16 @@ def run_2(run: Run):
     run.drive_attachment(FRONT_LEFT, -30, duration=2.5)
     run.drive_attachment(FRONT_LEFT, _100, duration=0.75)
     run.gyro_drive(100, 0, Cm(50), p_correction=1)
-    run.gyro_drive(-50, 0, Cm(10.5), p_correction=1)
+    run.gyro_drive(-50, 0, Cm(5), p_correction=1)
     time.sleep(1)
     run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
-    run.gyro_drive(20, -90, Cm(4), p_correction=1)
+    run.gyro_drive(20, -90, Cm(5.5), p_correction=1)
     run.gyro_turn(-200, p_correction=1.2)
-    run.gyro_turn(-135, p_correction=1.2, speed_multiplier=0.5)
-    run.gyro_drive(50, -135, Cm(9), p_correction=1)
+    run.gyro_turn(-117.5, p_correction=1.2, speed_multiplier=0.5)
+    run.gyro_drive(40, -117.5, Cm(5), p_correction=1)
+    run.drive_attachment(FRONT_RIGHT, _100, duration=5)
+    run.gyro_drive(-40, -105, Cm(30), p_correction=1)
+
 
 
 @mcp.run()
