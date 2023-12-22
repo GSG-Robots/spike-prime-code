@@ -30,6 +30,7 @@ class BatteryLowError(SystemExit):
 
 class EnterDebugMenu(SystemExit):
     """Error raised when debug menu should be started."""
+
     ...
 
 
@@ -959,14 +960,28 @@ mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 @mcp.run()
 def run_1(run: Run):
     """Giftschlange Run (Grün)"""
-    run.gyro_drive(100, 2, ending_condition=Cm(50), p_correction=1.4)
-    run.gyro_turn(45, speed_multiplier=0.75)
+    run.gyro_drive(60, 0, ending_condition=Cm(47), p_correction=3)
+    # run.gyro_drive(-_100, 0, ending_condition=Cm(1), p_correction=3)
+    run.gyro_turn(45, speed_multiplier=0.5, p_correction=1)
+    run.gyro_drive(-_100, 45, ending_condition=Cm(5), p_correction=1.4)
+    run.gyro_turn(145, speed_multiplier=0.75, p_correction=1)
+    run.gyro_drive(-_100, 145, ending_condition=Cm(29), p_correction=1.4)
+    run.gyro_turn(100, speed_multiplier=0.75, p_correction=1)
+    run.gyro_drive(-65, 100, ending_condition=Cm(10), p_correction=1.4)
+    run.drive_attachment(BACK_RIGHT, -75, True, 0.6)
+    run.drive_attachment(BACK_LEFT, 35, True, 0.6)
+    run.gyro_drive(_100, 100, ending_condition=Cm(5), p_correction=1.4)
+    run.gyro_turn(140, p_correction=1)
+    run.gyro_drive(_100, 140, Cm(40), p_correction=1)
+    run.gyro_turn(179, p_correction=1)
+    run.gyro_drive(_100, 179, Cm(20), p_correction=1)
+    run.drive_attachment(BACK_LEFT, 100, True, 0.6)
 
 
 @mcp.run()
 def run_2(run: Run):
     """Biene Mayo"""
-    run.gyro_drive(70, -1, Cm(51), p_correction=1)
+    run.gyro_drive(70, -1, Cm(51.5), p_correction=1)
     run.drive_attachment(FRONT_RIGHT, -50, duration=2.5)
     run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
     run.select_gear(BACK_LEFT)
@@ -985,10 +1000,9 @@ def run_2(run: Run):
     run.gyro_drive(20, -90, Cm(5.5), p_correction=1)
     run.gyro_turn(-200, p_correction=1.2)
     run.gyro_turn(-117.5, p_correction=1.2, speed_multiplier=0.5)
-    run.gyro_drive(40, -117.5, Cm(5), p_correction=1)
+    run.gyro_drive(40, -116, Cm(5), p_correction=1)
     run.drive_attachment(FRONT_RIGHT, _100, duration=5)
     run.gyro_drive(-40, -105, Cm(30), p_correction=1)
-
 
 
 @mcp.run()
@@ -1018,6 +1032,7 @@ def run_4(run: Run):  # pylint: disable=unused-argument
     """Tatütata Run (Rot)"""
     run.drive_attachment(BACK_LEFT, _100, duration=5)
     run.drive_attachment(BACK_LEFT, -_100, duration=5)
+
 
 @mcp.run(display_as="T", debug_mode=False)
 def test(run: Run):
