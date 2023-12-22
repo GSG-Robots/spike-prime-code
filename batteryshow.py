@@ -5,6 +5,11 @@ import time
 import hub  # type: ignore # pylint: disable=import-error
 import spike
 
+FIRST_STAGE = 60*10
+SECOND_STAGE = 60*15
+# FIRST_STAGE = 0
+# SECOND_STAGE = 15
+
 hb = spike.PrimeHub()
 went_on_80 = -1
 
@@ -26,6 +31,7 @@ def brightness(n):
     m = 1 if brightness_multiplier > 1 else brightness_multiplier
     return round(n*m)
 
+hb.speaker.set_volume(100)
 
 while True:
     try:
@@ -40,7 +46,7 @@ while True:
                 went_on_80 = time.time()
         else:
             went_on_80 = -1
-        if went_on_80 != -1 and time.time() - went_on_80 > 60*10:
+        if went_on_80 != -1 and SECOND_STAGE > (time.time() - went_on_80) > FIRST_STAGE:
             brightness_multiplier = 1
             hb.light_matrix.set_pixel(0, 0, brightness(100))
             hb.light_matrix.set_pixel(4, 0, brightness(100))
@@ -53,6 +59,27 @@ while True:
             hb.light_matrix.set_pixel(4, 0, brightness(50))
             hb.light_matrix.set_pixel(0, 4, brightness(50))
             hb.light_matrix.set_pixel(4, 4, brightness(50))
+        elif went_on_80 != -1 and (time.time() - went_on_80) > SECOND_STAGE:
+            hb.speaker.stop()
+            time.sleep(0.5)
+            brightness_multiplier = 1
+            hb.light_matrix.set_pixel(0, 0, brightness(100))
+            hb.light_matrix.set_pixel(4, 0, brightness(100))
+            hb.light_matrix.set_pixel(0, 4, brightness(100))
+            hb.light_matrix.set_pixel(4, 4, brightness(100))
+            hb.speaker.beep(70, 0.1)
+            hb.speaker.beep(65, 0.1)
+            hb.speaker.beep(70, 0.1)
+            hb.speaker.beep(65, 0.3)
+            hb.speaker.beep(50, 0.1)
+            hb.speaker.beep(90, 0.1)
+            hb.speaker.beep(50, 0.1)
+            hb.speaker.beep(90, 0.3)
+            hb.light_matrix.set_pixel(0, 0, brightness(50))
+            hb.light_matrix.set_pixel(4, 0, brightness(50))
+            hb.light_matrix.set_pixel(0, 4, brightness(50))
+            hb.light_matrix.set_pixel(4, 4, brightness(50))
+            hb.speaker.start_beep(60)
 
         delay = 0.1 if hub.battery.charger_detect() is not False else 0
 
