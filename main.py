@@ -6,7 +6,6 @@
 Current Program, uses PEP8 conform names and has the new MasterControlProgram class
 This is work in progress so there is no docstr on new elements.
 """
-import time
 from math import fabs, floor, pi
 
 import hub
@@ -30,8 +29,6 @@ class BatteryLowError(SystemExit):
 
 class EnterDebugMenu(SystemExit):
     """Error raised when debug menu should be started."""
-
-    ...
 
 
 class EndingCondition:
@@ -142,7 +139,7 @@ class Run:
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,
         debug_mode: bool = False,
-        display_as: str | int = None,
+        display_as: str = None,
     ):
         """
         Initiation of Run
@@ -537,6 +534,7 @@ class Run:
             d_correction = self.d_correction_gyro_turn
         degree = degree - 360 * floor((degree + 180) / 360)
         # If an Attachement is started or stopped during the movement, start this loop
+        # The following code is completely useless (inside the if block), but we have it and i wont remove it.
         if attachment_start[1] != 0 or attachment_stop != 0:
             while (
                 not degree - self.turning_degree_tolerance
@@ -598,6 +596,7 @@ class Run:
                     + error_value * p_correction
                 )
                 last_error = error_value
+                print(corrector)
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
                     round(int(corrector) * speed_multiplier_left),
@@ -981,7 +980,7 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Biene Mayo"""
-    run.gyro_drive(70, -1, Cm(51.5), p_correction=1)
+    run.gyro_drive(70, 0, Cm(51.5), p_correction=1)
     run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
     run.select_gear(BACK_LEFT)
     run.gyro_turn(20, speed_multiplier=1.6, speed_multiplier_left=0, p_correction=1.2)
@@ -997,13 +996,15 @@ def run_2(run: Run):
     run.gyro_drive(100, 18, Cm(53), p_correction=1.5)
     run.gyro_drive(-50, 18, Cm(5), p_correction=1.5)
     run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
-    run.gyro_drive(20, -90, Cm(10.75), p_correction=1)
+    run.gyro_drive(20, -90, Cm(12.75), p_correction=1)
     run.gyro_turn(-200, p_correction=1.2)
+    run.gyro_turn(-90, p_correction=3)
+    run.gyro_drive(-20, -90, Cm(1.9), p_correction=1)
     run.gyro_turn(-123, p_correction=1.2, speed_multiplier=0.5)
     run.gyro_drive(40, -123, Cm(16), p_correction=0.1)
     run.right_motor.run_for_seconds(0.75, 50)
-    run.drive_attachment(FRONT_RIGHT, _100, duration=4.5)
-    run.gyro_drive(-40, -105, Cm(30), p_correction=1)
+    run.drive_attachment(FRONT_RIGHT, _100, duration=6)
+    run.gyro_drive(-40, -180, Cm(30), p_correction=1)
 
 
 @mcp.run()
@@ -1116,13 +1117,13 @@ debug_menu = MasterControlProgram(PrimeHub())
 
 
 @debug_menu.run(display_as="R")
-def restart(run):
+def restart(run):  # pylint: disable=unused-argument
     """Restart the robot."""
     hub.power_off(True, True)
 
 
 @debug_menu.run(display_as="D")
-def enbug(run):
+def enbug(run):  # pylint: disable=unused-argument
     """Disable debug menu."""
     mcp.defaults["debug_mode"] = False
 

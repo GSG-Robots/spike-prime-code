@@ -1,5 +1,5 @@
-
-def greater_than(a, b):
+# pylint: disable=missing-module-docstring
+def greater_than(a, b):  # pylint: disable=unused-argument
     """
     Tests whether value a is greater than value b.
     This is the same as a > b.
@@ -30,7 +30,7 @@ def greater_than(a, b):
     """
 
 
-def equal_to(a, b):
+def equal_to(a, b):  # pylint: disable=unused-argument
     """
     Tests whether value a is equal to value b.
     This is the same as a == b.
