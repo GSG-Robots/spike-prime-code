@@ -493,8 +493,8 @@ class Run:
         attachment_start: list[int] = None,
         attachment_stop: int = 0,
         speed_multiplier: float = 1,
-        speed_multiplier_left: float = None,
-        speed_multiplier_right: float = None,
+        speed_multiplier_left: float = 1,
+        speed_multiplier_right: float = 1,
     ):
         """
         PID-Gyro-Tank-Turn
@@ -513,10 +513,8 @@ class Run:
         """
         self.check_battery()
 
-        if speed_multiplier_left is None:
-            speed_multiplier_left = speed_multiplier
-        if speed_multiplier_right is None:
-            speed_multiplier_right = speed_multiplier
+        speed_multiplier_left = speed_multiplier * speed_multiplier_left
+        speed_multiplier_right = speed_multiplier * speed_multiplier_right
 
         # Resetting everything
         if attachment_start is None:
@@ -998,11 +996,14 @@ def run_2(run: Run):
     run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
     run.gyro_drive(20, -90, Cm(12.75), p_correction=1)
     run.gyro_turn(-200, p_correction=1.2)
-    run.gyro_turn(-90, p_correction=3)
+    run.gyro_turn(-90, speed_multiplier=0.5)
     run.gyro_drive(-20, -90, Cm(1.9), p_correction=1)
     run.gyro_turn(-123, p_correction=1.2, speed_multiplier=0.5)
     run.gyro_drive(40, -123, Cm(16), p_correction=0.1)
-    run.right_motor.run_for_seconds(0.75, 50)
+    run.right_motor.run_for_seconds(0.25, 57)
+    run.left_motor.run_for_seconds(0.25, 50)
+    run.right_motor.run_for_seconds(0.25, 50)
+    run.left_motor.run_for_seconds(0.25, 50)
     run.drive_attachment(FRONT_RIGHT, _100, duration=6)
     run.gyro_drive(-40, -180, Cm(30), p_correction=1)
 
@@ -1030,11 +1031,16 @@ def run_3(run: Run):
 
 
 @mcp.run()
-def run_4(run: Run):  # pylint: disable=unused-argument
+def run_4(run: Run):
     """Tatütata Run (Rot)"""
-    run.drive_attachment(BACK_LEFT, _100, duration=5)
-    run.drive_attachment(BACK_LEFT, -_100, duration=5)
-
+    run.gyro_drive(speed=-80, degree=0, ending_condition=Cm(40), p_correction=1.5)
+    run.gyro_turn(-45, p_correction=1.2)
+    run.gyro_drive(speed=-80, degree=-45, ending_condition=Cm(28), p_correction=1.5)
+    run.gyro_turn(-90, p_correction=1.2)
+    run.gyro_drive(speed=-75, degree=-90, ending_condition=Cm(53), p_correction=1.5)
+    run.gyro_turn(-180, p_correction=1.2)
+    # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
+    run.gyro_drive(speed=-20, degree=-180, ending_condition=Cm(15), p_correction=1.5)
 
 @mcp.run(display_as="T", debug_mode=False)
 def test(run: Run):
