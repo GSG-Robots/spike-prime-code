@@ -407,8 +407,12 @@ class Run:
             while not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+                
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += error_value
@@ -444,8 +448,12 @@ class Run:
             while not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+                
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += error_value
@@ -541,8 +549,12 @@ class Run:
             ) and not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+                
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += last_error
@@ -583,8 +595,12 @@ class Run:
             ) and not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+                
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += last_error
@@ -594,7 +610,6 @@ class Run:
                     + error_value * p_correction
                 )
                 last_error = error_value
-                print(corrector)
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
                     round(int(corrector) * speed_multiplier_left),
@@ -1030,17 +1045,52 @@ def run_3(run: Run):
     run.drive_attachment(BACK_LEFT, -_100, duration=1)
 
 
-@mcp.run()
+@mcp.run(turning_degree_tolerance=1)
 def run_4(run: Run):
     """Tatütata Run (Rot)"""
-    run.gyro_drive(speed=-80, degree=0, ending_condition=Cm(40), p_correction=1.5)
+    run.gyro_drive(speed=-85, degree=0, ending_condition=Cm(42), p_correction=1.2)
     run.gyro_turn(-45, p_correction=1.2)
-    run.gyro_drive(speed=-80, degree=-45, ending_condition=Cm(28), p_correction=1.5)
+    run.gyro_drive(speed=-85, degree=-45, ending_condition=Cm(23), p_correction=1.2)
     run.gyro_turn(-90, p_correction=1.2)
-    run.gyro_drive(speed=-75, degree=-90, ending_condition=Cm(53), p_correction=1.5)
+    run.gyro_drive(speed=-75, degree=-90, ending_condition=Cm(50), p_correction=1.2)
     run.gyro_turn(-180, p_correction=1.2)
     # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
-    run.gyro_drive(speed=-20, degree=-180, ending_condition=Cm(15), p_correction=1.5)
+    run.gyro_drive(speed=-40, degree=-180, ending_condition=Cm(15), p_correction=1.2)
+    run.drive_attachment(BACK_RIGHT, -100, duration=11.5)
+    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(5), p_correction=1.2)
+    run.gyro_turn(-182, p_correction=1)
+    run.gyro_drive(speed=70, degree=-182, ending_condition=Cm(30), p_correction=1.2)
+    run.drive_attachment(BACK_LEFT, -100, duration=2)
+    
+
+@mcp.run()
+def run_5(run: Run):
+    def run_for(sec, speed):
+        run.driving_motors.start_at_power(speed, 0)
+        wait_for_seconds(sec)
+        
+    # run_for(0.1, 10)
+    run_for(0.1, 30)
+    run_for(0.1, 50)
+    run_for(0.1, 60)
+    run_for(0.2, 70)
+    run_for(0.2, 80)
+    run_for(0.3, 90)
+    run_for(1, 100)
+    run_for(1, 100)
+    run_for(0.2, 90)
+    run_for(0.2, 80)
+    run_for(0.2, 70)
+    run_for(0.2, 60)
+    run_for(0.2, 50)
+    run_for(0.2, 40)
+    run_for(0.2, 30)
+    run_for(0.2, 20)
+    run_for(0.2, 10)
+    
+    run.driving_motors.stop()
+        
+    
 
 @mcp.run(display_as="T", debug_mode=False)
 def test(run: Run):
