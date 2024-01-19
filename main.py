@@ -11,7 +11,7 @@ from math import fabs, floor, pi
 import hub
 from micropython import const
 from spike import ColorSensor, Motor, MotorPair, PrimeHub
-from spike.control import Timer, wait_for_seconds, wait_until
+from spike.control import Timer as __Timer, wait_for_seconds, wait_until
 
 FRONT_RIGHT = const(3)
 FRONT_LEFT = const(4)
@@ -23,7 +23,11 @@ DEBUG_MODE = True
 _100 = const(100)
 
 
-class BatteryLowError(SystemExit):
+class WrongUnitError(ValueError):
+    """Non-valid unit used."""
+
+
+class BatteryLowError(RuntimeError):
     """Error raised when in debug mode and running motors while battery low."""
 
 
@@ -181,7 +185,7 @@ class Run:
         self.i_correction_gyro_turn = correction_values[4]
         self.d_correction_gyro_turn = correction_values[5]
         self.selected_gear = 1
-        self.timer = Timer()
+        self.timer = __Timer()
         self.tire_radius = tire_radius
         self.light_black_value = light_black_value
         self.light_middle_value = light_middle_value
@@ -397,6 +401,8 @@ class Run:
             d_correction = self.d_correction_gyro_drive
         if deceleration != 0:
             ending_value = ending_value - deceleration
+        if not isinstance(ending_condition, EndingCondition):
+            raise WrongUnitError(type(ending_condition) + " cannot be used as an EndingCondititon.")
         degree = degree - 360 * floor((degree + 180) / 360)
         if isinstance(ending_condition, Deg):
             ending_condition.value = ending_condition.value - 360 * floor(
@@ -407,7 +413,7 @@ class Run:
             while not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                
+
                 # This works now. I don't know what you were doing here before!!!!
                 if error_value > 180:
                     error_value -= 360
@@ -448,7 +454,7 @@ class Run:
             while not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                
+
                 # This works now. I don't know what you were doing here before!!!!
                 if error_value > 180:
                     error_value -= 360
@@ -540,7 +546,8 @@ class Run:
             d_correction = self.d_correction_gyro_turn
         degree = degree - 360 * floor((degree + 180) / 360)
         # If an Attachement is started or stopped during the movement, start this loop
-        # The following code is completely useless (inside the if block), but we have it and i wont remove it.
+        # The following code is completely useless (inside the if block),
+        # but we have it and i wont remove it.
         if attachment_start[1] != 0 or attachment_stop != 0:
             while (
                 not degree - self.turning_degree_tolerance
@@ -549,7 +556,7 @@ class Run:
             ) and not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                
+
                 # This works now. I don't know what you were doing here before!!!!
                 if error_value > 180:
                     error_value -= 360
@@ -595,7 +602,7 @@ class Run:
             ) and not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                
+
                 # This works now. I don't know what you were doing here before!!!!
                 if error_value > 180:
                     error_value -= 360
@@ -808,15 +815,7 @@ class MasterControlProgram:
             brick.light_matrix.set_pixel(3, 1, brightness=_100)
             brick.light_matrix.set_pixel(3, 2, brightness=_100)
             brick.light_matrix.set_pixel(3, 3, brightness=_100)
-        elif isinstance(display_as, int):
-            brick.light_matrix.write(display_as)
-        else:
-            brick.light_matrix.write(number)
-        brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
-        brick.light_matrix.set_pixel(0, 3, brightness=brightness_70)
-        brick.light_matrix.set_pixel(4, 1, brightness=brightness_70)
-        brick.light_matrix.set_pixel(4, 3, brightness=brightness_70)
-        if number == max_number + 1:
+        elif number == max_number + 1:
             brick.light_matrix.off()
             brick.light_matrix.set_pixel(1, 1, brightness=_100)
             brick.light_matrix.set_pixel(2, 2, brightness=_100)
@@ -835,6 +834,14 @@ class MasterControlProgram:
             brick.light_matrix.set_pixel(4, 0, brightness=brightness_70)
             brick.light_matrix.set_pixel(4, 2, brightness=brightness_70)
             brick.light_matrix.set_pixel(4, 4, brightness=brightness_70)
+        elif isinstance(display_as, int):
+            brick.light_matrix.write(display_as)
+        else:
+            brick.light_matrix.write(number)
+        brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
+        brick.light_matrix.set_pixel(0, 3, brightness=brightness_70)
+        brick.light_matrix.set_pixel(4, 1, brightness=brightness_70)
+        brick.light_matrix.set_pixel(4, 3, brightness=brightness_70)
         if number == 1:
             brick.light_matrix.set_pixel(0, 4, brightness=brightness_70)
             brick.light_matrix.set_pixel(0, 0, brightness=brightness_70)
@@ -1011,20 +1018,34 @@ def run_2(run: Run):
     run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
     run.gyro_drive(20, -90, Cm(12.75), p_correction=1)
     run.gyro_turn(-200, p_correction=1.2)
-    run.gyro_turn(-90, speed_multiplier=0.5)
-    run.gyro_drive(-20, -90, Cm(1.9), p_correction=1)
-    run.gyro_turn(-123, p_correction=1.2, speed_multiplier=0.5)
-    run.gyro_drive(40, -123, Cm(16), p_correction=0.1)
-    run.right_motor.run_for_seconds(0.25, 57)
-    run.left_motor.run_for_seconds(0.25, 50)
-    run.right_motor.run_for_seconds(0.25, 50)
-    run.left_motor.run_for_seconds(0.25, 50)
-    run.drive_attachment(FRONT_RIGHT, _100, duration=6)
-    run.gyro_drive(-40, -180, Cm(30), p_correction=1)
-
-
+    run.gyro_turn(-135, p_correction=1.3)
+    run.gyro_drive(-50, -135, Cm(35), p_correction=1.5)
+    # run.gyro_turn(-90, speed_multiplier=0.5)
+    # run.gyro_drive(-20, -90, Cm(1.9), p_correction=1)
+    # run.gyro_turn(-123, p_correction=1.2, speed_multiplier=0.5)
+    # run.gyro_drive(40, -123, Cm(16), p_correction=0.1)
+    # run.right_motor.run_for_seconds(0.25, 57)
+    # run.left_motor.run_for_seconds(0.25, 50)
+    # run.right_motor.run_for_seconds(0.25, 50)
+    # run.left_motor.run_for_seconds(0.25, 50)
+    # run.drive_attachment(FRONT_RIGHT, _100, duration=6)
+    # run.gyro_drive(-40, -180, Cm(30), p_correction=1)
+    
 @mcp.run()
 def run_3(run: Run):
+    """Second Part of Biene Mayo"""
+    run.gyro_drive(60, degree=0, ending_condition=Cm(47), p_correction=3)
+    run.right_motor.run_for_seconds(0.5, 70)
+    # run.gyro_drive(50, -1, ending_condition=__Timer(2), p_correction=3)
+    run.drive_attachment(FRONT_RIGHT, 90, duration=4)
+    run.gyro_drive(-60, 0, ending_condition=Cm(40), p_correction=3)
+    wait_for_seconds(2)
+    run.gyro_drive(60, -45, ending_condition=Cm(16.5), p_correction=3)
+    run.drive_attachment(FRONT_LEFT, -50, duration=1.5)
+    run.gyro_drive(-60, -45, ending_condition=Cm(16), p_correction=3)
+
+@mcp.run()
+def run_4(run: Run):
     """Nashorn Run (Grau)"""
     run.gyro_drive(speed=_100, degree=0, ending_condition=Cm(38), p_correction=4)
     run.gyro_turn(-45, p_correction=0.75)
@@ -1046,29 +1067,32 @@ def run_3(run: Run):
 
 
 @mcp.run(turning_degree_tolerance=1)
-def run_4(run: Run):
+def run_5(run: Run):
     """Tatütata Run (Rot)"""
-    run.gyro_drive(speed=-85, degree=0, ending_condition=Cm(42), p_correction=1.2)
+    run.gyro_drive(speed=-20, degree=0, ending_condition=Cm(10), p_correction=1.2)
+    run.gyro_drive(speed=-80, degree=1, ending_condition=Cm(31), p_correction=1.2)
     run.gyro_turn(-45, p_correction=1.2)
     run.gyro_drive(speed=-85, degree=-45, ending_condition=Cm(23), p_correction=1.2)
-    run.gyro_turn(-90, p_correction=1.2)
+    run.gyro_turn(-87, p_correction=1.2)
     run.gyro_drive(speed=-75, degree=-90, ending_condition=Cm(50), p_correction=1.2)
-    run.gyro_turn(-180, p_correction=1.2)
+    run.gyro_turn(-178, p_correction=1.2)
     # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
     run.gyro_drive(speed=-40, degree=-180, ending_condition=Cm(15), p_correction=1.2)
     run.drive_attachment(BACK_RIGHT, -100, duration=11.5)
     run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(5), p_correction=1.2)
-    run.gyro_turn(-182, p_correction=1)
-    run.gyro_drive(speed=70, degree=-182, ending_condition=Cm(30), p_correction=1.2)
+    #    run.gyro_turn(-180, p_correction=3.25)
+    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(30), p_correction=1.2)
     run.drive_attachment(BACK_LEFT, -100, duration=2)
-    
 
-@mcp.run()
-def run_5(run: Run):
+
+@mcp.run(display_as="R")
+def run_6(run: Run):
+    """Run 5"""
+
     def run_for(sec, speed):
         run.driving_motors.start_at_power(speed, 0)
         wait_for_seconds(sec)
-        
+
     # run_for(0.1, 10)
     run_for(0.1, 30)
     run_for(0.1, 50)
@@ -1087,10 +1111,9 @@ def run_5(run: Run):
     run_for(0.2, 30)
     run_for(0.2, 20)
     run_for(0.2, 10)
-    
+
     run.driving_motors.stop()
-        
-    
+
 
 @mcp.run(display_as="T", debug_mode=False)
 def test(run: Run):
@@ -1196,3 +1219,13 @@ while True:
             debug_menu.start(no_debug_menu=True)
         except SystemExit:
             continue
+    except Exception as e:
+        mcp.brick.speaker.beep(65, 0.2)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(70, 0.2)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(75, 0.1)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(80, 0.2)
+        mcp.brick.light_matrix.write(str(e))
+        raise e
