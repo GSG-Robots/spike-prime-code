@@ -1040,12 +1040,14 @@ def run_3(run: Run):
     run.gyro_drive(60, degree=0, ending_condition=Cm(47), p_correction=3)
     # run.right_motor.run_for_seconds(0.5, 70)
     # run.gyro_drive(50, -1, ending_condition=__Timer(2), p_correction=3)
+    run.driving_motors.start(0, -10)
     run.drive_attachment(FRONT_RIGHT, 90, duration=4)
+    run.driving_motors.stop()
     run.gyro_drive(-60, 0, ending_condition=Cm(40), p_correction=3)
     wait_for_seconds(2)
     run.gyro_drive(60, -45, ending_condition=Cm(16.5), p_correction=3)
     run.drive_attachment(FRONT_LEFT, -50, duration=1.5)
-    run.gyro_drive(-60, -45, ending_condition=Cm(16), p_correction=3)
+    run.gyro_drive(-60, -45, ending_condition=Cm(20), p_correction=3)
 
 
 @mcp.run()
@@ -1061,8 +1063,10 @@ def run_4(run: Run):
     run.gyro_turn(-86, p_correction=1)
     run.gyro_drive(-60, -87, ending_condition=Cm(10), p_correction=3)
     run.gyro_drive(-40, -87, ending_condition=Cm(10), p_correction=3)
+    run.drive_attachment(BACK_RIGHT, 15, duration=2)
     run.drive_attachment(BACK_LEFT, 100, duration=1.5)
     run.gyro_drive(60, -86, ending_condition=Cm(13), p_correction=3)
+    run.select_gear(FRONT_RIGHT)
     run.gyro_turn(-160, p_correction=1)
     run.gyro_drive(90, -160, ending_condition=Cm(50), p_correction=3)
 
