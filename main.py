@@ -402,7 +402,9 @@ class Run:
         if deceleration != 0:
             ending_value = ending_value - deceleration
         if not isinstance(ending_condition, EndingCondition):
-            raise WrongUnitError(type(ending_condition) + " cannot be used as an EndingCondititon.")
+            raise WrongUnitError(
+                type(ending_condition) + " cannot be used as an EndingCondititon."
+            )
         degree = degree - 360 * floor((degree + 180) / 360)
         if isinstance(ending_condition, Deg):
             ending_condition.value = ending_condition.value - 360 * floor(
@@ -1031,6 +1033,7 @@ def run_2(run: Run):
     # run.drive_attachment(FRONT_RIGHT, _100, duration=6)
     # run.gyro_drive(-40, -180, Cm(30), p_correction=1)
 
+
 @mcp.run()
 def run_3(run: Run):
     """Second Part of Biene Mayo"""
@@ -1043,6 +1046,8 @@ def run_3(run: Run):
     run.gyro_drive(60, -45, ending_condition=Cm(16.5), p_correction=3)
     run.drive_attachment(FRONT_LEFT, -50, duration=1.5)
     run.gyro_drive(-60, -45, ending_condition=Cm(16), p_correction=3)
+
+
 @mcp.run()
 def run_4(run: Run):
     """Nashorn Run (Grau)"""
@@ -1068,18 +1073,20 @@ def run_5(run: Run):
     run.gyro_drive(speed=-20, degree=0, ending_condition=Cm(10), p_correction=1.2)
     run.gyro_drive(speed=-80, degree=1, ending_condition=Cm(21), p_correction=1.2)
     run.gyro_turn(-42.5, p_correction=1.2)
-    run.gyro_drive(speed=-85, degree=-434444444, ending_condition=Cm(23), p_correction=1.2)
+    run.gyro_drive(speed=-85, degree=-43, ending_condition=Cm(23), p_correction=1.2)
     run.gyro_turn(-87, p_correction=1.2)
-    run.gyro_drive(speed=-75, degree=-90, ending_condition=Cm(52), p_correction=1.2)
-    run.gyro_turn(-180, p_correction=1.2)
+    run.gyro_drive(speed=-75, degree=-87, ending_condition=Cm(52), p_correction=1.2)
+    # way to the tower
+    run.gyro_turn(-175, p_correction=1.2)
     # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
-    run.gyro_drive(speed=-30, degree=-180, ending_condition=Cm(15), p_correction=1.2)
+    run.gyro_drive(speed=-30, degree=-175, ending_condition=Cm(15), p_correction=1.2)
     run.drive_attachment(BACK_RIGHT, -100, duration=12.5)
     run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(5), p_correction=1.2)
     # run.gyro_turn(-180, p_correction=3.25)
     run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(20), p_correction=1.2)
     run.drive_attachment(FRONT_LEFT, 100, duration=3)
-    run.drive_attachment(FRONT_LEFT, -100, duration=3)
+    run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
+
 
 @mcp.run(display_as="R")
 def run_6(run: Run):
@@ -1096,7 +1103,7 @@ def run_6(run: Run):
     run_for(0.2, 70)
     run_for(0.2, 80)
     run_for(0.3, 90)
-#    run_for(1, 100)
+    #    run_for(1, 100)
     run_for(3, 100)
     run_for(0.2, 90)
     run_for(0.2, 80)
