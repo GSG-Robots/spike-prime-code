@@ -985,11 +985,11 @@ def run_1(run: Run):
     run.gyro_drive(-_100, 45, ending_condition=Cm(5), p_correction=1.4)
     run.gyro_turn(140, speed_multiplier=0.75, p_correction=1)
     run.gyro_drive(-_100, 140, ending_condition=Cm(29), p_correction=1.4)
-    run.gyro_turn(105, speed_multiplier=0.75, p_correction=1)
-    run.gyro_drive(-65, 105, ending_condition=Cm(10), p_correction=1.4)
+    run.gyro_turn(95, speed_multiplier=0.75, p_correction=1)
+    run.gyro_drive(-65, 95, ending_condition=Cm(10), p_correction=1.4)
     run.drive_attachment(BACK_RIGHT, -75, True, 0.6)
     run.drive_attachment(BACK_LEFT, 35, True, 0.6)
-    run.gyro_drive(_100, 105, ending_condition=Cm(5), p_correction=1.4)
+    run.gyro_drive(_100, 95, ending_condition=Cm(5), p_correction=1.4)
     run.gyro_turn(140, p_correction=1)
     run.gyro_drive(_100, 140, Cm(40), p_correction=1)
     run.gyro_turn(179, p_correction=1)
@@ -1060,26 +1060,26 @@ def run_4(run: Run):
     run.gyro_drive(60, -86, ending_condition=Cm(13), p_correction=3)
     run.gyro_turn(-160, p_correction=1)
     run.gyro_drive(90, -160, ending_condition=Cm(50), p_correction=3)
-    
-    
+
+
 @mcp.run(turning_degree_tolerance=1)
 def run_5(run: Run):
     """Tatütata Run (Rot)"""
     run.gyro_drive(speed=-20, degree=0, ending_condition=Cm(10), p_correction=1.2)
-    run.gyro_drive(speed=-80, degree=1, ending_condition=Cm(31), p_correction=1.2)
-    run.gyro_turn(-45, p_correction=1.2)
-    run.gyro_drive(speed=-85, degree=-45, ending_condition=Cm(23), p_correction=1.2)
+    run.gyro_drive(speed=-80, degree=1, ending_condition=Cm(21), p_correction=1.2)
+    run.gyro_turn(-42.5, p_correction=1.2)
+    run.gyro_drive(speed=-85, degree=-434444444, ending_condition=Cm(23), p_correction=1.2)
     run.gyro_turn(-87, p_correction=1.2)
-    run.gyro_drive(speed=-75, degree=-90, ending_condition=Cm(50), p_correction=1.2)
-    run.gyro_turn(-178, p_correction=1.2)
+    run.gyro_drive(speed=-75, degree=-90, ending_condition=Cm(52), p_correction=1.2)
+    run.gyro_turn(-180, p_correction=1.2)
     # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
-    run.gyro_drive(speed=-40, degree=-180, ending_condition=Cm(15), p_correction=1.2)
-    run.drive_attachment(BACK_RIGHT, -100, duration=11.5)
+    run.gyro_drive(speed=-30, degree=-180, ending_condition=Cm(15), p_correction=1.2)
+    run.drive_attachment(BACK_RIGHT, -100, duration=12.5)
     run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(5), p_correction=1.2)
     # run.gyro_turn(-180, p_correction=3.25)
-    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(30), p_correction=1.2)
-    run.drive_attachment(BACK_LEFT, -100, duration=2)
-
+    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(20), p_correction=1.2)
+    run.drive_attachment(FRONT_LEFT, 100, duration=3)
+    run.drive_attachment(FRONT_LEFT, -100, duration=3)
 
 @mcp.run(display_as="R")
 def run_6(run: Run):
