@@ -1,7 +1,6 @@
 # LEGO type:standard slot:0 autostart
 # OTTOS PROGRAMMIERUNG IN PYTHON
 # pylint: disable=too-many-lines
-# pylint: disable=c-extension-no-member
 """
 Current Program, uses PEP8 conform names and has the new MasterControlProgram class
 This is work in progress so there is no docstr on new elements.
@@ -167,7 +166,7 @@ class Run:
         if light_sensors is None:
             light_sensors = ["A", "B"]
         if correction_values is None:
-            correction_values = [.5, 0, 0, 0, 0, 0, 1, 1, 1]
+            correction_values = [0.5, 0, 0, 0, 0, 0, 1, 1, 1]
         self.left_motor = Motor(engines[0])
         self.right_motor = Motor(engines[1])
         self.driving_motors = MotorPair(engines[0], engines[1])
@@ -200,10 +199,10 @@ class Run:
         self.display_as = display_as
 
         if self.debug_mode:
-            PrimeHub().speaker.beep(60, .2)
-            PrimeHub().speaker.beep(80, .2)
-            PrimeHub().speaker.beep(60, .2)
-            PrimeHub().speaker.beep(80, .2)
+            PrimeHub().speaker.beep(60, 0.2)
+            PrimeHub().speaker.beep(80, 0.2)
+            PrimeHub().speaker.beep(60, 0.2)
+            PrimeHub().speaker.beep(80, 0.2)
 
         self.check_battery()
 
@@ -436,8 +435,14 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller and Acceleration
                 self.driving_motors.start_tank(
-                    int(self.calculate_acceleration(speed + corrector, acceleration) * speed_multiplier_left),
-                    int(self.calculate_acceleration(speed - corrector, acceleration) * speed_multiplier_right),
+                    int(
+                        self.calculate_acceleration(speed + corrector, acceleration)
+                        * speed_multiplier_left
+                    ),
+                    int(
+                        self.calculate_acceleration(speed - corrector, acceleration)
+                        * speed_multiplier_right
+                    ),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
                 if (
@@ -477,8 +482,14 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
-                    int(self.calculate_acceleration(speed + corrector, acceleration) * speed_multiplier_left),
-                    int(self.calculate_acceleration(speed - corrector, acceleration) * speed_multiplier_right),
+                    int(
+                        self.calculate_acceleration(speed + corrector, acceleration)
+                        * speed_multiplier_left
+                    ),
+                    int(
+                        self.calculate_acceleration(speed - corrector, acceleration)
+                        * speed_multiplier_right
+                    ),
                 )
         # If deceleration is wanted, stop the above loops early to start decelerating
         # The PID-Loop stays the same,
@@ -918,7 +929,7 @@ class MasterControlProgram:
         if light_sensors is None:
             light_sensors = ["A", "B"]
         if correction_values is None:
-            correction_values = [.5, 0, 0, 0, 0, 0, 0, 0, 0]
+            correction_values = [0.5, 0, 0, 0, 0, 0, 0, 0, 0]
         selected_run = 1
         print("Starting MasterControl")
         self.turn_light_off()
@@ -937,7 +948,7 @@ class MasterControlProgram:
                         time_ = 0
                         while self.brick.left_button.is_pressed() and time_ < 3:
                             time_ += 1
-                            wait_for_seconds(.1)
+                            wait_for_seconds(0.1)
                         if selected_run > 1:
                             selected_run -= 1
                             self.light_up_display(
@@ -947,7 +958,7 @@ class MasterControlProgram:
                         time_ = 0
                         while self.brick.right_button.is_pressed() and time_ < 3:
                             time_ += 1
-                            wait_for_seconds(.1)
+                            wait_for_seconds(0.1)
                         if selected_run < len(self.runs) + 1:
                             selected_run += 1
                             self.light_up_display(
@@ -968,6 +979,7 @@ class MasterControlProgram:
                         light_middle_value=light_middle_value,
                         turning_degree_tolerance=turning_degree_tolerance,
                     )
+                    selected_run += 1
                     self.turn_light_off()
                 except KeyboardInterrupt:
                     print("Run stopped forcefully")
@@ -986,21 +998,21 @@ mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 def run_1(run: Run):
     """Giftschlange Run (Grün)"""
     run.gyro_drive(60, 0, ending_condition=Cm(47), p_correction=3)
-#    run.gyro_drive(-30, 0, ending_condition=Cm(2), p_correction=3)
-    run.gyro_turn(45, speed_multiplier=.75, p_correction=1)
+    #    run.gyro_drive(-30, 0, ending_condition=Cm(2), p_correction=3)
+    run.gyro_turn(45, speed_multiplier=0.75, p_correction=1)
     run.gyro_drive(-_100, 45, ending_condition=Cm(5), p_correction=1.4)
-    run.gyro_turn(140, speed_multiplier=.75, p_correction=1)
+    run.gyro_turn(140, speed_multiplier=0.75, p_correction=1)
     run.gyro_drive(-_100, 140, ending_condition=Cm(29), p_correction=1.4)
-    run.gyro_turn(95, speed_multiplier=.75, p_correction=1)
+    run.gyro_turn(95, speed_multiplier=0.75, p_correction=1)
     run.gyro_drive(-65, 95, ending_condition=Cm(10), p_correction=1.4)
-    run.drive_attachment(BACK_RIGHT, -75, True, .6)
-    run.drive_attachment(BACK_LEFT, 35, True, .6)
+    run.drive_attachment(BACK_RIGHT, -75, True, 0.6)
+    run.drive_attachment(BACK_LEFT, 35, True, 0.6)
     run.gyro_drive(_100, 95, ending_condition=Cm(5), p_correction=1.4)
     run.gyro_turn(140, p_correction=1)
     run.gyro_drive(_100, 140, Cm(40), p_correction=1)
     run.gyro_turn(179, p_correction=1)
     run.gyro_drive(_100, 179, Cm(20), p_correction=1)
-    run.drive_attachment(BACK_LEFT, 100, True, .6)
+    run.drive_attachment(BACK_LEFT, 100, True, 0.6)
 
 
 @mcp.run()
@@ -1018,10 +1030,10 @@ def run_2(run: Run):
     run.drive_attachment(FRONT_RIGHT, -50, duration=2.5)
     run.gyro_drive(70, 0, Cm(4), p_correction=1)
     run.drive_attachment(FRONT_LEFT, -30, duration=2.5)
-    run.drive_attachment(FRONT_LEFT, _100, duration=.75)
+    run.drive_attachment(FRONT_LEFT, _100, duration=0.75)
     run.gyro_drive(100, 18, Cm(53), p_correction=1.5)
     run.gyro_drive(-50, 18, Cm(5), p_correction=1.5)
-    run.gyro_turn(-90, p_correction=1.2, speed_multiplier=.5)
+    run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
     run.gyro_drive(20, -90, Cm(14.5), p_correction=1)
     run.gyro_turn(-200, p_correction=1.2)
     run.gyro_turn(-135, p_correction=1.3)
@@ -1058,6 +1070,8 @@ def run_3(run: Run):
 @mcp.run()
 def run_4(run: Run):
     """Nashorn Run (Grau)"""
+    # Remember: All of this is well-commented!
+    run.drive_attachment(BACK_RIGHT, -15, duration=1, resistance=True)
     run.gyro_drive(50, 0, ending_condition=Cm(20), p_correction=3)
     run.gyro_drive(15, 0, ending_condition=Cm(10), p_correction=3)
     run.gyro_drive(-60, 0, ending_condition=Cm(13))
@@ -1071,14 +1085,8 @@ def run_4(run: Run):
     run.drive_attachment(BACK_RIGHT, 15, duration=3)
     run.drive_attachment(BACK_LEFT, 100, duration=1.25)
     run.gyro_drive(60, -86, ending_condition=Cm(15), p_correction=3)
-    run.gyro_turn(-140, p_correction=1)
-    run.drive_attachment(BACK_RIGHT, -40, duration=1)
-    run.gyro_drive(90, -140, ending_condition=Cm(40), p_correction=3)
-    run.drive_attachment(BACK_RIGHT, 40, duration=1)
-    run.gyro_drive(90, -140, ending_condition=Cm(15), p_correction=3)
-    run.gyro_turn(-180, p_correction=1)
-    run.drive_attachment(BACK_LEFT, -100, duration=1.25)
-    run.gyro_drive(90, -180, ending_condition=Cm(5), p_correction=3)
+    run.gyro_turn(-170, p_correction=1)
+    run.gyro_drive(90, -170, ending_condition=Cm(55), p_correction=3)
 
 
 @mcp.run(turning_degree_tolerance=1)
@@ -1089,7 +1097,7 @@ def run_5(run: Run):
     run.gyro_turn(-42.5, p_correction=1.2)
     run.gyro_drive(speed=-85, degree=-43, ending_condition=Cm(23), p_correction=1.2)
     run.gyro_turn(-87, p_correction=1.2)
-    run.gyro_drive(speed=-75, degree=-87, ending_condition=Cm(52), p_correction=1.2)
+    run.gyro_drive(speed=-75, degree=-87, ending_condition=Cm(54), p_correction=1.2)
     # way to the tower
     run.gyro_turn(-175, p_correction=1.2)
     # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
@@ -1111,23 +1119,23 @@ def run_6(run: Run):
         wait_for_seconds(sec)
 
     # run_for(.1, 10)
-    run_for(.1, 30)
-    run_for(.1, 50)
-    run_for(.1, 60)
-    run_for(.2, 70)
-    run_for(.2, 80)
-    run_for(.3, 90)
+    run_for(0.1, 30)
+    run_for(0.1, 50)
+    run_for(0.1, 60)
+    run_for(0.2, 70)
+    run_for(0.2, 80)
+    run_for(0.3, 90)
     #    run_for(1, 100)
     run_for(3, 100)
-    run_for(.2, 90)
-    run_for(.2, 80)
-    run_for(.2, 70)
-    run_for(.2, 60)
-    run_for(.2, 50)
-    run_for(.2, 40)
-    run_for(.2, 30)
-    run_for(.2, 20)
-    run_for(.2, 10)
+    run_for(0.2, 90)
+    run_for(0.2, 80)
+    run_for(0.2, 70)
+    run_for(0.2, 60)
+    run_for(0.2, 50)
+    run_for(0.2, 40)
+    run_for(0.2, 30)
+    run_for(0.2, 20)
+    run_for(0.2, 10)
 
     run.driving_motors.stop()
 
@@ -1152,11 +1160,11 @@ def motorcontrol(run: Run):
             if run.brick.left_button.is_pressed():
                 select -= 1
                 run.brick.left_button.wait_until_released()
-                wait_for_seconds(.1)
+                wait_for_seconds(0.1)
             if run.brick.right_button.is_pressed():
                 select += 1
                 run.brick.right_button.wait_until_released()
-                wait_for_seconds(.1)
+                wait_for_seconds(0.1)
             if select < 1:
                 select = 4
             if select > 4:
@@ -1203,7 +1211,7 @@ def motorcontrol(run: Run):
             try:
                 run.drive_attachment(motor, speed)
                 while True:
-                    wait_for_seconds(.1)
+                    wait_for_seconds(0.1)
             except KeyboardInterrupt:
                 run.drive_shaft.stop()
                 wait_for_seconds(1.0)
@@ -1237,12 +1245,12 @@ while True:
         except SystemExit:
             continue
     except Exception as e:
-        mcp.brick.speaker.beep(65, .2)
-        wait_for_seconds(.1)
-        mcp.brick.speaker.beep(70, .2)
-        wait_for_seconds(.1)
-        mcp.brick.speaker.beep(75, .1)
-        wait_for_seconds(.1)
-        mcp.brick.speaker.beep(80, .2)
+        mcp.brick.speaker.beep(65, 0.2)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(70, 0.2)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(75, 0.1)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(80, 0.2)
         mcp.brick.light_matrix.write(str(e))
         raise e
