@@ -17,7 +17,7 @@ FRONT_LEFT = const(4)
 BACK_RIGHT = const(1)
 BACK_LEFT = const(2)
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 _100 = const(100)
 
@@ -997,13 +997,16 @@ mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 @mcp.run()
 def run_1(run: Run):
     """Giftschlange Run (Grün)"""
+    run.select_gear(FRONT_LEFT)
     run.gyro_drive(60, 0, ending_condition=Cm(47), p_correction=3)
     #    run.gyro_drive(-30, 0, ending_condition=Cm(2), p_correction=3)
     run.gyro_turn(45, speed_multiplier=0.75, p_correction=1)
     run.gyro_drive(-_100, 45, ending_condition=Cm(5), p_correction=1.4)
     run.gyro_turn(140, speed_multiplier=0.75, p_correction=1)
-    run.gyro_drive(-_100, 140, ending_condition=Cm(29), p_correction=1.4)
+    run.gyro_drive(-_100, 140, ending_condition=Cm(30), p_correction=1.4)
     run.gyro_turn(95, speed_multiplier=0.75, p_correction=1)
+    run.gyro_drive(-65, 95, ending_condition=Cm(10), p_correction=1.4)
+    run.gyro_drive(65, 95, ending_condition=Cm(10), p_correction=1.4)
     run.gyro_drive(-65, 95, ending_condition=Cm(10), p_correction=1.4)
     run.drive_attachment(BACK_RIGHT, -75, True, 0.6)
     run.drive_attachment(BACK_LEFT, 35, True, 0.6)
@@ -1031,13 +1034,13 @@ def run_2(run: Run):
     run.gyro_drive(70, 0, Cm(4), p_correction=1)
     run.drive_attachment(FRONT_LEFT, -30, duration=2.5)
     run.drive_attachment(FRONT_LEFT, _100, duration=0.75)
-    run.gyro_drive(100, 18, Cm(53), p_correction=1.5)
-    run.gyro_drive(-50, 18, Cm(5), p_correction=1.5)
-    run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
-    run.gyro_drive(20, -90, Cm(14.5), p_correction=1)
-    run.gyro_turn(-200, p_correction=1.2)
-    run.gyro_turn(-135, p_correction=1.3)
-    run.gyro_drive(-50, -135, Cm(35), p_correction=1.5)
+    run.gyro_drive(100, 18, Cm(65), p_correction=1.5)
+    # run.gyro_drive(-50, 18, Cm(5), p_correction=1.5)
+    # run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
+    # run.gyro_drive(20, -90, Cm(14.5), p_correction=1)
+    # run.gyro_turn(-200, p_correction=1.2)
+    # run.gyro_turn(-135, p_correction=1.3)
+    # run.gyro_drive(-50, -135, Cm(35), p_correction=1.5)
     # run.gyro_turn(-90, speed_multiplier=.5)
     # run.gyro_drive(-20, -90, Cm(1.9), p_correction=1)
     # run.gyro_turn(-123, p_correction=1.2, speed_multiplier=.5)
@@ -1061,14 +1064,18 @@ def run_3(run: Run):
     run.drive_attachment(FRONT_RIGHT, 90, duration=4)
     run.driving_motors.stop()
     run.gyro_drive(-60, 0, ending_condition=Cm(40), p_correction=3)
-    wait_for_seconds(2)
-    run.gyro_drive(60, -45, ending_condition=Cm(16.5), p_correction=3)
-    run.drive_attachment(FRONT_LEFT, -50, duration=1.5)
-    run.gyro_drive(-60, -45, ending_condition=Cm(20), p_correction=3)
 
 
 @mcp.run()
 def run_4(run: Run):
+    """Third Part of Biene Mayo"""
+    run.gyro_drive(60, 0, ending_condition=Cm(16.5), p_correction=3)
+    run.drive_attachment(FRONT_LEFT, -50, duration=1.5)
+    run.gyro_drive(-60, 0, ending_condition=Cm(20), p_correction=3)
+
+
+@mcp.run()
+def run_5(run: Run):
     """Nashorn Run (Grau)"""
     # Remember: All of this is well-commented!
     run.drive_attachment(BACK_RIGHT, -15, duration=1, resistance=True)
@@ -1090,7 +1097,7 @@ def run_4(run: Run):
 
 
 @mcp.run(turning_degree_tolerance=1)
-def run_5(run: Run):
+def run_6(run: Run):
     """Tatütata Run (Rot)"""
     run.gyro_drive(speed=-20, degree=0, ending_condition=Cm(10), p_correction=1.2)
     run.gyro_drive(speed=-80, degree=1, ending_condition=Cm(21), p_correction=1.2)
@@ -1108,11 +1115,12 @@ def run_5(run: Run):
     run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(20), p_correction=1.2)
     run.drive_attachment(FRONT_LEFT, 100, duration=3)
     run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
+    run.gyro_drive(speed=-20, degree=-180, ending_condition=Cm(1.5), p_correction=1.2)
 
 
 @mcp.run(display_as="R")
-def run_6(run: Run):
-    """Run 6"""
+def run_7(run: Run):
+    """Cleaning Wheels"""
 
     def run_for(sec, speed):
         run.driving_motors.start_at_power(speed, 0)
