@@ -1,14 +1,16 @@
 # LEGO type:standard slot:0 autostart
+# OTTOS PROGRAMMIERUNG IN PYTHON
+# pylint: disable=too-many-lines
 """
 Current Program, uses PEP8 conform names and has the new MasterControlProgram class
 This is work in progress so there is no docstr on new elements.
 """
 from math import fabs, floor, pi
-import time
+
 import hub
-from spike import PrimeHub, Motor, ColorSensor, MotorPair
-from spike.control import wait_for_seconds, wait_until, Timer
 from micropython import const
+from spike import ColorSensor, Motor, MotorPair, PrimeHub
+from spike.control import Timer as __Timer, wait_for_seconds, wait_until
 
 FRONT_RIGHT = const(3)
 FRONT_LEFT = const(4)
@@ -20,8 +22,16 @@ DEBUG_MODE = True
 _100 = const(100)
 
 
-class BatteryLowError(KeyboardInterrupt):
+class WrongUnitError(ValueError):
+    """Non-valid unit used."""
+
+
+class BatteryLowError(RuntimeError):
     """Error raised when in debug mode and running motors while battery low."""
+
+
+class EnterDebugMenu(SystemExit):
+    """Error raised when debug menu should be started."""
 
 
 class EndingCondition:
@@ -132,6 +142,7 @@ class Run:
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,
         debug_mode: bool = False,
+        display_as: str = None,
     ):
         """
         Initiation of Run
@@ -173,7 +184,7 @@ class Run:
         self.i_correction_gyro_turn = correction_values[4]
         self.d_correction_gyro_turn = correction_values[5]
         self.selected_gear = 1
-        self.timer = Timer()
+        self.timer = __Timer()
         self.tire_radius = tire_radius
         self.light_black_value = light_black_value
         self.light_middle_value = light_middle_value
@@ -185,6 +196,7 @@ class Run:
         self.attachment_stopped = False
         self.brick.motion_sensor.reset_yaw_angle()
         self.debug_mode = debug_mode
+        self.display_as = display_as
 
         if self.debug_mode:
             PrimeHub().speaker.beep(60, 0.2)
@@ -215,7 +227,7 @@ class Run:
         if not self.debug_mode:
             return
         if hub.battery.capacity_left() < 80:
-            raise BatteryLowError
+            raise BatteryLowError("Battery capacity got below 80%")
 
     def select_gear(self, target_gear: int):
         """
@@ -236,11 +248,11 @@ class Run:
                     int(58 * (target_gear - 1)), "counterclockwise", 100
                 )
             self.selected_gear = target_gear
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt as e2:
             self.gear_selector.set_stall_detection(True)
             self.select_gear(target_gear=target_gear)
             self.gear_selector.set_stall_detection(False)
-            raise e
+            raise e2
 
     def drive_attachment(
         self,
@@ -354,6 +366,8 @@ class Run:
         deceleration: int = 0,
         attachment_start: list[int] = None,
         attachment_stop: int = 0,
+        speed_multiplier_right: int = 1,
+        speed_multiplier_left: int = 1,
     ):
         """
         PID Gyro-Drive
@@ -369,6 +383,8 @@ class Run:
         deceleration: Distance for Deceleration
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
+        speed_multiplier_left: Factor to multiply speed by on left side.
+        speed_multiplier_right: Factor to multiply speed by on right side.
         """
         self.check_battery()
         # Resetting everything
@@ -388,6 +404,10 @@ class Run:
             d_correction = self.d_correction_gyro_drive
         if deceleration != 0:
             ending_value = ending_value - deceleration
+        if not isinstance(ending_condition, EndingCondition):
+            raise WrongUnitError(
+                type(ending_condition) + " cannot be used as an EndingCondititon."
+            )
         degree = degree - 360 * floor((degree + 180) / 360)
         if isinstance(ending_condition, Deg):
             ending_condition.value = ending_condition.value - 360 * floor(
@@ -398,8 +418,12 @@ class Run:
             while not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += error_value
@@ -411,8 +435,14 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller and Acceleration
                 self.driving_motors.start_tank(
-                    int(self.calculate_acceleration(speed + corrector, acceleration)),
-                    int(self.calculate_acceleration(speed - corrector, acceleration)),
+                    int(
+                        self.calculate_acceleration(speed + corrector, acceleration)
+                        * speed_multiplier_left
+                    ),
+                    int(
+                        self.calculate_acceleration(speed - corrector, acceleration)
+                        * speed_multiplier_right
+                    ),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
                 if (
@@ -435,8 +465,12 @@ class Run:
             while not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += error_value
@@ -448,8 +482,14 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
-                    int(self.calculate_acceleration(speed + corrector, acceleration)),
-                    int(self.calculate_acceleration(speed - corrector, acceleration)),
+                    int(
+                        self.calculate_acceleration(speed + corrector, acceleration)
+                        * speed_multiplier_left
+                    ),
+                    int(
+                        self.calculate_acceleration(speed - corrector, acceleration)
+                        * speed_multiplier_right
+                    ),
                 )
         # If deceleration is wanted, stop the above loops early to start decelerating
         # The PID-Loop stays the same,
@@ -484,6 +524,8 @@ class Run:
         attachment_start: list[int] = None,
         attachment_stop: int = 0,
         speed_multiplier: float = 1,
+        speed_multiplier_left: float = 1,
+        speed_multiplier_right: float = 1,
     ):
         """
         PID-Gyro-Tank-Turn
@@ -497,8 +539,14 @@ class Run:
         attachmentStart: List of Index of Attachment, Time until Start and Speed
         attachmentStop: Time until Stop of Attachment
         speed_multiplier: Factor to multiply speed by.
+        speed_multiplier_left: Factor to multiply speed by on left side.
+        speed_multiplier_right: Factor to multiply speed by on right side.
         """
         self.check_battery()
+
+        speed_multiplier_left = speed_multiplier * speed_multiplier_left
+        speed_multiplier_right = speed_multiplier * speed_multiplier_right
+
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
@@ -515,6 +563,8 @@ class Run:
             d_correction = self.d_correction_gyro_turn
         degree = degree - 360 * floor((degree + 180) / 360)
         # If an Attachement is started or stopped during the movement, start this loop
+        # The following code is completely useless (inside the if block),
+        # but we have it and i wont remove it.
         if attachment_start[1] != 0 or attachment_stop != 0:
             while (
                 not degree - self.turning_degree_tolerance
@@ -523,8 +573,12 @@ class Run:
             ) and not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += last_error
@@ -537,8 +591,8 @@ class Run:
                 last_error = error_value
                 # If an attachementStart is planned, check the timer and start the Attachement
                 self.driving_motors.start_tank(
-                    round((attachment_start[2] - corrector) * speed_multiplier),
-                    round((attachment_start[2] + corrector) * speed_multiplier),
+                    round((attachment_start[2] - corrector) * speed_multiplier_left),
+                    round((attachment_start[2] + corrector) * speed_multiplier_right),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
                 if (
@@ -565,8 +619,12 @@ class Run:
             ) and not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
-                if abs(error_value) > 180:
+
+                # This works now. I don't know what you were doing here before!!!!
+                if error_value > 180:
                     error_value -= 360
+                if error_value <= -180:
+                    error_value += 360
                 # The necessary values for the PID-Controller get calculated
                 differential = error_value - last_error
                 integral += last_error
@@ -578,8 +636,8 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
-                    round(int(corrector) * speed_multiplier),
-                    round(int(-corrector) * speed_multiplier),
+                    round(int(corrector) * speed_multiplier_left),
+                    round(int(-corrector) * speed_multiplier_right),
                 )
         # The motors come to a full-stop
         self.driving_motors.stop()
@@ -714,41 +772,101 @@ class MasterControlProgram:
 
         return decorator
 
-    def light_up_display(self, brick: PrimeHub, number=int, max_number=int):
+    def light_up_display(self, brick: PrimeHub, number: int, max_number: int):
         """Show number on display with styled lines"""
-        brightness = 70
-        brick.light_matrix.write(number)
-        brick.light_matrix.set_pixel(0, 1, brightness=brightness)
-        brick.light_matrix.set_pixel(0, 3, brightness=brightness)
-        brick.light_matrix.set_pixel(4, 1, brightness=brightness)
-        brick.light_matrix.set_pixel(4, 3, brightness=brightness)
-        if number == max_number + 1:
+        brightness_70 = const(70)
+        if number - 1 < max_number:
+            display_as = self.runs[number - 1][1].get("display_as", number)
+        else:
+            display_as = number
+        if display_as == "X":
             brick.light_matrix.off()
-            brick.light_matrix.set_pixel(1, 1, brightness=100)
-            brick.light_matrix.set_pixel(2, 2, brightness=100)
-            brick.light_matrix.set_pixel(3, 3, brightness=100)
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(1, 4, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 0, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
+            brick.light_matrix.set_pixel(3, 4, brightness=_100)
+        elif display_as == "C":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 2, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 0, brightness=_100)
+            brick.light_matrix.set_pixel(3, 4, brightness=_100)
+        elif display_as == "T":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 1, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(2, 3, brightness=_100)
+            brick.light_matrix.set_pixel(2, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 0, brightness=_100)
+        elif display_as == "R":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 2, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(1, 4, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(3, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
+        elif display_as == "D":
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 0, brightness=_100)
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(1, 2, brightness=_100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(1, 4, brightness=_100)
+            brick.light_matrix.set_pixel(2, 0, brightness=_100)
+            brick.light_matrix.set_pixel(2, 4, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
+            brick.light_matrix.set_pixel(3, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
+        elif number == max_number + 1:
+            brick.light_matrix.off()
+            brick.light_matrix.set_pixel(1, 1, brightness=_100)
+            brick.light_matrix.set_pixel(2, 2, brightness=_100)
+            brick.light_matrix.set_pixel(3, 3, brightness=_100)
 
-            brick.light_matrix.set_pixel(1, 3, brightness=100)
-            brick.light_matrix.set_pixel(3, 1, brightness=100)
+            brick.light_matrix.set_pixel(1, 3, brightness=_100)
+            brick.light_matrix.set_pixel(3, 1, brightness=_100)
 
-            brick.light_matrix.set_pixel(0, 1, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 3, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 1, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 3, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 4, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 2, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 2, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 4, brightness=brightness)
+            brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 3, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 1, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 3, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 4, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 2, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 2, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 4, brightness=brightness_70)
+        elif isinstance(display_as, int):
+            brick.light_matrix.write(display_as)
+        else:
+            brick.light_matrix.write(number)
+        brick.light_matrix.set_pixel(0, 1, brightness=brightness_70)
+        brick.light_matrix.set_pixel(0, 3, brightness=brightness_70)
+        brick.light_matrix.set_pixel(4, 1, brightness=brightness_70)
+        brick.light_matrix.set_pixel(4, 3, brightness=brightness_70)
         if number == 1:
-            brick.light_matrix.set_pixel(0, 4, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(0, 2, brightness=brightness)
+            brick.light_matrix.set_pixel(0, 4, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(0, 2, brightness=brightness_70)
         if number == max_number:
-            brick.light_matrix.set_pixel(4, 0, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 2, brightness=brightness)
-            brick.light_matrix.set_pixel(4, 4, brightness=brightness)
+            brick.light_matrix.set_pixel(4, 0, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 2, brightness=brightness_70)
+            brick.light_matrix.set_pixel(4, 4, brightness=brightness_70)
 
     def start_run(self, run, **defaults):
         """Start a run by ID
@@ -769,6 +887,16 @@ class MasterControlProgram:
         print("Run {} ended".format(run))  # pylint: disable=consider-using-f-string
         return result
 
+    def turn_light_off(self):
+        """
+        Turn the light of all color sensors off.
+        """
+        for x in ["A", "B", "C", "D", "E", "F"]:
+            try:
+                ColorSensor(x).light_up_all(0)
+            except RuntimeError:
+                pass
+
     def start(
         self,
         engines: list[str] = None,
@@ -778,6 +906,7 @@ class MasterControlProgram:
         light_black_value: int = 10,
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,
+        no_debug_menu: bool = False,
     ):
         """
         start Master Control Program
@@ -793,6 +922,7 @@ class MasterControlProgram:
         lightBlackValue: The Lightvalue of Black
         lightMiddleValue: The middle Lightvalue between Black and White
         turningDegreeTolerance: Tolerance when turning for a degree
+        no_debug_menu: Whether to disable the debug menu
         """
         if engines is None:
             engines = ["D", "C", "F", "E"]
@@ -802,11 +932,18 @@ class MasterControlProgram:
             correction_values = [0.5, 0, 0, 0, 0, 0, 0, 0, 0]
         selected_run = 1
         print("Starting MasterControl")
+        self.turn_light_off()
         self.light_up_display(self.brick, selected_run, len(self.runs))
         while True:
             # It checks for button presses to increase, decrease or start the chosen run
             try:
                 while True:
+                    if (
+                        not no_debug_menu
+                        and self.brick.left_button.is_pressed()
+                        and self.brick.right_button.is_pressed()
+                    ):
+                        raise EnterDebugMenu()
                     if self.brick.left_button.is_pressed():
                         time_ = 0
                         while self.brick.left_button.is_pressed() and time_ < 3:
@@ -842,6 +979,8 @@ class MasterControlProgram:
                         light_middle_value=light_middle_value,
                         turning_degree_tolerance=turning_degree_tolerance,
                     )
+                    selected_run += 1
+                    self.turn_light_off()
                 except KeyboardInterrupt:
                     print("Run stopped forcefully")
                     for port in ["A", "B", "C", "D", "E", "F"]:
@@ -852,70 +991,179 @@ class MasterControlProgram:
                 self.light_up_display(self.brick, selected_run, len(self.runs))
 
 
-mcp = MasterControlProgram(PrimeHub(), debug_mode=True)
+mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 
 
 @mcp.run()
 def run_1(run: Run):
-    """Green Run"""
-    run.gyro_drive(100, 2, ending_condition=Cm(50), p_correction=1.4)
-    run.gyro_turn(45, speed_multiplier=0.75)
+    """Giftschlange Run (Grün)"""
+    run.gyro_drive(80, 0, ending_condition=Cm(39), p_correction=3)
+    wait_for_seconds(1)
+    run.gyro_turn(20, p_correction=1, speed_multiplier=1.2)
+    run.gyro_turn(45, p_correction=1)
+    run.gyro_drive(-50, 45, ending_condition=Cm(10), p_correction=1.2)
+    run.gyro_turn(135, p_correction=1, speed_multiplier=0.75)
+    # run.select_gear(FRONT_LEFT)
+    # run.gyro_drive(60, 0, ending_condition=Cm(47), p_correction=3)
+    # #    run.gyro_drive(-30, 0, ending_condition=Cm(2), p_correction=3)
+    # run.gyro_turn(45, speed_multiplier=0.75, p_correction=1)
+    # run.gyro_drive(-_100, 45, ending_condition=Cm(5), p_correction=1.4)
+    # run.gyro_turn(140, speed_multiplier=0.75, p_correction=1)
+    # run.gyro_drive(-_100, 140, ending_condition=Cm(30), p_correction=1.4)
+    # run.gyro_turn(95, speed_multiplier=0.75, p_correction=1)
+    # run.gyro_drive(-65, 95, ending_condition=Cm(10), p_correction=1.4)
+    # run.gyro_drive(65, 95, ending_condition=Cm(10), p_correction=1.4)
+    # run.gyro_drive(-65, 95, ending_condition=Cm(10), p_correction=1.4)
+    # run.drive_attachment(BACK_RIGHT, -75, True, 0.6)
+    # run.drive_attachment(BACK_LEFT, 35, True, 0.6)
+    # run.gyro_drive(_100, 95, ending_condition=Cm(5), p_correction=1.4)
+    # run.gyro_turn(140, p_correction=1)
+    # run.gyro_drive(_100, 140, Cm(40), p_correction=1)
+    # run.gyro_turn(179, p_correction=1)
+    # run.gyro_drive(_100, 179, Cm(20), p_correction=1)
+    # run.drive_attachment(BACK_LEFT, 100, True, 0.6)
 
 
 @mcp.run()
 def run_2(run: Run):
     """Biene Mayo"""
-    run.gyro_drive(_100, 0, Cm(60))
-    run.drive_attachment(BACK_LEFT, _100, duration=1)
-    run.drive_attachment(FRONT_RIGHT, _100, duration=1)
-    # run.gyro_drive(-20, 0, Cm(5))
-    run.drive_attachment(BACK_RIGHT, -10, duration=1)
-    time.sleep(0.2)
-    run.drive_attachment(BACK_RIGHT, -40, duration=1)
-    run.gyro_drive(-20, 0, Cm(10))
+    run.gyro_drive(70, 0, Cm(51.5), p_correction=1)
+    run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
+    run.select_gear(BACK_LEFT)
+    run.gyro_turn(20, speed_multiplier=1.6, speed_multiplier_left=0, p_correction=1.2)
+    run.gyro_drive(-50, 23, Cm(7), p_correction=1)
+    run.gyro_turn(45, speed_multiplier_right=0, p_correction=2)
+    run.drive_attachment(BACK_RIGHT, _100, duration=2.75)
+    run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
+    run.gyro_drive(70, 0, Cm(21), p_correction=1)
+    run.drive_attachment(FRONT_RIGHT, -50, duration=2.5)
+    run.gyro_drive(70, 0, Cm(4), p_correction=1)
+    run.drive_attachment(FRONT_LEFT, -30, duration=2.5)
+    run.drive_attachment(FRONT_LEFT, _100, duration=0.75)
+    run.gyro_drive(100, 18, Cm(65), p_correction=1.5)
+    # run.gyro_drive(-50, 18, Cm(5), p_correction=1.5)
+    # run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
+    # run.gyro_drive(20, -90, Cm(14.5), p_correction=1)
+    # run.gyro_turn(-200, p_correction=1.2)
+    # run.gyro_turn(-135, p_correction=1.3)
+    # run.gyro_drive(-50, -135, Cm(35), p_correction=1.5)
+    # run.gyro_turn(-90, speed_multiplier=.5)
+    # run.gyro_drive(-20, -90, Cm(1.9), p_correction=1)
+    # run.gyro_turn(-123, p_correction=1.2, speed_multiplier=.5)
+    # run.gyro_drive(40, -123, Cm(16), p_correction=.1)
+    # run.right_motor.run_for_seconds(.25, 57)
+    # run.left_motor.run_for_seconds(.25, 50)
+    # run.right_motor.run_for_seconds(.25, 50)
+    # run.left_motor.run_for_seconds(.25, 50)
+    # run.drive_attachment(FRONT_RIGHT, _100, duration=6)
+    # run.gyro_drive(-40, -180, Cm(30), p_correction=1)
 
 
 @mcp.run()
 def run_3(run: Run):
-    """Grey Run"""
-    run.gyro_drive(speed=_100, degree=0, ending_condition=Cm(30), p_correction=4)
-    run.gyro_turn(-45, p_correction=0.75)
-    run.gyro_drive(speed=_100, degree=-45, ending_condition=Cm(25), p_correction=2)
-    run.gyro_turn(45, p_correction=0.5)
-    run.gyro_drive(speed=30, degree=45, ending_condition=Cm(11), p_correction=0.5)
-    run.drive_attachment(FRONT_RIGHT, -70, duration=1)
-    run.gyro_drive(speed=-40, degree=45, ending_condition=Cm(13.5), p_correction=4)
-    run.gyro_turn(42.5, p_correction=1)
-    run.drive_attachment(BACK_LEFT, _100, duration=1)
-    run.drive_attachment(BACK_LEFT, -_100, duration=0.5)
-    run.gyro_drive(speed=_100, degree=45, ending_condition=Cm(5), p_correction=4)
-    run.drive_attachment(BACK_LEFT, _100, duration=0.5)
-    run.gyro_turn(-5, p_correction=1)
-    run.gyro_drive(speed=-_100, degree=-10, ending_condition=Cm(4), p_correction=4)
-    run.gyro_turn(50, p_correction=1)
-    run.gyro_turn(-25, p_correction=1)
-    run.gyro_drive(speed=-_100, degree=-25, ending_condition=Cm(75), p_correction=4)
-
-    # reset (remove in prod)
-    run.drive_attachment(BACK_LEFT, -_100, duration=1)
+    """Second Part of Biene Mayo"""
+    run.gyro_drive(60, degree=0, ending_condition=Cm(47), p_correction=3)
+    # run.right_motor.run_for_seconds(.5, 70)
+    # run.gyro_drive(50, -1, ending_condition=__Timer(2), p_correction=3)
+    # run.left_motor.start(-5) 5r
+    run.left_motor.start(15)
+    run.drive_attachment(FRONT_RIGHT, 90, duration=4)
+    run.driving_motors.stop()
+    run.gyro_drive(-60, 0, ending_condition=Cm(40), p_correction=3)
 
 
 @mcp.run()
-def run_4(run: Run): # pylint: disable=unused-argument
-    """Red Run"""
+def run_4(run: Run):
+    """Third Part of Biene Mayo"""
+    run.gyro_drive(60, 0, ending_condition=Cm(16.5), p_correction=3)
+    run.drive_attachment(FRONT_LEFT, -50, duration=1.5)
+    run.gyro_drive(-60, 0, ending_condition=Cm(20), p_correction=3)
 
 
 @mcp.run()
+def run_5(run: Run):
+    """Nashorn Run (Grau)"""
+    # Remember: All of this is well-commented!
+    run.drive_attachment(BACK_RIGHT, -15, duration=1, resistance=True)
+    run.gyro_drive(50, 0, ending_condition=Cm(20), p_correction=3)
+    run.gyro_drive(15, 0, ending_condition=Cm(10), p_correction=3)
+    run.gyro_drive(-60, 0, ending_condition=Cm(13))
+    run.gyro_turn(40, p_correction=1.5)
+    run.gyro_drive(60, 40, ending_condition=Cm(25), p_correction=3)
+    run.gyro_turn(0, p_correction=1.5)
+    run.gyro_drive(60, 0, ending_condition=Cm(18.5), p_correction=3)
+    run.gyro_turn(-86, p_correction=1)
+    run.gyro_drive(-60, -87, ending_condition=Cm(10), p_correction=3)
+    run.gyro_drive(-40, -87, ending_condition=Cm(10), p_correction=3)
+    run.drive_attachment(BACK_RIGHT, 15, duration=3)
+    run.drive_attachment(BACK_LEFT, 100, duration=1.25)
+    run.gyro_drive(60, -86, ending_condition=Cm(15), p_correction=3)
+    run.gyro_turn(-170, p_correction=1)
+    run.gyro_drive(90, -170, ending_condition=Cm(55), p_correction=3)
+
+
+@mcp.run(turning_degree_tolerance=1)
+def run_6(run: Run):
+    """Tatütata Run (Rot)"""
+    run.gyro_drive(speed=-20, degree=0, ending_condition=Cm(10), p_correction=1.2)
+    run.gyro_drive(speed=-80, degree=1, ending_condition=Cm(21), p_correction=1.2)
+    run.gyro_turn(-42.5, p_correction=1.2)
+    run.gyro_drive(speed=-85, degree=-43, ending_condition=Cm(23), p_correction=1.2)
+    run.gyro_turn(-87, p_correction=1.2)
+    run.gyro_drive(speed=-75, degree=-87, ending_condition=Cm(54), p_correction=1.2)
+    # way to the tower
+    run.gyro_turn(-175, p_correction=1.2)
+    # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
+    run.gyro_drive(speed=-30, degree=-175, ending_condition=Cm(15), p_correction=1.2)
+    run.drive_attachment(BACK_RIGHT, -100, duration=12.5)
+    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(5), p_correction=1.2)
+    # run.gyro_turn(-180, p_correction=3.25)
+    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(20), p_correction=1.2)
+    run.drive_attachment(FRONT_LEFT, 100, duration=3)
+    run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
+    run.gyro_drive(speed=-20, degree=-180, ending_condition=Cm(1.5), p_correction=1.2)
+
+
+@mcp.run(display_as="R")
+def run_7(run: Run):
+    """Cleaning Wheels"""
+
+    def run_for(sec, speed):
+        run.driving_motors.start_at_power(speed, 0)
+        wait_for_seconds(sec)
+
+    # run_for(.1, 10)
+    run_for(0.1, 30)
+    run_for(0.1, 50)
+    run_for(0.1, 60)
+    run_for(0.2, 70)
+    run_for(0.2, 80)
+    run_for(0.3, 90)
+    #    run_for(1, 100)
+    run_for(3, 100)
+    run_for(0.2, 90)
+    run_for(0.2, 80)
+    run_for(0.2, 70)
+    run_for(0.2, 60)
+    run_for(0.2, 50)
+    run_for(0.2, 40)
+    run_for(0.2, 30)
+    run_for(0.2, 20)
+    run_for(0.2, 10)
+
+    run.driving_motors.stop()
+
+
+@mcp.run(display_as="T", debug_mode=False)
 def test(run: Run):
     """Run all attachment motors"""
+    run.drive_attachment(1, _100, duration=1)
+    run.drive_attachment(2, _100, duration=1)
+    run.drive_attachment(3, _100, duration=1)
+    run.drive_attachment(4, _100, duration=1)
 
-    run.drive_attachment(1, _100, duration=2)
-    run.drive_attachment(2, _100, duration=2)
-    run.drive_attachment(3, _100, duration=2)
-    run.drive_attachment(4, _100, duration=2)
 
-
-@mcp.run()
+@mcp.run(display_as="C", debug_mode=False)
 def motorcontrol(run: Run):
     """Motorcontrol"""
     select = 1
@@ -983,7 +1231,40 @@ def motorcontrol(run: Run):
                 wait_for_seconds(1.0)
 
 
-try:
-    mcp.start()
-except BatteryLowError:
-    mcp.brick.speaker.beep(65, 1)
+debug_menu = MasterControlProgram(PrimeHub())
+
+
+@debug_menu.run(display_as="R")
+def restart(run):  # pylint: disable=unused-argument
+    """Restart the robot."""
+    hub.power_off(True, True)
+
+
+@debug_menu.run(display_as="D")
+def enbug(run):  # pylint: disable=unused-argument
+    """Disable debug menu."""
+    mcp.defaults["debug_mode"] = False
+
+
+while True:
+    try:
+        mcp.start()
+    except BatteryLowError as e:
+        mcp.brick.light_matrix.write("!")
+        mcp.brick.speaker.beep(65, 1)
+        raise e
+    except EnterDebugMenu as e:
+        try:
+            debug_menu.start(no_debug_menu=True)
+        except SystemExit:
+            continue
+    except Exception as e:
+        mcp.brick.speaker.beep(65, 0.2)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(70, 0.2)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(75, 0.1)
+        wait_for_seconds(0.1)
+        mcp.brick.speaker.beep(80, 0.2)
+        mcp.brick.light_matrix.write(str(e))
+        raise e
