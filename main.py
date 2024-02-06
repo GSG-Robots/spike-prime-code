@@ -979,7 +979,8 @@ class MasterControlProgram:
                         light_middle_value=light_middle_value,
                         turning_degree_tolerance=turning_degree_tolerance,
                     )
-                    selected_run += 1
+                    if not DEBUG_MODE:
+                        selected_run += 1
                     self.turn_light_off()
                 except KeyboardInterrupt:
                     print("Run stopped forcefully")
@@ -1001,10 +1002,10 @@ def run_1(run: Run):
     wait_for_seconds(1)
     run.gyro_turn(20, p_correction=1, speed_multiplier=1.2)
     run.gyro_turn(45, p_correction=1)
-    run.gyro_drive(-50, 45, ending_condition=Cm(3), p_correction=1.2)
+    run.gyro_drive(-50, 45, ending_condition=Cm(3.5), p_correction=1.2)
     run.gyro_turn(135, p_correction=1, speed_multiplier=0.75)
     wait_for_seconds(1)
-    run.gyro_drive(-80, 135, ending_condition=Cm(28), p_correction=1.2)
+    run.gyro_drive(-80, 135, ending_condition=Cm(29), p_correction=1.2)
     run.gyro_turn(90, p_correction=1.2)
     run.gyro_drive(-45, 90, ending_condition=Cm(5))
     run.drive_attachment(BACK_RIGHT, -75, True, 0.6)
@@ -1013,7 +1014,7 @@ def run_1(run: Run):
     run.gyro_turn(135, p_correction=1, speed_multiplier=0.75)
     run.gyro_drive(80, 135, ending_condition=Cm(28), p_correction=1.2)
     run.gyro_turn(180, p_correction=1.2)
-    run.gyro_drive(65, 180, ending_condition=Cm(15), p_correction=1.2)
+    run.gyro_drive(65, 180, ending_condition=Cm(25), p_correction=1.2)
     # run.select_gear(FRONT_LEFT)
     # run.gyro_drive(60, 0, ending_condition=Cm(47), p_correction=3)
     # #    run.gyro_drive(-30, 0, ending_condition=Cm(2), p_correction=3)
@@ -1032,7 +1033,7 @@ def run_1(run: Run):
     # run.gyro_drive(_100, 140, Cm(40), p_correction=1)
     # run.gyro_turn(179, p_correction=1)
     # run.gyro_drive(_100, 179, Cm(20), p_correction=1)
-    # run.drive_attachment(BACK_LEFT, 100, True, 0.6)
+    run.drive_attachment(BACK_LEFT, 100, True, 0.6)
 
 
 @mcp.run()
