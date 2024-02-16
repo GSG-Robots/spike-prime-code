@@ -43,6 +43,18 @@ class EndingCondition:
         """Returns if the EndingCondition is fulfilled"""
         # this ugly thing is used because pylint wants me to use the run arg.
         return not bool(run)  # returns False, so it runs infinite.
+    
+    def __or__(self, other):
+        return OrCond(self, other)
+    
+    def __ror__(self, other):
+        return OrCond(self, other)
+    
+    def __and__(self, other):
+        return AndCond(self, other)
+    
+    def __rand__(self, other):
+        return AndCond(self, other)
 
 
 class OrCond(EndingCondition):
@@ -1002,16 +1014,19 @@ def run_1(run: Run):
     wait_for_seconds(1)
     run.gyro_turn(20, p_correction=1, speed_multiplier=1.2)
     run.gyro_turn(45, p_correction=1)
+    # Pult gelöst
     run.gyro_drive(-50, 45, ending_condition=Cm(3.25), p_correction=1.2)
     run.gyro_turn(137, p_correction=0.7)
     wait_for_seconds(1)
     run.gyro_drive(-80, 137, ending_condition=Cm(29.0), p_correction=1.2)
     run.gyro_turn(90, p_correction=1.2)
+    # gleich heranfahren an Karusell
     run.gyro_drive(-45, 90, ending_condition=Cm(8))
     run.drive_attachment(BACK_RIGHT, -75, True, 1)
     run.drive_attachment(BACK_LEFT, 35, True, 2)
     run.gyro_drive(45, 90, ending_condition=Cm(7))
     run.gyro_turn(135, p_correction=1.4)
+    # ab jetz Rückweg
     run.gyro_drive(80, 135, ending_condition=Cm(28), p_correction=1.2)
     run.gyro_turn(180, p_correction=1.4)
     run.gyro_drive(65, 180, ending_condition=Cm(25), p_correction=1.2)
@@ -1039,36 +1054,30 @@ def run_1(run: Run):
 @mcp.run()
 def run_2(run: Run):
     """Biene Mayo"""
-    run.gyro_drive(70, 0, Cm(51.5), p_correction=1)
+    run.gyro_drive(70, -2, Cm(51.5), p_correction=1.2)
     run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
+    # Einhaken
     run.select_gear(BACK_LEFT)
-    run.gyro_turn(20, speed_multiplier=1.6, speed_multiplier_left=0, p_correction=1.2)
-    run.gyro_drive(-50, 23, Cm(7), p_correction=1)
-    run.gyro_turn(45, speed_multiplier_right=0, p_correction=2)
+    run.gyro_drive(-50, 0, Cm(3), p_correction=1.2)
+    run.gyro_turn(23, speed_multiplier=2, speed_multiplier_left=0, p_correction=2)
+    run.gyro_drive(-50, 23, Cm(4), p_correction=1)
+    run.gyro_turn(45, speed_multiplier_right=2, p_correction=2)
     run.drive_attachment(BACK_RIGHT, _100, duration=2.75)
     run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
-    run.gyro_drive(70, 0, Cm(21), p_correction=1)
-    run.drive_attachment(FRONT_RIGHT, -50, duration=2.5)
+    # Kamera abgesetz, weiterfahren
+    run.gyro_drive(70, 0, Cm(19), p_correction=1)
+    run.drive_attachment(FRONT_RIGHT, -100, duration=2.5)
     run.gyro_drive(70, 0, Cm(4), p_correction=1)
-    run.drive_attachment(FRONT_LEFT, -30, duration=2.5)
-    run.drive_attachment(FRONT_LEFT, _100, duration=0.75)
-    run.gyro_drive(100, 18, Cm(65), p_correction=1.5)
-    # run.gyro_drive(-50, 18, Cm(5), p_correction=1.5)
-    # run.gyro_turn(-90, p_correction=1.2, speed_multiplier=0.5)
-    # run.gyro_drive(20, -90, Cm(14.5), p_correction=1)
-    # run.gyro_turn(-200, p_correction=1.2)
-    # run.gyro_turn(-135, p_correction=1.3)
-    # run.gyro_drive(-50, -135, Cm(35), p_correction=1.5)
-    # run.gyro_turn(-90, speed_multiplier=.5)
-    # run.gyro_drive(-20, -90, Cm(1.9), p_correction=1)
-    # run.gyro_turn(-123, p_correction=1.2, speed_multiplier=.5)
-    # run.gyro_drive(40, -123, Cm(16), p_correction=.1)
-    # run.right_motor.run_for_seconds(.25, 57)
-    # run.left_motor.run_for_seconds(.25, 50)
-    # run.right_motor.run_for_seconds(.25, 50)
-    # run.left_motor.run_for_seconds(.25, 50)
-    # run.drive_attachment(FRONT_RIGHT, _100, duration=6)
-    # run.gyro_drive(-40, -180, Cm(30), p_correction=1)
+    run.drive_attachment(BACK_LEFT, -100, duration=0.75)
+    run.gyro_drive(100,0,Cm(12),p_correction=1.2)
+    # Abbiegen zur Achterbahn
+    # run.gyro_turn(35,p_correction=1.2)
+    run.drive_attachment(FRONT_LEFT, 100, duration=1.5)
+    run.gyro_drive(70, 10, Cm(15), p_correction=1.2)
+    # run.gyro_turn(0, p_correction=1.2)
+    run.drive_attachment(FRONT_LEFT, -100, duration=2)
+    run.gyro_drive(100, 10, Cm(65), p_correction=1.5)
+    
 
 
 @mcp.run()
@@ -1087,9 +1096,8 @@ def run_3(run: Run):
 @mcp.run()
 def run_4(run: Run):
     """Third Part of Biene Mayo"""
-    run.gyro_drive(60, 0, ending_condition=Cm(16.5), p_correction=3)
-    run.drive_attachment(FRONT_LEFT, -50, duration=1.5)
-    run.gyro_drive(-60, 0, ending_condition=Cm(20), p_correction=3)
+    run.gyro_drive(80, 0, ending_condition=Cm(40), p_correction=3)
+    run.gyro_drive(-100, 0, ending_condition=Cm(30), p_correction=3)
 
 
 @mcp.run()
@@ -1117,23 +1125,32 @@ def run_5(run: Run):
 @mcp.run(turning_degree_tolerance=1)
 def run_6(run: Run):
     """Tatütata Run (Rot)"""
-    run.gyro_drive(speed=-20, degree=0, ending_condition=Cm(10), p_correction=1.2)
-    run.gyro_drive(speed=-80, degree=1, ending_condition=Cm(21), p_correction=1.2)
-    run.gyro_turn(-42.5, p_correction=1.2)
-    run.gyro_drive(speed=-85, degree=-43, ending_condition=Cm(23), p_correction=1.2)
-    run.gyro_turn(-87, p_correction=1.2)
-    run.gyro_drive(speed=-75, degree=-87, ending_condition=Cm(54), p_correction=1.2)
-    # way to the tower
-    run.gyro_turn(-175, p_correction=1.2)
-    # run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=4)
-    run.gyro_drive(speed=-30, degree=-175, ending_condition=Cm(15), p_correction=1.2)
-    run.drive_attachment(BACK_RIGHT, -100, duration=12.5)
-    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(5), p_correction=1.2)
-    # run.gyro_turn(-180, p_correction=3.25)
-    run.gyro_drive(speed=70, degree=-180, ending_condition=Cm(20), p_correction=1.2)
+    run.gyro_drive(speed=100, degree=0, ending_condition=Cm(18), p_correction=1.2)
+    run.gyro_drive(speed=50, degree=0, ending_condition=Cm(10), p_correction=1.2)
+    run.gyro_drive(speed=-70, degree=0, ending_condition=Cm(15), p_correction=1.2)
+    # Druckerpresse reingeschoben, fahren zu Lichtshow
+    run.gyro_turn(44, p_correction=1.3)
+    run.gyro_drive(speed=90, degree=44, ending_condition= Cm(30), p_correction=1.2)
+    run.gyro_drive(speed=50, degree=44, ending_condition= Cm(8), p_correction=1.2)
+    run.drive_attachment(FRONT_RIGHT, 100, duration=1)
+    run.gyro_drive(speed=-90, degree=44, ending_condition=Cm(10), p_correction=1.2)
+    # Lichtshow aktiviert, fahren zu Turm
+    run.gyro_turn(0, p_correction=1.2)
+    run.gyro_drive(speed=90, degree=0, ending_condition=Cm(20), p_correction=1.2)
+    run.gyro_turn(-40, p_correction=1.2)
+    run.gyro_drive(speed=100, degree=-43, ending_condition=Cm(35), p_correction=1.2)
+    run.gyro_drive(speed=70, degree=-43, ending_condition=Cm(10), p_correction=1.2)
+    run.gyro_turn(36, p_correction=1.3)
+    run.gyro_drive(speed=90, degree=36, ending_condition=Cm(20), p_correction=1.2)
+    wait_for_seconds(1)
+    # Roboter ist ausgerichtet
+    run.gyro_drive(speed=-90, degree=46, ending_condition=Cm(25), p_correction=1.2)
+    run.drive_attachment(BACK_RIGHT, -100, duration=10.5)
+    # Turm hochgefahren
+    run.gyro_drive(speed=90, degree=42, ending_condition=Cm(25), p_correction=1.2)
     run.drive_attachment(FRONT_LEFT, 100, duration=3)
-    run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
-    run.gyro_drive(speed=-20, degree=-180, ending_condition=Cm(1.5), p_correction=1.2)
+    run.drive_attachment(FRONT_LEFT, -100, duration=3)
+
 
 
 @mcp.run(display_as="R")
@@ -1280,3 +1297,4 @@ while True:
         mcp.brick.speaker.beep(80, 0.2)
         mcp.brick.light_matrix.write(str(e))
         raise e
+
