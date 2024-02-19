@@ -1080,17 +1080,17 @@ def run_2(run: Run):
     
 
 
-@mcp.run()
-def run_3(run: Run):
-    """Second Part of Biene Mayo"""
-    run.gyro_drive(60, degree=0, ending_condition=Cm(47), p_correction=3)
-    # run.right_motor.run_for_seconds(.5, 70)
-    # run.gyro_drive(50, -1, ending_condition=__Timer(2), p_correction=3)
-    # run.left_motor.start(-5) 5r
-    run.left_motor.start(15)
-    run.drive_attachment(FRONT_RIGHT, 90, duration=4)
-    run.driving_motors.stop()
-    run.gyro_drive(-60, 0, ending_condition=Cm(40), p_correction=3)
+# @mcp.run()
+# def run_3(run: Run):
+#     """Second Part of Biene Mayo"""
+#     run.gyro_drive(60, degree=0, ending_condition=Cm(47), p_correction=3)
+#     # run.right_motor.run_for_seconds(.5, 70)
+#     # run.gyro_drive(50, -1, ending_condition=__Timer(2), p_correction=3)
+#     # run.left_motor.start(-5) 5r
+#     run.left_motor.start(15)
+#     run.drive_attachment(FRONT_RIGHT, 90, duration=4)
+#     run.driving_motors.stop()
+#     run.gyro_drive(-60, 0, ending_condition=Cm(40), p_correction=3)
 
 
 @mcp.run()
@@ -1100,27 +1100,27 @@ def run_4(run: Run):
     run.gyro_drive(-100, 0, ending_condition=Cm(30), p_correction=3)
 
 
-@mcp.run()
-def run_5(run: Run):
-    """Nashorn Run (Grau)"""
-    # Remember: All of this is well-commented!
-    run.drive_attachment(BACK_RIGHT, -15, duration=1, resistance=True)
-    run.gyro_drive(50, 0, ending_condition=Cm(20), p_correction=3)
-    run.gyro_drive(15, 0, ending_condition=Cm(10), p_correction=3)
-    run.gyro_drive(-60, 0, ending_condition=Cm(13))
-    run.gyro_turn(40, p_correction=1.5)
-    run.gyro_drive(60, 40, ending_condition=Cm(25), p_correction=3)
-    run.gyro_turn(0, p_correction=1.5)
-    run.gyro_drive(60, 0, ending_condition=Cm(18.5), p_correction=3)
-    run.gyro_turn(-86, p_correction=1)
-    run.gyro_drive(-60, -87, ending_condition=Cm(10), p_correction=3)
-    run.gyro_drive(-40, -87, ending_condition=Cm(10), p_correction=3)
-    run.drive_attachment(BACK_RIGHT, 15, duration=3)
-    run.drive_attachment(BACK_LEFT, 100, duration=1.25)
-    run.gyro_drive(60, -86, ending_condition=Cm(15), p_correction=3)
-    run.gyro_turn(-170, p_correction=1)
-    run.gyro_drive(90, -170, ending_condition=Cm(55), p_correction=3)
-
+# @mcp.run()
+# def run_5(run: Run):
+#     """Nashorn Run (Grau)"""
+#     # Remember: All of this is well-commented!
+#     run.drive_attachment(BACK_RIGHT, -15, duration=1, resistance=True)
+#     run.gyro_drive(50, 0, ending_condition=Cm(20), p_correction=3)
+#     run.gyro_drive(15, 0, ending_condition=Cm(10), p_correction=3)
+#     run.gyro_drive(-60, 0, ending_condition=Cm(13))
+#     run.gyro_turn(40, p_correction=1.5)
+#     run.gyro_drive(60, 40, ending_condition=Cm(25), p_correction=3)
+#     run.gyro_turn(0, p_correction=1.5)
+#     run.gyro_drive(60, 0, ending_condition=Cm(18.5), p_correction=3)
+#     run.gyro_turn(-86, p_correction=1)
+#     run.gyro_drive(-60, -87, ending_condition=Cm(10), p_correction=3)
+#     run.gyro_drive(-40, -87, ending_condition=Cm(10), p_correction=3)
+#     run.drive_attachment(BACK_RIGHT, 15, duration=3)
+#     run.drive_attachment(BACK_LEFT, 100, duration=1.25)
+#     run.gyro_drive(60, -86, ending_condition=Cm(15), p_correction=3)
+#     run.gyro_turn(-170, p_correction=1)
+#     run.gyro_drive(90, -170, ending_condition=Cm(55), p_correction=3)
+# Johannes sich hab's jetzt mal weg gemacht
 
 @mcp.run(turning_degree_tolerance=1)
 def run_6(run: Run):
