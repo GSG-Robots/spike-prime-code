@@ -1143,13 +1143,15 @@ def run_6(run: Run):
     run.gyro_turn(36, p_correction=1.3)
     run.gyro_drive(speed=90, degree=36, ending_condition=Cm(20), p_correction=1.2)
     wait_for_seconds(1)
+    run.gyro_drive(speed=90, degree=42, ending_condition=Cm(25), p_correction=1.2)
+    run.drive_attachment(FRONT_LEFT, 100, duration=3)
+    run.drive_attachment(FRONT_LEFT, -100, duration=3)
+    run.drive_attachment(FRONT_RIGHT, -100, duration=1)
     # Roboter ist ausgerichtet
     run.gyro_drive(speed=-90, degree=46, ending_condition=Cm(25), p_correction=1.2)
     run.drive_attachment(BACK_RIGHT, -100, duration=10.5)
     # Turm hochgefahren
-    run.gyro_drive(speed=90, degree=42, ending_condition=Cm(25), p_correction=1.2)
-    run.drive_attachment(FRONT_LEFT, 100, duration=3)
-    run.drive_attachment(FRONT_LEFT, -100, duration=3)
+    
 
 
 
