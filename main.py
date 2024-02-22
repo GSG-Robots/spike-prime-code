@@ -232,14 +232,14 @@ class Run:
 
     def check_battery(self):
         """
-        Check if the battery is low and raise an error if it is below 80%.
+        Check if the battery is low and raise an error if it is below 100%.
         Only ran when in debug mode.
         """
 
         if not self.debug_mode:
             return
-        if hub.battery.capacity_left() < 80:
-            raise BatteryLowError("Battery capacity got below 80%")
+        if hub.battery.capacity_left() < 100:
+            raise BatteryLowError("Battery capacity got below 100%")
 
     def select_gear(self, target_gear: int):
         """
@@ -1016,7 +1016,7 @@ def run_1(run: Run):
     run.gyro_turn(45, p_correction=1)
     # Pult gelöst
     run.gyro_drive(-50, 45, ending_condition=Cm(3.25), p_correction=1.2)
-    run.gyro_turn(137, p_correction=0.7)
+    run.gyro_turn(137, p_correction=0.7, speed_multiplier= 1.7)
     wait_for_seconds(1)
     run.gyro_drive(-80, 137, ending_condition=Cm(29.0), p_correction=1.2)
     run.gyro_turn(90, p_correction=1.2)
@@ -1029,7 +1029,7 @@ def run_1(run: Run):
     # ab jetz Rückweg
     run.gyro_drive(80, 135, ending_condition=Cm(28), p_correction=1.2)
     run.gyro_turn(180, p_correction=1.4)
-    run.gyro_drive(65, 180, ending_condition=Cm(25), p_correction=1.2)
+    run.gyro_drive(65, 180, ending_condition=Cm(35), p_correction=1.2)
     # run.select_gear(FRONT_LEFT)
     # run.gyro_drive(60, 0, ending_condition=Cm(47), p_correction=3)
     # #    run.gyro_drive(-30, 0, ending_condition=Cm(2), p_correction=3)
@@ -1058,7 +1058,7 @@ def run_2(run: Run):
     run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
     # Einhaken
     run.select_gear(BACK_LEFT)
-    run.gyro_drive(-50, 0, Cm(3), p_correction=1.2)
+    run.gyro_drive(-50, 0, Cm(5), p_correction=1.2)
     run.gyro_turn(23, speed_multiplier=2, speed_multiplier_left=0, p_correction=2)
     run.gyro_drive(-50, 23, Cm(4), p_correction=1)
     run.gyro_turn(45, speed_multiplier_right=2, p_correction=2)
@@ -1075,7 +1075,6 @@ def run_2(run: Run):
     run.drive_attachment(FRONT_LEFT, 100, duration=1.5)
     run.gyro_drive(70, 10, Cm(15), p_correction=1.2)
     # run.gyro_turn(0, p_correction=1.2)
-    run.drive_attachment(FRONT_LEFT, -100, duration=2)
     run.gyro_drive(100, 10, Cm(65), p_correction=1.5)
     
 
@@ -1134,23 +1133,25 @@ def run_6(run: Run):
     run.gyro_drive(speed=50, degree=44, ending_condition= Cm(8), p_correction=1.2)
     run.drive_attachment(FRONT_RIGHT, 100, duration=1)
     run.gyro_drive(speed=-90, degree=44, ending_condition=Cm(10), p_correction=1.2)
+    run.drive_attachment(FRONT_RIGHT, 100, duration=1.5)
     # Lichtshow aktiviert, fahren zu Turm
     run.gyro_turn(0, p_correction=1.2)
     run.gyro_drive(speed=90, degree=0, ending_condition=Cm(20), p_correction=1.2)
     run.gyro_turn(-40, p_correction=1.2)
     run.gyro_drive(speed=100, degree=-43, ending_condition=Cm(35), p_correction=1.2)
-    run.gyro_drive(speed=70, degree=-43, ending_condition=Cm(10), p_correction=1.2)
+    run.gyro_drive(speed=70, degree=-43, ending_condition=Cm(9), p_correction=1.2)
     run.gyro_turn(36, p_correction=1.3)
     run.gyro_drive(speed=90, degree=36, ending_condition=Cm(20), p_correction=1.2)
     wait_for_seconds(1)
-    run.gyro_drive(speed=90, degree=42, ending_condition=Cm(25), p_correction=1.2)
-    run.drive_attachment(FRONT_LEFT, 100, duration=3)
-    run.drive_attachment(FRONT_LEFT, -100, duration=3)
+    run.drive_attachment(FRONT_LEFT, 100, duration=2.5)
+    run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
     run.drive_attachment(FRONT_RIGHT, -100, duration=1)
     # Roboter ist ausgerichtet
     run.gyro_drive(speed=-90, degree=46, ending_condition=Cm(25), p_correction=1.2)
-    run.drive_attachment(BACK_RIGHT, -100, duration=10.5)
+    run.drive_attachment(BACK_RIGHT, -100, duration=12.5)
     # Turm hochgefahren
+    run.gyro_drive(speed=90, degree=42, ending_condition=Sec(1.5), p_correction=1.2)
+    # zurück gefahren
     
 
 
