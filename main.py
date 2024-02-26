@@ -1,6 +1,7 @@
 # LEGO type:standard slot:0 autostart
 # OTTOS PROGRAMMIERUNG IN PYTHON
 # pylint: disable=too-many-lines
+# pylint: disable=trailing-newlines
 """
 Current Program, uses PEP8 conform names and has the new MasterControlProgram class
 This is work in progress so there is no docstr on new elements.
@@ -43,16 +44,16 @@ class EndingCondition:
         """Returns if the EndingCondition is fulfilled"""
         # this ugly thing is used because pylint wants me to use the run arg.
         return not bool(run)  # returns False, so it runs infinite.
-    
+
     def __or__(self, other):
         return OrCond(self, other)
-    
+
     def __ror__(self, other):
         return OrCond(self, other)
-    
+
     def __and__(self, other):
         return AndCond(self, other)
-    
+
     def __rand__(self, other):
         return AndCond(self, other)
 
@@ -1007,6 +1008,8 @@ class MasterControlProgram:
 mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
 
 timer = __Timer()
+timer.reset()
+
 
 @mcp.run()
 def run_1(run: Run):
@@ -1018,7 +1021,7 @@ def run_1(run: Run):
     run.gyro_turn(45, p_correction=1)
     # Pult gelöst
     run.gyro_drive(-50, 45, ending_condition=Cm(3.25), p_correction=1.2)
-    run.gyro_turn(137, p_correction=0.7, speed_multiplier= 1.7)
+    run.gyro_turn(137, p_correction=0.7, speed_multiplier=1.7)
     wait_for_seconds(1)
     run.gyro_drive(-80, 137, ending_condition=Cm(29.0), p_correction=1.2)
     run.gyro_turn(90, p_correction=1.2)
@@ -1071,14 +1074,13 @@ def run_2(run: Run):
     run.drive_attachment(FRONT_RIGHT, -100, duration=2.5)
     run.gyro_drive(70, 0, Cm(4), p_correction=1)
     run.drive_attachment(BACK_LEFT, -100, duration=0.75)
-    run.gyro_drive(100,0,Cm(12),p_correction=1.2)
+    run.gyro_drive(100, 0, Cm(12), p_correction=1.2)
     # Abbiegen zur Achterbahn
     # run.gyro_turn(35,p_correction=1.2)
     run.drive_attachment(FRONT_LEFT, 100, duration=1.5)
     run.gyro_drive(70, 10, Cm(15), p_correction=1.2)
     # run.gyro_turn(0, p_correction=1.2)
     run.gyro_drive(100, 10, Cm(65), p_correction=1.5)
-    
 
 
 @mcp.run()
@@ -1096,8 +1098,8 @@ def run_4(run: Run):
     run.gyro_drive(speed=-70, degree=0, ending_condition=Cm(15), p_correction=1.2)
     # Druckerpresse reingeschoben, fahren zu Lichtshow
     run.gyro_turn(44, p_correction=1.3)
-    run.gyro_drive(speed=90, degree=44, ending_condition= Cm(30), p_correction=1.2)
-    run.gyro_drive(speed=50, degree=44, ending_condition= Cm(8), p_correction=1.2)
+    run.gyro_drive(speed=90, degree=44, ending_condition=Cm(30), p_correction=1.2)
+    run.gyro_drive(speed=50, degree=44, ending_condition=Cm(8), p_correction=1.2)
     run.drive_attachment(FRONT_RIGHT, 100, duration=1)
     run.gyro_drive(speed=-90, degree=44, ending_condition=Cm(10), p_correction=1.2)
     run.drive_attachment(FRONT_RIGHT, 100, duration=1.5)
@@ -1107,8 +1109,8 @@ def run_4(run: Run):
     run.gyro_turn(-45, p_correction=1.2)
     run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(35), p_correction=1.2)
     run.gyro_drive(speed=70, degree=-45, ending_condition=Cm(11), p_correction=1.2)
-    run.gyro_turn(45, p_correction=1.3)
-    run.gyro_drive(speed=90, degree=45, ending_condition=Cm(20), p_correction=1.2)
+    run.gyro_turn(45, p_correction=1, ending_condition=Sec(3))
+    run.gyro_drive(speed=90, degree=45, ending_condition=Cm(20), p_correction=1)
     wait_for_seconds(1)
     run.drive_attachment(FRONT_LEFT, 100, duration=2.5)
     run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
@@ -1122,7 +1124,9 @@ def run_4(run: Run):
         # zurück gefahren
     else:
         run.gyro_drive(speed=40, degree=45, ending_condition=Sec(0.5), p_correction=1.2)
-        run.gyro_drive(speed=-20, degree=45, ending_condition=Sec(0.25), p_correction=1.2)
+        run.gyro_drive(
+            speed=-20, degree=45, ending_condition=Sec(0.25), p_correction=1.2
+        )
 
 
 @mcp.run(display_as="R")
@@ -1269,4 +1273,3 @@ while True:
         mcp.brick.speaker.beep(80, 0.2)
         mcp.brick.light_matrix.write(str(e))
         raise e
-
