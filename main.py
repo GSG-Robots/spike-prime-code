@@ -34,6 +34,9 @@ class BatteryLowError(RuntimeError):
 class EnterDebugMenu(SystemExit):
     """Error raised when debug menu should be started."""
 
+class StopRun(SystemExit):
+    """Raise to stop run immediately."""
+
 
 class EndingCondition:
     """Ending Condition: Infinite and Base for other Ending Conditions"""
@@ -1216,7 +1219,35 @@ def run_motorcontrol(run: Run):
             except KeyboardInterrupt:
                 run.drive_shaft.stop()
                 wait_for_seconds(1.0)
+        
 
+@mcp.run(display_as="D", debug_mode=False)
+def run_drivetocode(run: Run):
+    motor_turn = 0
+    while True:
+        input = []
+        try:
+            while True:
+                input.append((abs(run.right_motor.get_degrees_counted()), abs(run.left_motor.get_degrees_counted()), run.brick.motion_sensor.get_yaw_angle()))
+                wait_for_seconds(.5)
+        except KeyboardInterrupt as error:
+            try:
+                for x in input:
+                    right_turns += x[0]
+                    left_turns += x[1]
+                    gyro_value += x[2]
+                drived_cm = right_turns + left_turns / 2  / 360 * pi * run.tire_radius
+                gyro_value_middle = gyro_value / len(input)
+                
+                print(f"run.gyro_drive(speed=100, degree={gyro_value_middle}, ending_condition=Cm({drived_cm}), p_correction=1.2)")
+                while True:
+                    if run.brick.left_button.was_pressed():
+                        motor_turn += 1
+                        print(f"Motor Drehung {motor_turn}")
+                    if run.brick.right_button.was_pressed():
+                        raise StopRun from error
+            except KeyboardInterrupt:
+                ...
 
 debug_menu = MasterControlProgram(PrimeHub())
 
