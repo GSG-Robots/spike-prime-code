@@ -180,14 +180,14 @@ class Run:
 
         # Setting all variables that don't change during the runs, i.e. the Motorports
         if engines is None:
-            engines = ["D", "C", "F", "E"]
+            engines = ["E", "F", "C", "D"]
         if light_sensors is None:
             light_sensors = ["A", "B"]
         if correction_values is None:
             correction_values = [0.5, 0, 0, 0, 0, 0, 1, 1, 1]
         self.left_motor = Motor(engines[0])
         self.right_motor = Motor(engines[1])
-        self.driving_motors = MotorPair(engines[0], engines[1])
+        # self.driving_motors = MotorPair(engines[0], engines[1])
         self.drive_shaft = Motor(engines[2])
         self.gear_selector = Motor(engines[3])
         self.front_light_sensor = ColorSensor(light_sensors[0])
@@ -227,13 +227,8 @@ class Run:
         # Resetting Gyro-Sensor and Transmission
         self.gear_selector.set_stall_detection(True)
         self.gear_selector.set_stop_action("brake")
-        if (
-            self.gear_selector.get_position() <= 90
-            or self.gear_selector.get_position() >= 270
-        ):
-            self.gear_selector.run_to_position(0, "shortest path", _100)
-        else:
-            self.gear_selector.run_to_position(0, "counterclockwise", _100)
+        # TODO: Fix so it works
+        self.gear_selector.run_to_position(0, "clockwise", _100)
         self.select_gear(hold_attachment)
 
     def check_battery(self):
@@ -257,7 +252,15 @@ class Run:
         self.check_battery()
         # Turn gearSelector until right gear is selected
         try:
-            self.gear_selector.run_to_position(int(90 * (target_gear - 1)), 100)
+            # self.gear_selector.run_to_position(int(90 * (target_gear - 1)), "shortest path", 100)
+            if self.selected_gear < target_gear:
+                self.gear_selector.run_to_position(
+                    int(90 * (target_gear - 1)), "clockwise", 100
+                )
+            elif self.selected_gear > target_gear:
+                self.gear_selector.run_to_position(
+                    int(90 * (target_gear - 1)), "counterclockwise", 100
+                )
             self.selected_gear = target_gear
         except KeyboardInterrupt as e2:
             self.gear_selector.set_stall_detection(True)
@@ -1093,12 +1096,7 @@ class MasterControlProgram:
         turningDegreeTolerance: Tolerance when turning for a degree
         no_debug_menu: Whether to disable the debug menu
         """
-        if engines is None:
-            engines = ["D", "C", "F", "E"]
-        if light_sensors is None:
-            light_sensors = ["A", "B"]
-        if correction_values is None:
-            correction_values = [0.5, 0, 0, 0, 0, 0, 0, 0, 0]
+
         selected_run = 1
         print("Starting MasterControl")
         self.turn_light_off()
