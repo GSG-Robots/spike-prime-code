@@ -11,7 +11,8 @@ from math import fabs, floor, pi
 import hub
 from micropython import const
 from spike import ColorSensor, Motor, MotorPair, PrimeHub
-from spike.control import Timer as __Timer, wait_for_seconds, wait_until
+from spike.control import Timer as __Timer
+from spike.control import wait_for_seconds, wait_until
 
 FRONT_RIGHT = const(3)
 FRONT_LEFT = const(4)
@@ -20,7 +21,7 @@ BACK_LEFT = const(2)
 
 hub.display.align(hub.RIGHT)
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 _100 = const(100)
 
@@ -35,6 +36,7 @@ class BatteryLowError(RuntimeError):
 
 class EnterDebugMenu(SystemExit):
     """Error raised when debug menu should be started."""
+
 
 class StopRun(SystemExit):
     """Raise to stop run immediately."""
@@ -161,6 +163,8 @@ class Run:
         turning_degree_tolerance: int = 2,
         debug_mode: bool = False,
         display_as: str = None,
+        degree_offset: int = 0,
+        global_speed_multiplier: float = 1.0,
     ):
         """
         Initiation of Run
@@ -176,6 +180,8 @@ class Run:
         lightMiddleValue: The middle Lightvalue between Black and White
         turningDegreeTolerance: Tolerance when turning for a degree
         debug_mode: Whether to add debug features. Currently only used for battery low exceptions.
+        degree_offset: The offset of the yaw rotation offset of the brick in relation to the robot.
+        global_speed_multiplier: The speed multiplier of the robot.
         """
 
         # Setting all variables that don't change during the runs, i.e. the Motorports
@@ -187,7 +193,7 @@ class Run:
             correction_values = [0.5, 0, 0, 0, 0, 0, 1, 1, 1]
         self.left_motor = Motor(engines[0])
         self.right_motor = Motor(engines[1])
-        # self.driving_motors = MotorPair(engines[0], engines[1])
+        self.driving_motors = MotorPair(engines[0], engines[1])
         self.drive_shaft = Motor(engines[2])
         self.gear_selector = Motor(engines[3])
         self.front_light_sensor = ColorSensor(light_sensors[0])
@@ -215,6 +221,8 @@ class Run:
         self.brick.motion_sensor.reset_yaw_angle()
         self.debug_mode = debug_mode
         self.display_as = display_as
+        self.degree_offset = degree_offset
+        self.global_speed_multiplier = global_speed_multiplier
 
         if self.debug_mode:
             PrimeHub().speaker.beep(60, 0.2)
@@ -404,6 +412,7 @@ class Run:
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
+        degree = degree + self.degree_offset
         self.reset_timer_and_ending_condition()
         last_error = 0
         integral = 0
@@ -452,10 +461,12 @@ class Run:
                     int(
                         self.calculate_acceleration(speed + corrector, acceleration)
                         * speed_multiplier_left
+                        * self.global_speed_multiplier
                     ),
                     int(
                         self.calculate_acceleration(speed - corrector, acceleration)
                         * speed_multiplier_right
+                        * self.global_speed_multiplier
                     ),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
@@ -499,10 +510,12 @@ class Run:
                     int(
                         self.calculate_acceleration(speed + corrector, acceleration)
                         * speed_multiplier_left
+                        * self.global_speed_multiplier
                     ),
                     int(
                         self.calculate_acceleration(speed - corrector, acceleration)
                         * speed_multiplier_right
+                        * self.global_speed_multiplier
                     ),
                 )
         # If deceleration is wanted, stop the above loops early to start decelerating
@@ -564,6 +577,7 @@ class Run:
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
+        degree = degree + self.degree_offset
         self.reset_timer_and_ending_condition()
         last_error = 0
         integral = 0
@@ -605,8 +619,16 @@ class Run:
                 last_error = error_value
                 # If an attachementStart is planned, check the timer and start the Attachement
                 self.driving_motors.start_tank(
-                    round((attachment_start[2] - corrector) * speed_multiplier_left),
-                    round((attachment_start[2] + corrector) * speed_multiplier_right),
+                    round(
+                        (attachment_start[2] - corrector)
+                        * speed_multiplier_left
+                        * self.global_speed_multiplier
+                    ),
+                    round(
+                        (attachment_start[2] + corrector)
+                        * speed_multiplier_right
+                        * self.global_speed_multiplier
+                    ),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
                 if (
@@ -650,8 +672,16 @@ class Run:
                 last_error = error_value
                 # The robot corrects according to the PID-Controller
                 self.driving_motors.start_tank(
-                    round(int(corrector) * speed_multiplier_left),
-                    round(int(-corrector) * speed_multiplier_right),
+                    round(
+                        int(corrector)
+                        * speed_multiplier_left
+                        * self.global_speed_multiplier
+                    ),
+                    round(
+                        int(-corrector)
+                        * speed_multiplier_right
+                        * self.global_speed_multiplier
+                    ),
                 )
         # The motors come to a full-stop
         self.driving_motors.stop()
@@ -692,6 +722,7 @@ class Run:
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
+        degree = degree + self.degree_offset
         self.reset_timer_and_ending_condition()
         last_error = 0
         integral = 0
@@ -711,12 +742,26 @@ class Run:
         ending_condition = Deg(degree)
         self.left_motor.set_degrees_counted(0)
         self.right_motor.set_degrees_counted(0)
-        circumfrence_in_degree=2*pi*radius*((ending_condition.value-starting_degree)/360)/((self.tire_radius*2*pi)/180)
+        circumfrence_in_degree = (
+            2
+            * pi
+            * radius
+            * ((ending_condition.value - starting_degree) / 360)
+            / ((self.tire_radius * 2 * pi) / 180)
+        )
         # If an Attachement is started or stopped during the movement, start this loop
         if attachment_start[1] != 0 or attachment_stop != 0:
             while not ending_condition.check(self):
                 # The new sensor value is retreaved and the error-value calculated
-                degree=starting_degree+(ending_condition.value-starting_degree)*(circumfrence_in_degree/(self.right_motor.get_degrees_counted()+self.left_motor.get_degrees_counted()))
+                degree = starting_degree + (
+                    ending_condition.value - starting_degree
+                ) * (
+                    circumfrence_in_degree
+                    / (
+                        self.right_motor.get_degrees_counted()
+                        + self.left_motor.get_degrees_counted()
+                    )
+                )
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
 
                 # This works now. I don't know what you were doing here before!!!!
@@ -738,10 +783,12 @@ class Run:
                     int(
                         self.calculate_acceleration(speed + corrector, acceleration)
                         * speed_multiplier_left
+                        * self.global_speed_multiplier
                     ),
                     int(
                         self.calculate_acceleration(speed - corrector, acceleration)
                         * speed_multiplier_right
+                        * self.global_speed_multiplier
                     ),
                 )
                 # If an attachementStart is planned, check the timer and start the Attachement
@@ -785,10 +832,12 @@ class Run:
                     int(
                         self.calculate_acceleration(speed + corrector, acceleration)
                         * speed_multiplier_left
+                        * self.global_speed_multiplier
                     ),
                     int(
                         self.calculate_acceleration(speed - corrector, acceleration)
                         * speed_multiplier_right
+                        * self.global_speed_multiplier
                     ),
                 )
         # If deceleration is wanted, stop the above loops early to start decelerating
@@ -1161,115 +1210,122 @@ class MasterControlProgram:
                 self.light_up_display(self.brick, selected_run, len(self.runs))
 
 
-mcp = MasterControlProgram(PrimeHub(), debug_mode=DEBUG_MODE)
+mcp = MasterControlProgram(
+    PrimeHub(), debug_mode=DEBUG_MODE, degree_offset=0, global_speed_multiplier=-1.0
+)
 
 timer = __Timer()
 timer.reset()
 
 
 @mcp.run()
-def run_1(run: Run):
-    """Giftschlange Run (Grün)"""
-    timer.reset()
-    run.gyro_drive(80, 0, ending_condition=Cm(39), p_correction=1.2)
-    wait_for_seconds(1)
-    # run.gyro_turn(20, p_correction=1, speed_multiplier=1.2)
-    run.gyro_turn(45, p_correction=1)
-    # Pult gelöst
-    run.gyro_drive(-50, 45, ending_condition=Cm(3.25), p_correction=1.2)
-    run.gyro_turn(135, p_correction=0.7, speed_multiplier=1.7)
-    wait_for_seconds(1)
-    run.gyro_drive(-80, 135, ending_condition=Cm(29.0), p_correction=1.2)
-    run.gyro_turn(90, p_correction=0.9)
-    # gleich heranfahren an Karusell
-    run.gyro_drive(-45, 90, ending_condition=Cm(8))
-    run.drive_attachment(BACK_RIGHT, -75, True, 1)
-    run.drive_attachment(BACK_LEFT, 35, True, 2)
-    run.gyro_drive(45, 90, ending_condition=Cm(7))
-    run.gyro_turn(135, p_correction=1.4)
-    # ab jetz Rückweg
-    run.gyro_drive(80, 135, ending_condition=Cm(28), p_correction=1.2)
-    run.gyro_turn(180, p_correction=1.4)
-    run.gyro_drive(65, 180, ending_condition=Cm(35), p_correction=1.2)
-    # run.drive_attachment(BACK_LEFT, 100, True, 2)
+def run_test(run: Run):
+    run.gyro_drive(50, 0, ending_condition=Cm(5.0), p_correction=1.2)
 
 
-@mcp.run()
-def run_2(run: Run):
-    """Biene Mayo"""
-    run.gyro_drive(70, 0, Cm(50.5), p_correction=1.2)
-    run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
-    # Einhaken
-    run.select_gear(BACK_LEFT)
-    run.gyro_drive(-50, 0, Cm(7), p_correction=1.2)
-    run.gyro_turn(23, speed_multiplier=2, speed_multiplier_left=0, p_correction=2)
-    run.gyro_drive(-50, 23, Cm(6), p_correction=1)
-    run.gyro_turn(45, speed_multiplier_right=2, p_correction=2)
-    run.drive_attachment(BACK_RIGHT, _100, duration=2.75)
-    run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
-    # Kamera abgesetz, weiterfahren
-    run.gyro_drive(70, 0, Cm(19), p_correction=1)
-    run.drive_attachment(FRONT_RIGHT, -100, duration=2.5)
-    run.gyro_drive(70, 0, Cm(4), p_correction=1)
-    run.drive_attachment(BACK_LEFT, -100, duration=0.75)
-    run.gyro_drive(100, 0, Cm(12), p_correction=1.2)
-    # Abbiegen zur Achterbahn
-    # run.gyro_turn(35,p_correction=1.2)
-    run.drive_attachment(FRONT_LEFT, 100, duration=1.5)
-    run.gyro_drive(70, 10, Cm(15), p_correction=1.2)
-    # run.gyro_turn(0, p_correction=1.2)
-    run.gyro_drive(100, 10, Cm(65), p_correction=1.5)
+# @mcp.run()
+# def run_1(run: Run):
+#     """Giftschlange Run (Grün)"""
+#     timer.reset()
+#     run.gyro_drive(80, 0, ending_condition=Cm(39), p_correction=1.2)
+#     wait_for_seconds(1)
+#     # run.gyro_turn(20, p_correction=1, speed_multiplier=1.2)
+#     run.gyro_turn(45, p_correction=1)
+#     # Pult gelöst
+#     run.gyro_drive(-50, 45, ending_condition=Cm(3.25), p_correction=1.2)
+#     run.gyro_turn(135, p_correction=0.7, speed_multiplier=1.7)
+#     wait_for_seconds(1)
+#     run.gyro_drive(-80, 135, ending_condition=Cm(29.0), p_correction=1.2)
+#     run.gyro_turn(90, p_correction=0.9)
+#     # gleich heranfahren an Karusell
+#     run.gyro_drive(-45, 90, ending_condition=Cm(8))
+#     run.drive_attachment(BACK_RIGHT, -75, True, 1)
+#     run.drive_attachment(BACK_LEFT, 35, True, 2)
+#     run.gyro_drive(45, 90, ending_condition=Cm(7))
+#     run.gyro_turn(135, p_correction=1.4)
+#     # ab jetz Rückweg
+#     run.gyro_drive(80, 135, ending_condition=Cm(28), p_correction=1.2)
+#     run.gyro_turn(180, p_correction=1.4)
+#     run.gyro_drive(65, 180, ending_condition=Cm(35), p_correction=1.2)
+#     # run.drive_attachment(BACK_LEFT, 100, True, 2)
 
 
-@mcp.run()
-def run_3(run: Run):
-    # """Third Part of Biene Mayo"""
-    # run.gyro_drive(80, 0, ending_condition=Cm(40), p_correction=3)
-    # run.gyro_drive(-100, 0, ending_condition=Cm(30), p_correction=3)
-    while True:
-        try:
-            ...
-        except KeyboardInterrupt:
-            print("Test")
+# @mcp.run()
+# def run_2(run: Run):
+#     """Biene Mayo"""
+#     run.gyro_drive(70, 0, Cm(50.5), p_correction=1.2)
+#     run.drive_attachment(BACK_RIGHT, -_100, duration=3.1, resistance=True)
+#     # Einhaken
+#     run.select_gear(BACK_LEFT)
+#     run.gyro_drive(-50, 0, Cm(7), p_correction=1.2)
+#     run.gyro_turn(23, speed_multiplier=2, speed_multiplier_left=0, p_correction=2)
+#     run.gyro_drive(-50, 23, Cm(6), p_correction=1)
+#     run.gyro_turn(45, speed_multiplier_right=2, p_correction=2)
+#     run.drive_attachment(BACK_RIGHT, _100, duration=2.75)
+#     run.gyro_turn(0, speed_multiplier_left=0, p_correction=1)
+#     # Kamera abgesetz, weiterfahren
+#     run.gyro_drive(70, 0, Cm(19), p_correction=1)
+#     run.drive_attachment(FRONT_RIGHT, -100, duration=2.5)
+#     run.gyro_drive(70, 0, Cm(4), p_correction=1)
+#     run.drive_attachment(BACK_LEFT, -100, duration=0.75)
+#     run.gyro_drive(100, 0, Cm(12), p_correction=1.2)
+#     # Abbiegen zur Achterbahn
+#     # run.gyro_turn(35,p_correction=1.2)
+#     run.drive_attachment(FRONT_LEFT, 100, duration=1.5)
+#     run.gyro_drive(70, 10, Cm(15), p_correction=1.2)
+#     # run.gyro_turn(0, p_correction=1.2)
+#     run.gyro_drive(100, 10, Cm(65), p_correction=1.5)
 
 
-@mcp.run(turning_degree_tolerance=1)
-def run_4(run: Run):
-    """Tatütata Run (Rot)"""
-    run.gyro_drive(speed=100, degree=0, ending_condition=Cm(18), p_correction=1.2)
-    run.gyro_drive(speed=50, degree=0, ending_condition=Cm(11), p_correction=1.2)
-    run.gyro_drive(speed=-70, degree=0, ending_condition=Cm(15), p_correction=1.2)
-    # Druckerpresse reingeschoben, fahren zu Lichtshow
-    run.gyro_turn(44, p_correction=0.9)
-    run.gyro_drive(speed=90, degree=44, ending_condition=Cm(30), p_correction=1.2)
-    run.gyro_drive(speed=50, degree=44, ending_condition=Cm(8), p_correction=1.2)
-    run.drive_attachment(FRONT_RIGHT, 100, duration=1)
-    run.gyro_drive(speed=-90, degree=44, ending_condition=Cm(10), p_correction=1.2)
-    run.drive_attachment(FRONT_RIGHT, 100, duration=1.5)
-    # Lichtshow aktiviert, fahren zu Turm
-    run.gyro_turn(0, p_correction=0.9)
-    run.gyro_drive(speed=90, degree=0, ending_condition=Cm(20.5), p_correction=1.2)
-    run.gyro_turn(-45, p_correction=0.9)
-    run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(34), p_correction=1.2)
-    run.gyro_drive(speed=70, degree=-45, ending_condition=Cm(10), p_correction=1.2)
-    run.gyro_turn(45, p_correction=0.6, ending_condition=Sec(3))
-    run.gyro_drive(speed=90, degree=45, ending_condition=Cm(20), p_correction=1)
-    wait_for_seconds(1)
-    run.drive_attachment(FRONT_LEFT, 100, duration=2.5)
-    run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
-    run.drive_attachment(FRONT_RIGHT, -100, duration=1)
-    # Roboter ist ausgerichtet
-    if timer.now() < 130:
-        run.gyro_drive(speed=-75, degree=45, ending_condition=Cm(25), p_correction=1.2)
-        run.drive_attachment(BACK_RIGHT, -100, duration=12.5)
-        # Turm hochgefahren
-        run.gyro_drive(speed=90, degree=45, ending_condition=Sec(1.5), p_correction=1.2)
-        # zurück gefahren
-    else:
-        run.gyro_drive(speed=-75, degree=45, ending_condition=Cm(12), p_correction=1.2)
-        # Blume ermordet
-        run.gyro_drive(speed=90, degree=45, ending_condition=Cm(12), p_correction=1.2)
-    run.gyro_drive(speed=50, degree=45, ending_condition=Cm(1.5), p_correction=1.2)
+# @mcp.run()
+# def run_3(run: Run):
+#     # """Third Part of Biene Mayo"""
+#     # run.gyro_drive(80, 0, ending_condition=Cm(40), p_correction=3)
+#     # run.gyro_drive(-100, 0, ending_condition=Cm(30), p_correction=3)
+#     while True:
+#         try:
+#             ...
+#         except KeyboardInterrupt:
+#             print("Test")
+
+
+# @mcp.run(turning_degree_tolerance=1)
+# def run_4(run: Run):
+#     """Tatütata Run (Rot)"""
+#     run.gyro_drive(speed=100, degree=0, ending_condition=Cm(18), p_correction=1.2)
+#     run.gyro_drive(speed=50, degree=0, ending_condition=Cm(11), p_correction=1.2)
+#     run.gyro_drive(speed=-70, degree=0, ending_condition=Cm(15), p_correction=1.2)
+#     # Druckerpresse reingeschoben, fahren zu Lichtshow
+#     run.gyro_turn(44, p_correction=0.9)
+#     run.gyro_drive(speed=90, degree=44, ending_condition=Cm(30), p_correction=1.2)
+#     run.gyro_drive(speed=50, degree=44, ending_condition=Cm(8), p_correction=1.2)
+#     run.drive_attachment(FRONT_RIGHT, 100, duration=1)
+#     run.gyro_drive(speed=-90, degree=44, ending_condition=Cm(10), p_correction=1.2)
+#     run.drive_attachment(FRONT_RIGHT, 100, duration=1.5)
+#     # Lichtshow aktiviert, fahren zu Turm
+#     run.gyro_turn(0, p_correction=0.9)
+#     run.gyro_drive(speed=90, degree=0, ending_condition=Cm(20.5), p_correction=1.2)
+#     run.gyro_turn(-45, p_correction=0.9)
+#     run.gyro_drive(speed=100, degree=-45, ending_condition=Cm(34), p_correction=1.2)
+#     run.gyro_drive(speed=70, degree=-45, ending_condition=Cm(10), p_correction=1.2)
+#     run.gyro_turn(45, p_correction=0.6, ending_condition=Sec(3))
+#     run.gyro_drive(speed=90, degree=45, ending_condition=Cm(20), p_correction=1)
+#     wait_for_seconds(1)
+#     run.drive_attachment(FRONT_LEFT, 100, duration=2.5)
+#     run.drive_attachment(FRONT_LEFT, -100, duration=2.5)
+#     run.drive_attachment(FRONT_RIGHT, -100, duration=1)
+#     # Roboter ist ausgerichtet
+#     if timer.now() < 130:
+#         run.gyro_drive(speed=-75, degree=45, ending_condition=Cm(25), p_correction=1.2)
+#         run.drive_attachment(BACK_RIGHT, -100, duration=12.5)
+#         # Turm hochgefahren
+#         run.gyro_drive(speed=90, degree=45, ending_condition=Sec(1.5), p_correction=1.2)
+#         # zurück gefahren
+#     else:
+#         run.gyro_drive(speed=-75, degree=45, ending_condition=Cm(12), p_correction=1.2)
+#         # Blume ermordet
+#         run.gyro_drive(speed=90, degree=45, ending_condition=Cm(12), p_correction=1.2)
+#     run.gyro_drive(speed=50, degree=45, ending_condition=Cm(1.5), p_correction=1.2)
 
 
 @mcp.run(display_as="R")
@@ -1377,7 +1433,7 @@ def run_motorcontrol(run: Run):
             except KeyboardInterrupt:
                 run.drive_shaft.stop()
                 wait_for_seconds(1.0)
-        
+
 
 @mcp.run(display_as="D", debug_mode=False)
 def run_drivetocode(run: Run):
@@ -1386,29 +1442,53 @@ def run_drivetocode(run: Run):
         input_dtc = []
         try:
             while True:
-                mcp.brick.light_matrix.show_image("ARROW_N", brightness= 100)
-                input_dtc.append((abs(run.right_motor.get_degrees_counted()), abs(run.left_motor.get_degrees_counted()), run.brick.motion_sensor.get_yaw_angle()))
-                wait_for_seconds(.5)
+                mcp.brick.light_matrix.show_image("ARROW_N", brightness=100)
+                input_dtc.append(
+                    (
+                        abs(run.right_motor.get_degrees_counted()),
+                        abs(run.left_motor.get_degrees_counted()),
+                        run.brick.motion_sensor.get_yaw_angle(),
+                    )
+                )
+                wait_for_seconds(0.5)
         except KeyboardInterrupt as error:
             mcp.brick.light_matrix.off()
-            mcp.brick.light_matrix.show_image("SQUARE", brightness= 100)
+            mcp.brick.light_matrix.show_image("SQUARE", brightness=100)
             try:
                 for x in input_dtc:
                     right_turns += x[0]
                     left_turns += x[1]
                     gyro_value += x[2]
-                drived_cm = right_turns + left_turns / 2  / 360 * pi * run.tire_radius
+                drived_cm = right_turns + left_turns / 2 / 360 * pi * run.tire_radius
                 gyro_value_middle = gyro_value / len(input_dtc)
                 if drived_cm < 0.25:
-                    print("run.gyro_turn(degree={gyro_value}, p_correction=0.9)".format(gyro_value=gyro_value))
+                    print(
+                        "run.gyro_turn(degree={gyro_value}, p_correction=0.9)".format(
+                            gyro_value=gyro_value
+                        )
+                    )
                 elif left_turns > 0.25:
                     speed_multiplier_right_dtc = right_turns / left_turns
-                    print("run.gyro_turn(degree={gyro_value}, p_correction=0.9), speed_multiplier_right = {speed_multiplier_right_dtc})".format(gyro_value=gyro_value, speed_multiplier_right_dtc=speed_multiplier_right_dtc))
+                    print(
+                        "run.gyro_turn(degree={gyro_value}, p_correction=0.9), speed_multiplier_right = {speed_multiplier_right_dtc})".format(
+                            gyro_value=gyro_value,
+                            speed_multiplier_right_dtc=speed_multiplier_right_dtc,
+                        )
+                    )
                 elif right_turns > 0.25:
                     speed_multiplier_left_dtc = left_turns / right_turns
-                    print("run.gyro_turn(degree={gyro_value}, p_correction=0.9), speed_multiplier_left = {speed_multiplier_left_dtc})".format(gyro_value=gyro_value, speed_multiplier_left_dtc=speed_multiplier_left_dtc))
+                    print(
+                        "run.gyro_turn(degree={gyro_value}, p_correction=0.9), speed_multiplier_left = {speed_multiplier_left_dtc})".format(
+                            gyro_value=gyro_value,
+                            speed_multiplier_left_dtc=speed_multiplier_left_dtc,
+                        )
+                    )
                 else:
-                    print("run.gyro_drive(speed=100, degree={gyro_value_middle}, ending_condition=Cm({drived_cm}), p_correction=1.2)".format(gyro_value_middle=gyro_value_middle, drived_cm=drived_cm))
+                    print(
+                        "run.gyro_drive(speed=100, degree={gyro_value_middle}, ending_condition=Cm({drived_cm}), p_correction=1.2)".format(
+                            gyro_value_middle=gyro_value_middle, drived_cm=drived_cm
+                        )
+                    )
                 while True:
                     if run.brick.left_button.was_pressed():
                         motor_turn += 1
@@ -1417,6 +1497,8 @@ def run_drivetocode(run: Run):
                         raise StopRun from error
             except KeyboardInterrupt:
                 ...
+
+
 @mcp.run(display_as="X", debug_mode=False)
 def run_drivetocode(run: Run):
     motor_turn = 0
@@ -1424,37 +1506,50 @@ def run_drivetocode(run: Run):
         input_dtc, case_list = []
         try:
             while True:
-                mcp.brick.light_matrix.show_image("ARROW_N", brightness= 100)
-                input_dtc.append((abs(run.right_motor.get_degrees_counted()), abs(run.left_motor.get_degrees_counted()), run.brick.motion_sensor.get_yaw_angle()))
+                mcp.brick.light_matrix.show_image("ARROW_N", brightness=100)
+                input_dtc.append(
+                    (
+                        abs(run.right_motor.get_degrees_counted()),
+                        abs(run.left_motor.get_degrees_counted()),
+                        run.brick.motion_sensor.get_yaw_angle(),
+                    )
+                )
                 if run.brick.left_button.was_pressed():
                     input_dtc.append("Motor_turn")
-                wait_for_seconds(.5)
+                wait_for_seconds(0.5)
         except KeyboardInterrupt as error:
             mcp.brick.light_matrix.off()
-            mcp.brick.light_matrix.show_image("SQUARE", brightness= 100)
+            mcp.brick.light_matrix.show_image("SQUARE", brightness=100)
             try:
                 for x in input_dtc:
-                    if  x[0] == "Motor_turn":
+                    if x[0] == "Motor_turn":
                         motor_turn += 1
                         print("Motor Drehung {motor_turn}")
                     if isinstance(x[0], float):
                         if right_turns > 0.1 or left_turns > 0.1:
                             right_turns += x[0]
                             ...
-                drived_cm = right_turns + left_turns / 2  / 360 * pi * run.tire_radius
+                drived_cm = right_turns + left_turns / 2 / 360 * pi * run.tire_radius
                 gyro_value_middle = gyro_value / len(input_dtc)
                 if drived_cm < 0.25:
                     print("run.gyro_turn(degree= {gyro_value}, p_correction=0.9)")
                 elif left_turns > 0.25:
                     speed_multiplier_right_dtc = right_turns / left_turns
-                    print("run.gyro_turn(degree= {gyro_value}, p_correction=0.9), speed_multiplier_right = {speed_multiplier_right_dtc}) ")
+                    print(
+                        "run.gyro_turn(degree= {gyro_value}, p_correction=0.9), speed_multiplier_right = {speed_multiplier_right_dtc}) "
+                    )
                 elif right_turns > 0.25:
                     speed_multiplier_left_dtc = left_turns / right_turns
-                    print("run.gyro_turn(degree= {gyro_value}, p_correction=0.9), speed_multiplier_left = {speed_multiplier_left_dtc})")
+                    print(
+                        "run.gyro_turn(degree= {gyro_value}, p_correction=0.9), speed_multiplier_left = {speed_multiplier_left_dtc})"
+                    )
                 else:
-                    print("run.gyro_drive(speed=100, degree={gyro_value_middle}, ending_condition=Cm({drived_cm}), p_correction=1.2)")
+                    print(
+                        "run.gyro_drive(speed=100, degree={gyro_value_middle}, ending_condition=Cm({drived_cm}), p_correction=1.2)"
+                    )
             except KeyboardInterrupt:
                 ...
+
 
 debug_menu = MasterControlProgram(PrimeHub())
 
