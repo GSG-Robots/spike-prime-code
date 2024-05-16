@@ -9,15 +9,16 @@ This is work in progress so there is no docstr on new elements.
 from math import fabs, floor, pi
 
 import hub
+import random
 from micropython import const
 from spike import ColorSensor, Motor, MotorPair, PrimeHub
 from spike.control import Timer as __Timer
 from spike.control import wait_for_seconds, wait_until
 
-FRONT_RIGHT = const(3)
-FRONT_LEFT = const(4)
-BACK_RIGHT = const(1)
+FRONT_LEFT = const(1)
 BACK_LEFT = const(2)
+FRONT_RIGHT = const(3)
+BACK_RIGHT = const(4)
 
 hub.display.align(hub.RIGHT)
 
@@ -186,7 +187,7 @@ class Run:
 
         # Setting all variables that don't change during the runs, i.e. the Motorports
         if engines is None:
-            engines = ["E", "F", "C", "D"]
+            engines = ["F", "E", "C", "D"]
         if light_sensors is None:
             light_sensors = ["A", "B"]
         if correction_values is None:
@@ -412,7 +413,7 @@ class Run:
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
-        degree = degree + self.degree_offset
+        degree = degree - self.degree_offset
         self.reset_timer_and_ending_condition()
         last_error = 0
         integral = 0
@@ -492,6 +493,7 @@ class Run:
                 error_value = degree - self.brick.motion_sensor.get_yaw_angle()
 
                 # This works now. I don't know what you were doing here before!!!!
+                
                 if error_value > 180:
                     error_value -= 360
                 if error_value <= -180:
@@ -577,7 +579,7 @@ class Run:
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
-        degree = degree + self.degree_offset
+        degree = degree - self.degree_offset
         self.reset_timer_and_ending_condition()
         last_error = 0
         integral = 0
@@ -722,7 +724,7 @@ class Run:
         # Resetting everything
         if attachment_start is None:
             attachment_start = [0, 0, 0]
-        degree = degree + self.degree_offset
+        degree = degree - self.degree_offset
         self.reset_timer_and_ending_condition()
         last_error = 0
         integral = 0
@@ -1211,16 +1213,19 @@ class MasterControlProgram:
 
 
 mcp = MasterControlProgram(
-    PrimeHub(), debug_mode=DEBUG_MODE, degree_offset=0, global_speed_multiplier=-1.0
+    PrimeHub(), debug_mode=DEBUG_MODE, degree_offset=0, global_speed_multiplier=1
 )
 
 timer = __Timer()
 timer.reset()
 
 
+#gtc
 @mcp.run()
-def run_test(run: Run):
-    run.gyro_drive(50, 0, ending_condition=Cm(5.0), p_correction=1.2)
+def run_1(run: Run):
+    run.gyro_drive(50, 0, ending_condition=Cm(20), p_correction=1.2)
+    run.gyro_drive(-50, 0, ending_condition=Cm(20), p_correction=1.2)
+
 
 
 # @mcp.run()
