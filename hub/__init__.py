@@ -2,6 +2,8 @@
 LEGO provided functions and values.
 """
 
+FRONT=RIGHT=BACK=LEFT=0
+
 
 def power_off(fast=True, restart=False) -> None: # pylint: disable=unused-argument
     """Power off the hub
