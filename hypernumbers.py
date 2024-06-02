@@ -3,6 +3,7 @@
 
 import random
 import time
+import copy
 from spike import PrimeHub, control
 
 brick = PrimeHub()
@@ -33,7 +34,7 @@ image_dic = {
 }
 def image(image):
     global image_dic
-    return image_dic[image]
+    return copy.deepcopy(image_dic[image])
 
 def animations(image_list):
     try:
@@ -43,6 +44,7 @@ def animations(image_list):
                 wait_for_second(.5)
     except KeyboardInterrupt:
         draw(image("blanc"))
+
 
 
 
@@ -102,6 +104,36 @@ def shownumber(number):
     else:
         raise ValueError("Number must be below or equal to 599")
 
+def move(lis, direction="up", step=0):
+    if direction == "up":
+        for x in range(step):
+            del lis[0]
+            lis.append([0, 0, 0, 0, 0])
+    elif direction == "down":
+        for x in range(step):
+            del lis[4]
+            lis.insert(0, [0, 0, 0, 0, 0])
+    elif direction == "right":
+        print(lis)
+        lis = list(zip(*lis[::1]))
+        for x in range(step):
+            del lis[0]
+            lis.append([0, 0, 0, 0, 0])
+        lis = list(zip(*lis[::-1])) 
+    elif direction == "left":
+        lis = list(zip(*lis[::-1]))
+        for x in range(step):
+            del lis[0]
+            lis.append([0, 0, 0, 0, 0]) 
+        lis = list(zip(*lis[::1]))
+    return lis
+    
+def move_animations(image, direction):
+    for y in range(100):
+        for x in (4):
+            draw(move(image), direction, 1)
+            time.sleep(.5)
+#i can't test it
 
 selected = 0
 while True:
