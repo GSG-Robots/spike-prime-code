@@ -1,12 +1,51 @@
 # LEGO type:standard slot:16 autostart
 
 
+import random
+import time
+import copy
 from spike import PrimeHub, control
 
 brick = PrimeHub()
 
 I = True
 O = False
+
+
+image_dic = {
+"full":     [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],
+"blanc":    [[100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100]],
+"happy":    [[0, 0, 0, 0, 0], [0, 100, 0, 100, 0], [0, 0, 0, 0, 0], [100, 0, 0, 0, 100], [0, 100, 100, 100, 0]],
+"sad":      [[0, 0, 0, 0, 0], [0, 100, 0, 100, 0], [0, 0, 0, 0, 0], [0, 100, 100, 100, 0], [100, 0, 0, 0, 100]],
+"heart":    [[0, 100, 0, 100, 0], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [0, 100, 100, 100, 0], [0, 0, 100, 0, 0]],
+"home":     [[0, 0, 100, 0, 0], [0, 100, 100, 100, 0], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100]],
+"flower":   [[0, 0, 100, 0, 0], [0, 100, 0, 100, 0], [0, 0, 100, 0, 0], [0, 100, 100, 0, 0], [0, 0, 100, 0, 0]],
+"arrow_up":             [[0, 0, 100, 0, 0], [0, 100, 100, 100, 0], [100, 0, 100, 0, 100], [0, 0, 100, 0, 0], [0, 0, 100, 0, 0]],
+"arrow_down":           [[0, 0, 100, 0, 0], [0, 0, 100, 0, 0], [100, 0, 100, 0, 100], [0, 100, 100, 100, 0], [0, 0, 100, 0, 0]],
+"arrow_right":          [[0, 0, 100, 0, 0], [0, 0, 0, 100, 0], [100, 100, 100, 100, 100], [0, 0, 0, 100, 0], [0, 0, 100, 0, 0]],
+"arrow_left":           [[0, 0, 100, 0, 0], [0, 100, 0, 0, 0], [100, 100, 100, 100, 100], [0, 100, 0, 0, 0], [0, 0, 100, 0, 0]],
+"square":               [[100, 100, 100, 100, 100], [100, 0, 0, 0, 100], [100, 0, 0, 0, 100], [100, 0, 0, 0, 100], [100, 100, 100, 100, 100]],
+"middle_square":        [[0, 0, 0, 0, 0], [0, 100, 100, 100, 0], [0, 100, 0, 100, 0], [0, 100, 100, 100, 0], [0, 0, 0, 0, 0]],             
+"square_filled":        [[100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100], [100, 100, 100, 100, 100]],
+"middle_square_filled": [[0, 0, 0, 0, 0], [0, 100, 100, 100, 0], [0, 100, 100, 100, 0], [0, 100, 100, 100, 0], [0, 0, 0, 0, 0]], 
+"fish":     [[0, 0, 0, 0, 0], [0, 100, 100, 0, 100], [100, 100, 100, 100, 100], [0, 100, 100, 0, 100], [0, 0, 0, 0, 0]],
+"diamond":  [[0, 0, 0, 0, 0], [0, 100, 100, 100, 0], [100, 90, 90, 90, 100], [0, 100, 90, 100, 0], [0, 0, 100, 0, 0]], 
+"key":      [[0, 0, 0, 0, 0], [0, 100, 0, 0, 0], [100, 0, 100, 100, 100], [0, 100, 0, 0, 100], [0, 0, 0, 0, 0]]
+}
+def image(image):
+    global image_dic
+    return copy.deepcopy(image_dic[image])
+
+def animations(image_list):
+    try:
+        while True:
+            for x in image_list:
+                draw(x)
+                wait_for_second(.5)
+    except KeyboardInterrupt:
+        draw(image("blanc"))
+
+
 
 
 def draw(image):
@@ -71,49 +110,38 @@ def shownumber(number):
     else:
         raise ValueError("Number must be below or equal to 599")
 
-def numtopixel(number):
-    brightness = 100
-    if not isinstance(number, int):
-        raise TypeError("Number must be int")
-    if not 0 <= number <= 25:
-        raise ValueError("Number must be between 0 and 25")
-    if brightness is None:
-        brightness = 100
-    # return [
-    #     [    
-    #         brightness
-    #         if (x+1)*(y+1) == number
-    #         else O
-    #         for x in range(0, 5)
-    #     ]
-    #     for y in range(0, 5)
-    # ]
-    before = 0
-    ylist = []
-    for y in range(0, 5):
-        xlist = []
-        for x in range(0, 5):
-            print("x", x)
-            print("y", y)
-            if (x+1) + ((y+1) * 5) == number and before != 1:
-                xlist.append(brightness)
-                before = 1
-            else:
-                xlist.append(0)
-        print("xlist", xlist)
-        ylist.append(xlist)
-    print("ylist", ylist)
-    return ylist
-    # pixel = []
-    # lines = (number // 5) - 1
-    # extra = number % 5
-    # x = 0
-    # while x > lines:
-    #     pixel.append([brightness, brightness, brightness, brightness, brightness])
-    #     x += 1
-    # pixel.append([brightness for x in range(5-extra)])
+def move(lis, direction="up", step=0):
+    if direction == "up":
+        for x in range(step):
+            del lis[0]
+            lis.append([0, 0, 0, 0, 0])
+    elif direction == "down":
+        for x in range(step):
+            del lis[4]
+            lis.insert(0, [0, 0, 0, 0, 0])
+    elif direction == "right":
+        print(lis)
+        lis = list(zip(*lis[::1]))
+        for x in range(step):
+            del lis[0]
+            lis.append([0, 0, 0, 0, 0])
+        lis = list(zip(*lis[::-1])) 
+    elif direction == "left":
+        lis = list(zip(*lis[::-1]))
+        for x in range(step):
+            del lis[0]
+            lis.append([0, 0, 0, 0, 0]) 
+        lis = list(zip(*lis[::1]))
+    return lis
     
-selected = 10
+def move_animations(image, direction):
+    for y in range(100):
+        for x in (4):
+            draw(move(image), direction, 1)
+            time.sleep(.5)
+#i can't test it
+
+selected = 0
 while True:
     if brick.left_button.was_pressed():
         selected -= 1
