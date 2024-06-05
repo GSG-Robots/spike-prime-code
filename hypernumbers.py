@@ -16,14 +16,14 @@ O = False
 brightnesses = [0, 20, 40, 50, 60, 75, 90, 100]
 
 image_dic = {
-    "full": [
+    "blank": [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
     ],
-    "blanc": [
+    "full": [
         [100, 100, 100, 100, 100],
         [100, 100, 100, 100, 100],
         [100, 100, 100, 100, 100],
@@ -149,6 +149,16 @@ def image(image) -> list[list[str]]:
     global image_dic
     return [[int(float(y)) for y in x] for x in image_dic[image]]
 
+def numtopix(number: int = 0):
+    pix_lis = image("blank")
+    number -= 1
+    if number != -1:
+        pix_lis[number // 5][number % 5] = 100
+    return pix_lis
+
+def numtopix_b(number: int = 0):
+    return (0b111 << ((number - 1) * 3)) if number else 0b0
+
 
 def animations(image_list):
     try:
@@ -263,47 +273,47 @@ def shownumber(number):
         raise ValueError("Number must be below or equal to 599")
 
 
-def numtopixel(number):
-    brightness = 100
-    if not isinstance(number, int):
-        raise TypeError("Number must be int")
-    if not 0 <= number <= 25:
-        raise ValueError("Number must be between 0 and 25")
-    if brightness is None:
-        brightness = 100
-    # return [
-    #     [
-    #         brightness
-    #         if (x+1)*(y+1) == number
-    #         else O
-    #         for x in range(0, 5)
-    #     ]
-    #     for y in range(0, 5)
-    # ]
-    before = 0
-    ylist = []
-    for y in range(0, 5):
-        xlist = []
-        for x in range(0, 5):
-            print("x", x)
-            print("y", y)
-            if (x + 1) + ((y + 1) * 5) == number and before != 1:
-                xlist.append(brightness)
-                before = 1
-            else:
-                xlist.append(0)
-        print("xlist", xlist)
-        ylist.append(xlist)
-    print("ylist", ylist)
-    return ylist
-    # pixel = []
-    # lines = (number // 5) - 1
-    # extra = number % 5
-    # x = 0
-    # while x > lines:
-    #     pixel.append([brightness, brightness, brightness, brightness, brightness])
-    #     x += 1
-    # pixel.append([brightness for x in range(5-extra)])
+# def numtopixel(number):
+#     brightness = 100
+#     if not isinstance(number, int):
+#         raise TypeError("Number must be int")
+#     if not 0 <= number <= 25:
+#         raise ValueError("Number must be between 0 and 25")
+#     if brightness is None:
+#         brightness = 100
+#     # return [
+#     #     [
+#     #         brightness
+#     #         if (x+1)*(y+1) == number
+#     #         else O
+#     #         for x in range(0, 5)
+#     #     ]
+#     #     for y in range(0, 5)
+#     # ]
+#     before = 0
+#     ylist = []
+#     for y in range(0, 5):
+#         xlist = []
+#         for x in range(0, 5):
+#             print("x", x)
+#             print("y", y)
+#             if (x + 1) + ((y + 1) * 5) == number and before != 1:
+#                 xlist.append(brightness)
+#                 before = 1
+#             else:
+#                 xlist.append(0)
+#         print("xlist", xlist)
+#         ylist.append(xlist)
+#     print("ylist", ylist)
+#     return ylist
+#     # pixel = []
+#     # lines = (number // 5) - 1
+#     # extra = number % 5
+#     # x = 0
+#     # while x > lines:
+#     #     pixel.append([brightness, brightness, brightness, brightness, brightness])
+#     #     x += 1
+#     # pixel.append([brightness for x in range(5-extra)])
 
 
 selected = 10
@@ -351,18 +361,25 @@ def move_animations(image, direction):
                 
 
 # i can't test it
+def dra(image):
+    for x in enumerate(image):
+        brick.light_matrix.set_pixel(x // 5, x % 5, image[x])
+test = [0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+dra(test)
 # selected = 0
 # while True:
 #     if brick.left_button.was_pressed():
 #         selected -= 1
 #     elif brick.right_button.was_pressed():
 #         selected += 1
-#     # if selected > 599:
-#     #     selected = 599
-#     # elif selected < 0:
-#     #     selected = 0
-#     draw(draw_bin(selected))
+#     if selected > 25:
+#         selected = 25
+#     elif selected < 0:
+#         selected = 0
+#     print(selected)
+#     # draw(numtopix(selected))
+#     draw_bin(numtopix_b(selected))
 
 #     control.wait_for_seconds(0.1)
 
