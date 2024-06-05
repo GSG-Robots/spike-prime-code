@@ -1,8 +1,7 @@
 import time
 
 
-def void() -> None:
-    pass
+void = lambda *_, **__: None
 
 
 class Condition:
@@ -219,3 +218,4 @@ delay_print(6, "6ello World!").start()
 # delay(0, delay_print(0, "Hello World!"))
 
 taskmng.execute()
+
