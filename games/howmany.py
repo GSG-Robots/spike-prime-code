@@ -39,7 +39,7 @@ while True:
         brick.light_matrix.off()
         control.wait_for_seconds(random.randint(0, 5))
         brick.light_matrix.off()
-        howmany = random.randint(0, 5)
+        howmany = random.randint(5, 25)
         before = []
         for x in range(howmany):
             while True:
