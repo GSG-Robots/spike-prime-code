@@ -7,6 +7,25 @@ from hub import led
 brick = PrimeHub()
 
 
+def score_plot(score_red_, score_blue_):
+    winner_score = score_red_ if score_red_ >= score_blue_ else score_blue_
+    assert (
+        score_blue_ if score_red_ >= score_blue_ else score_red_
+    ) == 12 - winner_score
+    loser_score = 12 - winner_score
+    for x in range(5):
+        for y in range(5):
+            score = x * 5 + y
+            if winner_score > score:
+                brick.light_matrix.set_pixel(y, x, 100)
+            if loser_score > score:
+                brick.light_matrix.set_pixel(4 - y, 4 - x, 80)
+            # if x * 5 + y > (score_red_ if score_red_ >= score_blue_ else score_blue_):
+            #     brick.light_matrix.set_pixel(y, x, 100)
+            # else:
+            #     brick.light_matrix.set_pixel(y, x, 50)
+
+
 def draw_memory(images: list):
     images.insert(12, None)
     for x in range(5):
@@ -88,7 +107,7 @@ def main():
         "DUCK",
         "GIRAFFE",
     ] * 2
-    # images = sorted(images, key=lambda x: random.random())
+    images = sorted(images, key=lambda x: random.random())
     print(1)
     while images.count(None) != len(images):
         print(2)
@@ -110,7 +129,8 @@ def main():
             current_player = not current_player
 
     try:
-        draw_memory(images)
+        # draw_memory(images)
+        score_plot(score_red, score_blue)
         while True:
             if score_red == score_blue:
                 led(6)
