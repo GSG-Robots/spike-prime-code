@@ -62,10 +62,14 @@ def spike_prime_compyne(input_module, slot=0):
     return f"# LEGO type:standard slot:{slot} autostart\n" + compyner.compyne()
 
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 2:
         print("Usage: python spike_prime_compyne.py <name> [<slot>]")
         sys.exit(1)
     input_module = sys.argv[1]
     slot = int(sys.argv[2]) if len(sys.argv) > 2 else 0
     print(spike_prime_compyne(input_module, slot))
+
+
+if __name__ == "__main__":
+    main()

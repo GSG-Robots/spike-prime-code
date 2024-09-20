@@ -1,4 +1,3 @@
-# LEGO type:standard slot:0 autostart
 "OTTOS PROGRAMMIERUNG IN PYTHON"
 
 import time
@@ -12,6 +11,7 @@ from mcp import (
     BACK_LEFT,
     BACK_RIGHT,
 )
+from compyner.typehints import ComPYnerBuildTools
 import hub
 from spike import PrimeHub
 from spike.control import Timer
@@ -26,17 +26,9 @@ timer = Timer()
 timer.reset()
 
 
-
-
-
-@mcp.run()
-def run_1(run: Run):
-    """Run 1"""
-    run.drive_attachment(1, 100, duration=1)
-    run.drive_attachment(2, 100, duration=1)
-    run.drive_attachment(3, 100, duration=1)
-    run.drive_attachment(4, 100, duration=1)
-
+runs = ComPYnerBuildTools.get_modules_path_glob("runs/*.py")
+for run in runs:
+    run.register(mcp)
 
 @mcp.run(display_as="C", debug_mode=False)
 def run_motorcontrol(run: Run):

@@ -153,24 +153,25 @@ class Run:
         display_as: str | None = None,
         degree_offset: int = 0,
         global_speed_multiplier: float = 1.0,
+        color="white",
     ):
-        """
-        Initiation of Run
+        # """
+        # Initiation of Run
 
-        Parameters:
-        brick: The Brick of the Robot
-        engines: List of Motors (Left, Right, Driveshaft, Gearselector)
-        lightSensors: List of Lightsensors (Front, Back)
-        correctionValues: List of Correction Values (GyroDrive (p,i,d),
-                            LineFollower (p,i,d), GyroTurn (p,i,d))
-        tireRadius: Radius of the Robots tires
-        lightBlackValue: The Lightvalue of Black
-        lightMiddleValue: The middle Lightvalue between Black and White
-        turningDegreeTolerance: Tolerance when turning for a degree
-        debug_mode: Whether to add debug features. Currently only used for battery low exceptions.
-        degree_offset: The offset of the yaw rotation offset of the brick in relation to the robot.
-        global_speed_multiplier: The speed multiplier of the robot.
-        """
+        # Parameters:
+        # brick: The Brick of the Robot
+        # engines: List of Motors (Left, Right, Driveshaft, Gearselector)
+        # lightSensors: List of Lightsensors (Front, Back)
+        # correctionValues: List of Correction Values (GyroDrive (p,i,d),
+        #                     LineFollower (p,i,d), GyroTurn (p,i,d))
+        # tireRadius: Radius of the Robots tires
+        # lightBlackValue: The Lightvalue of Black
+        # lightMiddleValue: The middle Lightvalue between Black and White
+        # turningDegreeTolerance: Tolerance when turning for a degree
+        # debug_mode: Whether to add debug features. Currently only used for battery low exceptions.
+        # degree_offset: The offset of the yaw rotation offset of the brick in relation to the robot.
+        # global_speed_multiplier: The speed multiplier of the robot.
+        # """
 
         # Setting all variables that don't change during the runs, i.e. the Motorports
         if engines is None:
@@ -211,6 +212,7 @@ class Run:
         self.display_as = display_as
         self.degree_offset = degree_offset
         self.global_speed_multiplier = global_speed_multiplier
+        self.color = color
 
         if self.debug_mode:
             PrimeHub().speaker.beep(60, 0.2)
@@ -978,8 +980,13 @@ class MasterControlProgram:
         brightness_70 = const(70)
         if number - 1 < max_number:
             display_as = self.runs[number - 1][1].get("display_as", number)
+            color = self.runs[number - 1][1].get("color", "white")
         else:
             display_as = number
+            color = "white"
+
+        brick.status_light.on(color)
+
         if display_as == "X":
             brick.light_matrix.off()
             brick.light_matrix.set_pixel(1, 0, brightness=100)
