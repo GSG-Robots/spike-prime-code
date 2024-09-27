@@ -55,10 +55,13 @@ def wait_until(get_value_function, operator_function=None, target_value=True):
     TypeError : get_value_function or operator_function is not callable or operator_function does not compare two arguments.
     """
 
-class Timer:
-    """ Timer to time things """
-    def reset(self):
-        """ Reset timer """
 
-    def now(self):
-        """ get current time of timer """
+class Timer:
+    """Timer to time things"""
+
+    def reset(self):
+        """Reset timer"""
+
+    def now(self) -> int:
+        """get current time of timer"""
+        return 0

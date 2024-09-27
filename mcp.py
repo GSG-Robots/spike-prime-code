@@ -145,7 +145,7 @@ class Run:
         light_sensors: list[str] | None = None,
         correction_values: list[float] | None = None,
         hold_attachment: int = 1,
-        tire_radius: float = 2.6,
+        tire_radius: float = 19.5,
         light_black_value: int = 10,
         light_middle_value: int = 50,
         turning_degree_tolerance: int = 2,

@@ -5,8 +5,8 @@ import time
 import hub  # type: ignore # pylint: disable=import-error
 import spike
 
-FIRST_STAGE = 60*10
-SECOND_STAGE = 60*15
+FIRST_STAGE = 60 * 10
+SECOND_STAGE = 60 * 15
 # FIRST_STAGE = 0
 # SECOND_STAGE = 15
 
@@ -29,7 +29,8 @@ brightness_multiplier = 2
 
 def brightness(n):
     m = 1 if brightness_multiplier > 1 else brightness_multiplier
-    return round(n*m)
+    return round(n * m)
+
 
 hb.speaker.set_volume(100)
 
@@ -38,7 +39,7 @@ while True:
         brightness_multiplier -= 0.2
         if brightness_multiplier < 0:
             brightness_multiplier = 0
-        
+
         cap = hub.battery.capacity_left()
         height = round(cap / 10)
         if cap >= 80:
@@ -116,7 +117,6 @@ while True:
         if height >= 10:
             hb.light_matrix.set_pixel(2, 4, brightness(100))
 
-        
         hb.light_matrix.set_pixel(0, 0, brightness(50))
         hb.light_matrix.set_pixel(4, 0, brightness(50))
         hb.light_matrix.set_pixel(0, 4, brightness(50))

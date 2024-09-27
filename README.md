@@ -1,7 +1,9 @@
 # competition-programs
-Our internal workspace to exchange and update our competition-programs.
+
+The code OTTWO runs on in competitions.
 
 Contributors:
+
 * [GSG-Robots](https://github.com/GSG-Robots)
 * [Meganton](https://github.com/Meganton)
 * [J0J0HA](https://github.com/J0J0HA)

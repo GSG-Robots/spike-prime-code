@@ -5,30 +5,31 @@ from spike import Motor, PrimeHub
 import hub
 import time
 
+
 class Communicator:
     def __init__(self, port: int):
         self.conn = hub.USB_VCP(port)
         self.conn.init(flow=3)
-        
+
     def _readline(self) -> bytes:
         while True:
             line = self.conn.readline()
             if line is not None:
                 return line
-        
+
     def get(self) -> str:
         while True:
             for line in self._readline().decode("utf-8").splitlines():
                 if line.startswith("GSGR:"):
                     return line[5:]
-                
+
     def send(self, data: str):
         self.conn.write("GSGR:{data}\r\n".format(data=data).encode("utf-8"))
-        
+
     def getall(self):
         while True:
             yield self.get()
-            
+
 
 communicator = Communicator(0)
 CURRENT_TIME = time.time()
