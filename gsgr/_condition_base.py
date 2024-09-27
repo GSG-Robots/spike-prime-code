@@ -1,14 +1,12 @@
-import math
-from .configuration import config
+import abc
 
 
-class ConditionBase:
+class ConditionBase(abc.ABC):
     """Ending Condition: Infinite and Base for other Ending Conditions"""
 
-    def setup(self, run):
-        ...
+    def setup(self): ...
 
-    def check(self, run):
+    def check(self):
         return False
 
     def __invert__(self):
@@ -26,11 +24,18 @@ class ConditionBase:
     def __rand__(self, other):
         return _AndCond(self, other)
 
+    def __rshift__(self, other):
+        return _ThenConditon(self, other)
+
 
 class _OrCond(ConditionBase):
     def __init__(self, condition_a: ConditionBase, condition_b: ConditionBase) -> None:
         self.condition_a = condition_a
         self.condition_b = condition_b
+
+    def setup(self, run):
+        self.condition_a.setup(run)
+        self.condition_b.setup(run)
 
     def check(self, run):
         return self.condition_a.check(run) or self.condition_b.check(run)
@@ -41,6 +46,10 @@ class _AndCond(ConditionBase):
         self.condition_a = condition_a
         self.condition_b = condition_b
 
+    def setup(self, run):
+        self.condition_a.setup(run)
+        self.condition_b.setup(run)
+
     def check(self, run):
         return self.condition_a.check(run) and self.condition_b.check(run)
 
@@ -49,5 +58,26 @@ class _Invert(ConditionBase):
     def __init__(self, condition: ConditionBase) -> None:
         self.condition = condition
 
+    def setup(self, run):
+        self.condition.setup(run)
+
     def check(self, run):
         return not self.condition.check(run)
+
+
+class _ThenConditon:
+    def __init__(self, condition: ConditionBase, then: ConditionBase) -> None:
+        self.condition = condition
+        self.then = then
+        self.killswitch = False
+
+    def setup(self, run):
+        self.condition.setup(run)
+
+    def check(self, run):
+        if self.killswitch:
+            return self.then.check(run)
+        if self.condition.check(run):
+            self.killswitch = True
+            self.then.setup(run)
+        return False

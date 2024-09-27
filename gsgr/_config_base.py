@@ -1,3 +1,5 @@
+
+
 class _ConfigContext:
     def __init__(self, _parent: "ConfigBase", **kwargs):
         self._parent = _parent
@@ -28,5 +30,5 @@ class ConfigBase:
             return _dict[name]
         raise AttributeError(name)
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> _ConfigContext:
         return _ConfigContext(self, **kwargs)

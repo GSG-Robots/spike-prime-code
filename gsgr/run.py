@@ -1,8 +1,8 @@
-from .correctors import Corrector, GyroDrivePIDCorrector
+from .correctors import Corrector, GyroDrivePID
 from ._condition_base import ConditionBase
 from .exceptions import BatteryLowError
 import hub
-from spike.control import Timer, wait_until
+from .utils import Timer
 from .configuration import config, hardware as hw
 
 
@@ -12,14 +12,11 @@ class Run:
         debug_mode: bool = False,
         display_as: str | None = None,
         degree_offset: int = 0,
-        global_speed_multiplier: float = 1.0,
         color="white",
     ):
-        self.timer = Timer()
         hw.brick.motion_sensor.reset_yaw_angle()
         self.debug_mode = debug_mode
         self.degree_offset = degree_offset
-        self.global_speed_multiplier = global_speed_multiplier
         self.color = color
 
         if self.debug_mode:
@@ -39,9 +36,21 @@ class Run:
         if hub.battery.capacity_left() < 100:
             raise BatteryLowError("Battery capacity got below 100%")
 
-    def select_gear(self, target_gear: int):
+    def hold_attachment(self, target_gear: int):
         self.check_battery()
-        hw.gear_selector.run_to_position(90 * (target_gear - 1), "clockwise", 100)
+        hw.gear_selector.run_to_position(90 * (target_gear - 1), "shortest path", 100)
+
+    def free_attachment(self, target_gear: int):
+        self.check_battery()
+        hw.gear_selector.run_for_degrees(90, 100)
+
+    def free_attachments(self):
+        self.check_battery()
+        hw.gear_selector.run_to_position(
+            ((hw.gear_selector.get_position() // 90) * 90 + 45) % 360,
+            "shortest path",
+            100,
+        )
 
     def drive_attachment(
         self,
@@ -52,13 +61,16 @@ class Run:
     ):
         self.check_battery()
         hw.drive_shaft.stop()
-        self.select_gear(attachment)
-        hw.drive_shaft.start(duration, speed)
+        self.hold_attachment(attachment)
+        timer = Timer()
         if stop_on_resistance:
             hw.drive_shaft.set_stall_detection(True)
-            wait_until(hw.drive_shaft.was_stalled)
-            hw.drive_shaft.stop()
-            hw.drive_shaft.set_stall_detection(False)
+        hw.drive_shaft.start(speed)
+        while timer.elapsed < duration:
+            if stop_on_resistance and hw.drive_shaft.was_stalled():
+                break
+        hw.drive_shaft.stop()
+        hw.drive_shaft.set_stall_detection(False)
 
     def stop_attachment(self):
         self.check_battery()
@@ -72,11 +84,22 @@ class Run:
     ):
         correctors = [correctors] if not isinstance(correctors, list) else correctors
         self.check_battery()
-        while not until.check(self):
+        until.setup()
+        while not until.check():
             left_speed = speed
             right_speed = speed
             for corrector in correctors:
                 left_speed, right_speed = corrector.apply(left_speed, right_speed)
+
+            if 0 < left_speed < 5:
+                left_speed = 5
+            if 0 < right_speed < 5:
+                right_speed = 5
+            if -5 < left_speed < 0:
+                left_speed = -5
+            if -5 < right_speed < 0:
+                right_speed = -5
+
             hw.driving_motors.start_tank(
                 round(left_speed * config.speed_multiplier),
                 round(right_speed * config.speed_multiplier),
@@ -95,7 +118,7 @@ class Run:
         self.drive(
             speed,
             ending_condition,
-            GyroDrivePIDCorrector(degree, p_correction, i_correction, d_correction),
+            GyroDrivePID(degree, p_correction, i_correction, d_correction),
         )
 
     # def gyro_turn(

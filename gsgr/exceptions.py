@@ -1,5 +1,5 @@
 class WrongUnitError(ValueError):
-    """Non-valid unit used."""
+    """Invalid unit used."""
 
 
 class BatteryLowError(RuntimeError):

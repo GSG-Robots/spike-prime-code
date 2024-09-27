@@ -1,15 +1,17 @@
-import time
-from spike.control import Timer
+from .math import clamp, sigmoid
+from .utils import Timer
+import abc
 from .configuration import config, hardware as hw
 
 
-class Corrector:
+class Corrector(abc.ABCMeta):
+    @abc.abstractmethod
     def apply(
         self, left: float | int, right: float | int
     ) -> tuple[float | int, float | int]: ...
 
 
-class GyroDrivePIDCorrector(Corrector):
+class GyroDrivePID(Corrector):
     def __init__(
         self,
         degree_target: int,
@@ -40,6 +42,9 @@ class GyroDrivePIDCorrector(Corrector):
             error_value += 360
         differential = error_value - self.last_error
         self.error_sum += error_value
+        if error_value < config.error_threshold:
+            self.error_sum = 0
+            differential = 0
         corrector = (
             self.error_sum * self.i_correction
             + differential * self.d_correction
@@ -49,16 +54,74 @@ class GyroDrivePIDCorrector(Corrector):
         return (left + corrector, right - corrector)
 
 
-class AccelerationSecCorrecor(Corrector):
-    def __init__(self, duration: int) -> None:
+class Pause(Corrector):
+    def __init__(self, at: int, duration: int) -> None:
+        self.start = at
         self.duration = duration
-        self.started_at = time.ticks_ms()
+        self.timer = Timer()
 
     def apply(
         self, left: int | float, right: int | float
     ) -> tuple[float | int, float | int]:
-        now = time.ticks_diff(time.ticks_ms(), self.started_at) / 1000
-        print(time.ticks_ms())
-        speed_mutiplier = min(1.0, now / self.duration)
-        print(speed_mutiplier, now, self.duration, now / self.duration)
+        if self.start < self.timer.elapsed < (self.start + self.duration):
+            return (0, 0)
+        return (left, right)
+
+
+class Acceleration(Corrector):
+    def __init__(self, duration: int, delay: int = 0) -> None:
+        self.delay = delay
+        self.duration = duration
+        self.timer = Timer()
+
+    def apply(
+        self, left: int | float, right: int | float
+    ) -> tuple[float | int, float | int]:
+        speed_mutiplier = clamp(
+            max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
+        )
+        return (left * speed_mutiplier, right * speed_mutiplier)
+
+
+class Deceleration(Corrector):
+    def __init__(self, duration: int, delay: int = 0) -> None:
+        self.delay = delay
+        self.duration = duration
+        self.timer = Timer()
+
+    def apply(
+        self, left: int | float, right: int | float
+    ) -> tuple[float | int, float | int]:
+        speed_mutiplier = 1 - clamp(
+            max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
+        )
+        return (left * speed_mutiplier, right * speed_mutiplier)
+
+
+class SigmoidAcceleration(Corrector):
+    def __init__(self, duration: int, smooth: int = 6, stretch: bool = True) -> None:
+        self.duration = duration
+        self.timer = Timer()
+        self.smooth = smooth
+        self.cutoff = sigmoid(-smooth) if stretch else 0
+
+    def apply(
+        self, left: int | float, right: int | float
+    ) -> tuple[float | int, float | int]:
+        now = self.timer.elapsed
+        speed_mutiplier = clamp(
+            round(
+                (
+                    sigmoid(
+                        (clamp(now / self.duration, 0, 1) * 2 * self.smooth)
+                        - self.smooth
+                    )
+                    - self.cutoff
+                )
+                / (1 - self.cutoff),
+                2,
+            ),
+            0,
+            1,
+        )
         return (left * speed_mutiplier, right * speed_mutiplier)
