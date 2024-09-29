@@ -71,7 +71,9 @@ while True:
         break
     if device.logs:
         log = device.logs.popleft()
-        if log.type in (spikeapi.LogType.USER_PROGRAM_PRINT, spikeapi.LogType.PRINT):
+        if log.type == spikeapi.LogType.PRINT:
+            print(colorama.Fore.LIGHTBLACK_EX + log.entry + colorama.Fore.RESET)
+        if log.type == spikeapi.LogType.USER_PROGRAM_PRINT:
             print(log.entry)
         elif log.type == spikeapi.LogType.USER_PROGRAM_ERROR:
             print(colorama.Fore.RED + log.entry + colorama.Fore.RESET)
