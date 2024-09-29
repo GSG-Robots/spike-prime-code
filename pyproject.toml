@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "competition-programs"
+version = "0.1.0"
+description = "The code OTTWO runs in competitions"
+authors = ["GSG-Robots", "J0J0HA aka. JoJoJux", "Meganton"]
+readme = "README.md"
+packages = [{include = "*", from="src"}]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "3.12.*"
+bleak = "^0.22.2"
+pyserial = "^3.5"
+dataclasses-json = "^0.6.7"
+json-fix = "^1.0.0"
+tqdm = "^4.66.5"
+mpy-cross = "^1.23.0.post2"
+mpy-cross-v5 = "^1.0.2"
+compyner = "^0.1.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

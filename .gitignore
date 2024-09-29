@@ -1,5 +1,2 @@
-.vscode
 __pycache__
-ex.py
-test.py
-*.assembled.py
+*.cpyd.py

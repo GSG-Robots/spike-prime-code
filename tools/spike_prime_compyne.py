@@ -57,9 +57,12 @@ SPIKE_PRIME_MODULES = [
 
 
 def spike_prime_compyne(input_module, slot=0):
+    sys.path.append(str(Path(input_module).parent))
     compyner = ComPYner(exclude=SPIKE_PRIME_MODULES)
     compyner.add_module("__main__", ast_from_file(Path(input_module)))
-    return f"# LEGO type:standard slot:{slot} autostart\n" + compyner.compyne()
+    code = f"# LEGO type:standard slot:{slot} autostart\n" + compyner.compyne()
+    sys.path.pop()
+    return code
 
 
 def main():
