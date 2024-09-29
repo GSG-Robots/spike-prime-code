@@ -8,6 +8,12 @@ import random
 import string
 
 
+class CustomUnparser(ast._Unparser):
+    def generic_visit(self, node):
+        if node is None:
+            return
+        return super().generic_visit(node)
+
 def name_replacement(
     gr: "GlobalReplacer", name: str, original_node: ast.AST, ctx: ast.expr_context
 ) -> ast.Attribute:
@@ -940,4 +946,4 @@ class ComPYner:
 
     def compyne(self):
         self.result_module.body.extend(END.body)
-        return ast.unparse(self.result_module)
+        return CustomUnparser().visit(self.result_module)
