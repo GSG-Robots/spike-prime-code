@@ -1,22 +1,21 @@
 from gsgr import config, hardware
-from gsgr.conditions import Cm, Sec
-from gsgr.correctors import Acceleration, Deceleration, GyroDrivePID
-from gsgr.run import Run
+from gsgr.conditions import Sec
+from gsgr.correctors import AccelerateSec, DecelerateSec, GyroDrivePID
+from gsgr.movement import gyro_drive, drive
 from spike import Motor, MotorPair, PrimeHub
 
 
 def main():
-    run = Run()
-    run.drive(
-        80,
-        Sec(10),
-        [
-            GyroDrivePID(0),
-            Acceleration(duration=5),
-            Deceleration(duration=5, delay=5),
-        ],
-    )
-
+    # drive(
+    #     80,
+    #     Sec(10),
+    #     [
+    #         GyroDrivePID(0),
+    #         AccelerateSec(duration=5),
+    #         DecelerateSec(duration=5, delay=5),
+    #     ],
+    # )
+    gyro_drive(80, 0, Sec(10), accelerate_for=5, decelerate_for=5)
 
 with (
     hardware(
@@ -33,7 +32,7 @@ with (
         i_correction=0,
         d_correction=-0.2,
         speed_multiplier=1,
-        debug_mode=True,
+        debug_mode=False,
         error_threshold=1,
     ),
 ):
