@@ -355,7 +355,7 @@ class Device:
         now = int(time.time() * 1000)
         size = len(data)
 
-        self.display_image("00000:00000:90909:00000:00000").wait_for_response()
+        #self.display_image("00000:00000:90909:00000:00000").wait_for_response()
         # self.update_display(get_arrow(0), refresh=True)
 
         start = self.send_message(
@@ -380,7 +380,7 @@ class Device:
         tid = start["transferid"]
         transferred = 0
 
-        self.display_image(get_arrow(transferred, size, bs)).wait_for_response()
+        #self.display_image(get_arrow(transferred, size, bs)).wait_for_response()
 
         b = data[:bs]
         data = data[bs:]
@@ -391,7 +391,7 @@ class Device:
             ).wait_for_response()
             transferred += len(b)
             callback(transferred, size, bs)
-            self.display_image(get_arrow(transferred, size, bs)).wait_for_response()
+            #self.display_image(get_arrow(transferred, size, bs)).wait_for_response()
             b = data[:bs]
             data = data[bs:]
         # time.sleep(0.1)
