@@ -20,17 +20,17 @@ class HardwareConfig(ConfigBase):
 
     tire_radius: float
     "The radius of the tire in centimeters"
-    brick: spike.PrimeHub
+    brick: "spike.PrimeHub"
     "An instance of the hub API used in the robot"
-    gear_selector: spike.Motor
+    gear_selector: "spike.Motor"
     "The motor that selects the attachment gear"
-    drive_shaft: spike.Motor
+    drive_shaft: "spike.Motor"
     "The motor that drives the robots' attachment gears"
-    left_motor: spike.Motor
+    left_motor: "spike.Motor"
     "The motor that drives the left tire"
-    right_motor: spike.Motor
+    right_motor: "spike.Motor"
     "The motor that drives the right tire"
-    driving_motors: spike.MotorPair
+    driving_motors: "spike.MotorPair"
     "The motor pair that drives the robot. This should be the same as the left and right motors combined."
 
 

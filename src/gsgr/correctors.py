@@ -4,7 +4,7 @@ import abc
 from .configuration import config, hardware as hw
 
 
-class Corrector(abc.ABCMeta):
+class Corrector(abc.ABC):
     @abc.abstractmethod
     def apply(
         self, left: float | int, right: float | int
@@ -68,7 +68,7 @@ class Pause(Corrector):
         return (left, right)
 
 
-class Acceleration(Corrector):
+class AccelerateSec(Corrector):
     def __init__(self, duration: int, delay: int = 0) -> None:
         self.delay = delay
         self.duration = duration
@@ -83,7 +83,22 @@ class Acceleration(Corrector):
         return (left * speed_mutiplier, right * speed_mutiplier)
 
 
-class Deceleration(Corrector):
+# class AccelerateCm(Corrector):
+#     def __init__(self, duration: int, delay: int = 0) -> None:
+#         self.delay = delay
+#         self.duration = duration
+#         self.timer = Timer()
+
+#     def apply(
+#         self, left: int | float, right: int | float
+#     ) -> tuple[float | int, float | int]:
+#         speed_mutiplier = clamp(
+#             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
+#         )
+#         return (left * speed_mutiplier, right * speed_mutiplier)
+
+
+class DecelerateSec(Corrector):
     def __init__(self, duration: int, delay: int = 0) -> None:
         self.delay = delay
         self.duration = duration
@@ -96,6 +111,20 @@ class Deceleration(Corrector):
             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
         )
         return (left * speed_mutiplier, right * speed_mutiplier)
+
+# class DecelerateCm(Corrector):
+#     def __init__(self, duration: int, delay: int = 0) -> None:
+#         self.delay = delay
+#         self.duration = duration
+#         self.started_at = 0
+
+#     def apply(
+#         self, left: int | float, right: int | float
+#     ) -> tuple[float | int, float | int]:
+#         speed_mutiplier = 1 - clamp(
+#             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
+#         )
+#         return (left * speed_mutiplier, right * speed_mutiplier)
 
 
 class SigmoidAcceleration(Corrector):
