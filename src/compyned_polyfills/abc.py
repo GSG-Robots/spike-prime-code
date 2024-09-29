@@ -1,6 +1,11 @@
-def abstractmethod(func):
-    return func
+class ABCMeta:
+    pass
 
 
-ABC = object
-ABCMeta = object
+# class ABC(metaclass=ABCMeta):
+class ABC:
+    pass
+
+
+def abstractmethod(f):
+    return f
