@@ -14,6 +14,7 @@ class CustomUnparser(ast._Unparser):
             return
         return super().generic_visit(node)
 
+
 def name_replacement(
     gr: "GlobalReplacer", name: str, original_node: ast.AST, ctx: ast.expr_context
 ) -> ast.Attribute:
@@ -60,7 +61,8 @@ class ComPYnerBuildTools:
         if not isinstance(args[0], ast.Constant):
             raise TypeError("The first argument of import_regex must be a constant")
         glob = args[0].value
-        files = [file.absolute() for file in Path.cwd().glob(glob)]
+        path = Path(sys.path[-1]).absolute()
+        files = [file.absolute() for file in path.glob(glob)]
         names = [file.with_suffix("").name for file in files]
         elts = []
         for name, file in zip(names, files):
@@ -249,11 +251,17 @@ class GlobalReplacer(ast.NodeTransformer):
                     ),
                     node,
                 ),
+                ast.copy_location(
+                    ast.Delete(
+                        [ast.Name(id=node.name, ctx=ast.Del())],
+                    ),
+                    node,
+                ),
             ]
         else:
             return node
 
-    def visit_ClassDef(self, node):
+    def visit_ClassDef(self, node: ast.ClassDef):
         sub_replacer = GlobalReplacer(
             self.compyner,
             self.globals,
@@ -271,6 +279,12 @@ class GlobalReplacer(ast.NodeTransformer):
                     ast.Assign(
                         targets=[name_replacement(self, node.name, node, ast.Store())],
                         value=ast.Name(id=node.name, ctx=ast.Load()),
+                    ),
+                    node,
+                ),
+                ast.copy_location(
+                    ast.Delete(
+                        [ast.Name(id=node.name, ctx=ast.Del())],
                     ),
                     node,
                 ),
@@ -503,15 +517,25 @@ class Namer:
         self.names = {}
         self.prefix = prefix or ""
         self.random_length = random_length
-        
+
     def random_string(self):
-        return "".join(random.choices(string.ascii_letters + string.digits + "_", k=self.random_length))
+        return "".join(
+            random.choices(
+                string.ascii_letters + string.digits + "_", k=self.random_length
+            )
+        )
 
     def get_unique_name(self, name: str = None):
         name = name or ""
-        name = re.sub(r"\W", "_", name) + (("_" + self.random_string()) if self.random_length else "")
+        name = re.sub(r"\W", "_", name) + (
+            ("_" + self.random_string()) if self.random_length else ""
+        )
         self.names[name] = self.names.get(name, 0) + 1
-        return self.prefix + name + ("_" + str(self.names[name]) if self.names[name] > 1 else "")
+        return (
+            self.prefix
+            + name
+            + ("_" + str(self.names[name]) if self.names[name] > 1 else "")
+        )
 
 
 class ComPYner:
@@ -527,7 +551,7 @@ class ComPYner:
         self.loaded_modules = []
         self.result_module = ast.Module([], [])
         self.module_preprocessor = module_preprocessor or (lambda x, y: x)
-        self.namer = Namer()#"_CPYD")
+        self.namer = Namer()  # "_CPYD")
         self.static = self.namer.get_unique_name()
         internals = self.namer.get_unique_name()
         self.result_module.body.append(
@@ -690,9 +714,9 @@ class ComPYner:
                 f"Module {name} cannot be included: It does not have a location. Excluded automatically, make sure it exists in the target environment."
             )
             return False
-        print(
-            f"Loading module {name} as {spec.name} from {spec.origin}", file=sys.stderr
-        )
+        # print(
+        #     f"Loading module {name} as {spec.name} from {spec.origin}", file=sys.stderr
+        # )
 
         if spec.name not in self.loaded_modules:
             self.add_module(
@@ -709,11 +733,12 @@ class ComPYner:
         module = self.module_preprocessor(module, origin or name)
         gf = GlobalFinder()
         gf.visit(module)
-        print(f"Globals in {name}:", file=sys.stderr)
-        for glob, target in gf.globals:
-            print(f"  {'.'.join(target + [glob])}", file=sys.stderr)
-        if not gf.globals:
-            print("   (none)", file=sys.stderr)
+        print(f"Adding module {name:<25} from {origin}", file=sys.stderr)
+        # print(f"Globals in {name}:", file=sys.stderr)
+        # for glob, target in gf.globals:
+        # print(f"  {'.'.join(target + [glob])}", file=sys.stderr)
+        # if not gf.globals:
+        # print("   (none)", file=sys.stderr)
         tmp_self = self.namer.get_unique_name()
         old_file = self.current_file
         file_set = self.set_file(origin or name)
