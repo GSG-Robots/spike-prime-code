@@ -80,6 +80,6 @@ while True:
         elif log.type == spikeapi.LogType.RUNTIME_ERROR:
             print(colorama.Fore.YELLOW + log.entry + colorama.Fore.RESET)
 
-    if not device.running_program:
-        print(colorama.Fore.GREEN + "> Program finished" + colorama.Fore.RESET)
-        break
+    # if not device.running_program:
+    #     print(colorama.Fore.GREEN + "> Program finished" + colorama.Fore.RESET)
+    #     break
