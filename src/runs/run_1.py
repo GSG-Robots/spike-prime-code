@@ -1,14 +1,10 @@
-from mcp import Cm, Run
+import time
 
 
-def run_1(run: Run):
-    """Run 1"""
-    # run.drive_attachment(1, 100, duration=1)
-    # run.drive_attachment(2, 100, duration=1)
-    # run.drive_attachment(3, 100, duration=1)
-    # run.drive_attachment(4, 100, duration=1)
-    run.gyro_drive(100, 0, Cm(10))
+metadata = {"display_as": 1, "color": "red"}
+config = {}
 
 
-def register(mcp):
-    mcp.run(color="red")(run_1)
+def run():
+    time.sleep(1)
+    print(1)

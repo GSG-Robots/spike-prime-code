@@ -10,5 +10,9 @@ class EnterDebugMenu(SystemExit):
     """Error raised when debug menu should be started."""
 
 
-class StopRun(SystemExit):
+class StopRun(KeyboardInterrupt):
     """Raise to stop run immediately."""
+
+
+class ExitMenu(SystemExit):
+    """Raise to exit menu"""
