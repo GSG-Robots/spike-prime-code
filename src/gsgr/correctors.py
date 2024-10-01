@@ -9,6 +9,8 @@ class Corrector(abc.ABC):
     def apply(
         self, left: float | int, right: float | int
     ) -> tuple[float | int, float | int]: ...
+    @abc.abstractmethod
+    def setup(self) -> None: ...
 
 
 class GyroDrivePID(Corrector):
@@ -19,7 +21,7 @@ class GyroDrivePID(Corrector):
         i_correction: float | None = None,
         d_correction: float | None = None,
     ) -> None:
-        self.target = degree_target
+        self.target = degree_target - config.degree_offset
         self.last_error = 0
         self.error_sum = 0
         self.p_correction = (
@@ -31,6 +33,9 @@ class GyroDrivePID(Corrector):
         self.d_correction = (
             config.d_correction if d_correction is None else d_correction
         )
+        
+    def setup(self):
+        ...
 
     def apply(
         self, left: int | float, right: int | float
@@ -54,11 +59,58 @@ class GyroDrivePID(Corrector):
         return (left + corrector, right - corrector)
 
 
+class GyroTurnPID(Corrector):
+    def __init__(
+        self,
+        degree_target: int,
+        p_correction: float | None = None,
+        i_correction: float | None = None,
+        d_correction: float | None = None,
+    ) -> None:
+        self.target = degree_target - config.degree_offset
+        self.last_error = 0
+        self.error_sum = 0
+        self.p_correction = (
+            config.p_correction if p_correction is None else p_correction
+        )
+        self.i_correction = (
+            config.i_correction if i_correction is None else i_correction
+        )
+        self.d_correction = (
+            config.d_correction if d_correction is None else d_correction
+        )
+
+    def setup(self) -> None: ...
+
+    def apply(
+        self, left: int | float, right: int | float
+    ) -> tuple[float | int, float | int]:
+        error_value = self.target - hw.brick.motion_sensor.get_yaw_angle()
+        while error_value > 180:
+            error_value -= 360
+        while error_value <= -180:
+            error_value += 360
+        differential = error_value - self.last_error
+        self.error_sum += error_value
+        if error_value < config.error_threshold:
+            self.error_sum = 0
+            differential = 0
+        corrector = (
+            self.error_sum * self.i_correction
+            + differential * self.d_correction
+            + error_value * self.p_correction
+        )
+        self.last_error = error_value
+        return (corrector * left / 100, -corrector * right / 100)
+
+
 class Pause(Corrector):
     def __init__(self, at: int, duration: int) -> None:
         self.start = at
         self.duration = duration
         self.timer = Timer()
+
+    def setup(self): ...
 
     def apply(
         self, left: int | float, right: int | float
@@ -73,6 +125,8 @@ class AccelerateSec(Corrector):
         self.delay = delay
         self.duration = duration
         self.timer = Timer()
+
+    def setup(self): ...
 
     def apply(
         self, left: int | float, right: int | float
@@ -104,6 +158,8 @@ class DecelerateSec(Corrector):
         self.duration = duration
         self.timer = Timer()
 
+    def setup(self): ...
+
     def apply(
         self, left: int | float, right: int | float
     ) -> tuple[float | int, float | int]:
@@ -111,6 +167,7 @@ class DecelerateSec(Corrector):
             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
         )
         return (left * speed_mutiplier, right * speed_mutiplier)
+
 
 # class DecelerateCm(Corrector):
 #     def __init__(self, duration: int, delay: int = 0) -> None:
@@ -133,6 +190,8 @@ class SigmoidAcceleration(Corrector):
         self.timer = Timer()
         self.smooth = smooth
         self.cutoff = sigmoid(-smooth) if stretch else 0
+
+    def setup(self): ...
 
     def apply(
         self, left: int | float, right: int | float

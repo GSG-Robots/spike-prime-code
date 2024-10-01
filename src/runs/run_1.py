@@ -1,8 +1,10 @@
 import time
+from gsgr.enums import Color
+from gsgr.configuration import config
 
 
-metadata = {"display_as": 1, "color": "red"}
-config = {}
+display_as = 1
+color = Color.RED
 
 
 def run():

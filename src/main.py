@@ -11,7 +11,9 @@ menu = Menu(landscape=True)
 runs = ComPYnerBuildTools.get_modules_path_glob("runs/*.py")
 
 for run in runs:
-    menu.add_item(Run(run.metadata, run.config, run.run))
+    menu.add_item(
+        Run(run.get("display_as"), run.get("color"), run.get("config"), run.get("run"))
+    )
 
 exit_item = MenuItem("x", "white")
 
@@ -40,11 +42,12 @@ with (
         speed_multiplier=1,
         debug_mode=False,
         error_threshold=1,
+        degree_offset=0,
+        gyro_tolerance=1
     ),
 ):
     hub.display.align(hub.RIGHT)
     menu.loop(autoscroll=True)
-
 
 
 # @mcp.run(display_as="C", debug_mode=False)

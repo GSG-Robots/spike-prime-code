@@ -1,5 +1,5 @@
 from .utils import Timer
-from .configuration import hardware as hw
+from .configuration import hardware as hw, config
 import math
 from ._condition_base import ConditionBase
 
@@ -47,13 +47,13 @@ class Sec(ConditionBase):
 #         )
 
 
-# class Deg(ConditionBase):
-#     def __init__(self, value: int) -> None:
-#         self.value = value
+class Deg(ConditionBase):
+    def __init__(self, value: int) -> None:
+        self.value = value
 
-#     def check(self, run):
-#         return (
-#             self.value - run.turning_degree_tolerance
-#             <= run.brick.motion_sensor.get_yaw_angle()
-#             <= self.value + run.turning_degree_tolerance
-#         )
+    def check(self):
+        return (
+            self.value - config.gyro_tolerance
+            <= hw.brick.motion_sensor.get_yaw_angle()
+            <= self.value + config.gyro_tolerance
+        )

@@ -1,6 +1,6 @@
 from .display import light_up_display
 from .exceptions import ExitMenu, StopRun
-from .configuration import hardware as hw, config
+from .configuration import hardware as hw, config as cnf
 from .math import clamp
 
 
@@ -29,9 +29,9 @@ class MenuItem:
 
 
 class Run(MenuItem):
-    def __init__(self, metadata, new_config, run):
-        super().__init__(metadata.get("display_as"), metadata.get("color"))
-        self.context = config(**new_config)
+    def __init__(self, display_as, color, config, run):
+        super().__init__(display_as, color)
+        self.context = config or cnf()
         self.set_callback(run)
 
     def get_callback(self):

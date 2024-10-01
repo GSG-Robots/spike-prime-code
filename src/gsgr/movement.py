@@ -1,9 +1,10 @@
-from .conditions import Sec
+from .conditions import Sec, Deg
 from .correctors import (
     AccelerateSec,
     Corrector,
     DecelerateSec,
     GyroDrivePID,
+    GyroTurnPID,
 )
 from ._condition_base import ConditionBase
 from .exceptions import BatteryLowError
@@ -83,6 +84,8 @@ def drive(
     correctors = [correctors] if not isinstance(correctors, list) else correctors
     check_battery()
     until.setup()
+    for corrector in correctors:
+        corrector.setup()
     while not until.check():
         left_speed = speed
         right_speed = speed
@@ -137,11 +140,50 @@ def gyro_drive(
                     do_for.value - decelerate_for,
                 )
             )
-    print(correctors)
 
     # Delegate to normal drive function
     drive(
         speed,
         do_for,
+        correctors,
+    )
+
+
+
+def gyro_turn(
+    degree: int,
+    speed: int = 80,
+    do_for: ConditionBase | None = None,
+    p_correction: int | None = None,
+    i_correction: int | None = None,
+    d_correction: int | None = None,
+    accelerate_for: int = 0,
+    decelerate_for: int = 0,
+):
+    # Auto-setup PID
+    correctors = [GyroTurnPID(degree, p_correction, i_correction, d_correction)]
+
+    # Auto-setup acceleration and deceleration
+    if accelerate_for > 0:
+        if isinstance(do_for, Sec):
+            correctors.append(
+                AccelerateSec(
+                    accelerate_for,
+                    0,
+                )
+            )
+    if decelerate_for > 0:
+        if isinstance(do_for, Sec):
+            correctors.append(
+                DecelerateSec(
+                    decelerate_for,
+                    do_for.value - decelerate_for,
+                )
+            )
+
+    # Delegate to normal drive function
+    drive(
+        speed,
+        do_for or Deg(degree),
         correctors,
     )

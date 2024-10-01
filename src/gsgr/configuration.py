@@ -13,6 +13,8 @@ class Config(ConfigBase):
     speed_multiplier: float
     "The speed multiplier for the robot. This should be a float between -1 and 1. Negative values will make the robot drive backwards."
     error_threshold: float
+    degree_offset: int
+    gyro_tolerance: int
 
 
 class HardwareConfig(ConfigBase):
