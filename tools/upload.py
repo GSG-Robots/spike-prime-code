@@ -5,7 +5,7 @@ import subprocess
 import colorama
 import pathlib
 from spike_prime_compyne import spike_prime_compyne
-
+import msvcrt
 import spikeapi
 
 
@@ -64,6 +64,8 @@ device.run_program(slot)
 while not device.running_program:
     pass
 
+print(colorama.Fore.CYAN + ">> Press any key to exit" + colorama.Fore.RESET)
+
 # Step 5: Monitoring
 while True:
     if not device.active:
@@ -83,3 +85,10 @@ while True:
     # if not device.running_program:
     #     print(colorama.Fore.GREEN + "> Program finished" + colorama.Fore.RESET)
     #     break
+    if msvcrt.kbhit():
+        print(
+            colorama.Fore.LIGHTGREEN_EX
+            + "> Got input. Exiting..."
+            + colorama.Fore.RESET
+        )
+        break
