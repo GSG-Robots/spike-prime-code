@@ -28,7 +28,7 @@ file = pathlib.Path(sys.argv[1])
 # Step 1: ComPYning
 print(colorama.Fore.GREEN + "> ComPYning..." + colorama.Fore.RESET)
 comPYned: str = spike_prime_compyne(file, slot=slot)
-file.with_suffix(".cpyd.py").write_text(comPYned)
+file.with_suffix(".cpyd.py").write_text(comPYned, "utf-8")
 
 # Step 2: Compiling
 print(colorama.Fore.GREEN + "> Compiling...", end="")

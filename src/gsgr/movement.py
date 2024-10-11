@@ -31,7 +31,7 @@ def hold_attachment(target_gear: int):
 def free_attachment(target_gear: int):
     check_battery()
     # Move to some other position. Anything over 45 degrees will do, but 90 is the most reliable.
-    hw.gear_selector.run_for_degrees(70, 100)
+    hw.gear_selector.run_to_position((90 * (target_gear - 1)) + 90, "shortest path", 100)
 
 
 def free_attachments():
@@ -149,7 +149,6 @@ def gyro_drive(
     )
 
 
-
 def gyro_turn(
     degree: int,
     speed: int = 80,
@@ -187,3 +186,7 @@ def gyro_turn(
         do_for or Deg(degree),
         correctors,
     )
+
+
+def gyro_set_origin(set_to=0):
+    config.degree_o_meter.reset(set_to)

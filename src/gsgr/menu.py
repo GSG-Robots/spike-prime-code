@@ -1,3 +1,4 @@
+from spike import Motor
 from .display import light_up_display
 from .exceptions import ExitMenu, StopRun
 from .configuration import hardware as hw, config as cnf
@@ -39,6 +40,11 @@ class Run(MenuItem):
         return super().get_callback()
 
     def cleanup(self):
+        for port in ("A", "B", "C", "D", "E", "F"):
+            try:
+                Motor(port).stop()
+            except KeyboardInterrupt:
+                ...
         self.context.__exit__(None, None, None)
 
 

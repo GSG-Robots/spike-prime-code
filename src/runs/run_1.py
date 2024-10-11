@@ -1,6 +1,5 @@
 import time
 from gsgr.enums import Color
-from gsgr.configuration import config
 
 
 display_as = 1

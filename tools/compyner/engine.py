@@ -115,6 +115,13 @@ class GlobalFinder(ast.NodeVisitor):
         if isinstance(node.ctx, ast.Store):
             self.add(node.id)
 
+    def visit_If(self, node: ast.If):
+        match node.test:
+            case ast.Attribute(ast.Name("typing"), "TYPE_CHECKING"):
+                return
+            case _:
+                return self.generic_visit(node)
+
     def visit_Global(self, node):
         for name in node.names:
             self.add(name)
@@ -504,6 +511,13 @@ class GlobalReplacer(ast.NodeTransformer):
             )
         return new_imports
 
+    def visit_If(self, node: ast.If):
+        match node.test:
+            case ast.Attribute(ast.Name("typing"), "TYPE_CHECKING"):
+                return
+            case _:
+                return self.generic_visit(node)
+
     def generic_visit(self, node: ast.stmt) -> list[ast.stmt]:
         if node is None:
             return None
@@ -549,6 +563,7 @@ class ComPYner:
     ):
         self.exclude = exclude or []
         self.loaded_modules = []
+        self.current_modules = []
         self.result_module = ast.Module([], [])
         self.module_preprocessor = module_preprocessor or (lambda x, y: x)
         self.namer = Namer()  # "_CPYD")
@@ -718,13 +733,20 @@ class ComPYner:
         #     f"Loading module {name} as {spec.name} from {spec.origin}", file=sys.stderr
         # )
 
+        if spec.name in self.current_modules:
+            raise RecursionError(
+                f"Recursive import detected: {' > '.join(self.current_modules)} >> {spec.name}"
+            )
+
         if spec.name not in self.loaded_modules:
+            self.current_modules.append(spec.name)
             self.add_module(
                 spec.name,
                 ast_from_file(Path(spec.origin)),
                 spec.parent,
                 origin=spec.origin,
             )
+            self.current_modules.pop()
         self.loaded_modules.append(spec.name)
 
         return spec.name

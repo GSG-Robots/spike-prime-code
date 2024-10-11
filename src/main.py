@@ -1,6 +1,6 @@
-import time
 from gsgr.menu import Menu, MenuItem, Run
 from gsgr.configuration import config, hardware
+from gsgr.utils import DegreeOMeter
 import hub
 from spike import Motor, MotorPair, PrimeHub
 from compyner.typehints import ComPYnerBuildTools
@@ -29,9 +29,9 @@ with (
     hardware(
         drive_shaft=Motor("B"),
         gear_selector=Motor("A"),
-        driving_motors=MotorPair("E", "F"),
-        left_motor=Motor("E"),
-        right_motor=Motor("F"),
+        driving_motors=MotorPair("F", "E"),
+        left_motor=Motor("F"),
+        right_motor=Motor("E"),
         brick=PrimeHub(),
         tire_radius=3,
     ),
@@ -43,7 +43,8 @@ with (
         debug_mode=False,
         error_threshold=1,
         degree_offset=0,
-        gyro_tolerance=1
+        gyro_tolerance=1,
+        degree_o_meter=DegreeOMeter(),
     ),
 ):
     hub.display.align(hub.RIGHT)

@@ -40,7 +40,7 @@ class GyroDrivePID(Corrector):
     def apply(
         self, left: int | float, right: int | float
     ) -> tuple[float | int, float | int]:
-        error_value = self.target - hw.brick.motion_sensor.get_yaw_angle()
+        error_value = self.target - config.degree_o_meter.turned
         while error_value > 180:
             error_value -= 360
         while error_value <= -180:
@@ -85,7 +85,7 @@ class GyroTurnPID(Corrector):
     def apply(
         self, left: int | float, right: int | float
     ) -> tuple[float | int, float | int]:
-        error_value = self.target - hw.brick.motion_sensor.get_yaw_angle()
+        error_value = self.target - config.degree_o_meter.turned
         while error_value > 180:
             error_value -= 360
         while error_value <= -180:
@@ -101,7 +101,7 @@ class GyroTurnPID(Corrector):
             + error_value * self.p_correction
         )
         self.last_error = error_value
-        return (corrector * left / 100, -corrector * right / 100)
+        return (corrector * (left / 100), -corrector * (right / 100))
 
 
 class Pause(Corrector):

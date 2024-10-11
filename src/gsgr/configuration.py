@@ -1,5 +1,8 @@
 import spike
 from ._config_base import ConfigBase
+import typing
+if typing.TYPE_CHECKING:
+    from .utils import DegreeOMeter
 
 
 class Config(ConfigBase):
@@ -15,6 +18,7 @@ class Config(ConfigBase):
     error_threshold: float
     degree_offset: int
     gyro_tolerance: int
+    degree_o_meter: "DegreeOMeter"
 
 
 class HardwareConfig(ConfigBase):
