@@ -43,7 +43,7 @@ class Run(MenuItem):
         for port in ("A", "B", "C", "D", "E", "F"):
             try:
                 Motor(port).stop()
-            except KeyboardInterrupt:
+            except RuntimeError:
                 ...
         self.context.__exit__(None, None, None)
 
