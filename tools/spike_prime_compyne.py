@@ -1,4 +1,4 @@
-import ast
+import ast_comments as ast
 import collections
 from pathlib import Path
 import sys
@@ -74,6 +74,9 @@ class PreOptimize(ast.NodeTransformer):
             if not (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant))
         ] or [ast.copy_location(ast.Pass(), node)]
         return node
+    
+    def visit_Comment(self, node):
+        return None
 
     def visit_AnnAssign(self, node):
         if node.value:
@@ -94,54 +97,77 @@ class PreOptimize(ast.NodeTransformer):
         ] or [ast.copy_location(ast.Pass(), node)]
         return node
 
-    def visit_ClassDef(self, node):
+    def visit_ClassDef(self, node: ast.ClassDef) -> ast.ClassDef | ast.Assign:
         node = self.generic_visit(node)
         node.body = [
             stmt
             for stmt in node.body
             if not (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant))
         ] or [ast.copy_location(ast.Pass(), node)]
+
+        if len(node.body) == 1 and len(node.bases) == 1:
+            return ast.Assign(
+                [ast.Name(node.name, ast.Store())],
+                node.bases[0],
+                lineno=0,
+                col_offset=0,
+            )
         return node
 
 
 def pre_optimize(module, name):
     return PreOptimize().visit(module)
 
+
 class PastOptimizeCounter(ast.NodeVisitor):
     def __init__(self):
         self.counter = collections.Counter()
-        
+
     def visit_Constant(self, node: ast.Constant):
+        if isinstance(node.value, bool):
+            return
         if isinstance(node.value, (str, int, float)):
             self.counter[node.value] += 1
+
 
 class PastOptimize(ast.NodeTransformer):
     def __init__(self, values_to_replace):
         self.values_to_replace = values_to_replace
         self.names = {}
         self.namer = Namer()
+        
+        
+    def visit_Comment(self, node: ast.Comment):
+        if node.inline:
+            return None
 
     def visit_Constant(self, node: ast.Constant):
+        if isinstance(node.value, bool):
+            return node
         if node.value not in self.values_to_replace:
             return node
-        if not node.value in self.names:
+        if node.value not in self.names:
             self.names[node.value] = self.namer.get_unique_name()
         return ast.copy_location(ast.Name(self.names[node.value]), node)
 
     def visit_Module(self, node: ast.Module):
         node = self.generic_visit(node)
-        definitions = [ast.ImportFrom("micropython", [ast.alias("const", "_const_")])]
+        definitions = (
+            []
+        )  # [ast.ImportFrom("micropython", [ast.alias("const", "_const_")])]
         for value, name in self.names.items():
             definitions.append(
                 ast.Assign(
                     [ast.Name(name)],
-                    ast.Call(
-                        ast.Name("_const_"),
-                        [ast.Constant(value)],
-                        [],
-                        lineno=0,
-                        col_offset=0,
-                    ),
+                    # ast.Call(
+                    #     ast.Name("_const_"),
+                    #     [
+                    ast.Constant(value),
+                    #         ],
+                    #     [],
+                    #     lineno=0,
+                    #     col_offset=0,
+                    # ),
                     lineno=0,
                     col_offset=0,
                 )
@@ -154,21 +180,21 @@ def past_optimize(module):
     module = ast.parse(module)
     counter = PastOptimizeCounter()
     counter.visit(module)
-    values_to_replace = [counter.counter]
-    print(values_to_replace)
+    values_to_replace = [value for value, count in counter.counter.items() if count > 4]
     return ast.unparse(PastOptimize(values_to_replace).visit(module))
 
 
-def spike_prime_compyne(input_module, slot=0):
+def spike_prime_compyne(input_module, slot=0, debug_build=False):
     sys.path.append(str(Path(input_module).parent))
     compyner = ComPYner(
         exclude=SPIKE_PRIME_MODULES,
-        debug_stack=False,
-        debug_line=False,
+        debug_stack=debug_build,# and False,
+        debug_line=debug_build,# and False,
         split_modules=False,
         use_attr=True,
         module_preprocessor=pre_optimize,
         pastprocessor=past_optimize,
+        require_dunder_name=debug_build,
     )
     compyner.add_module("__main__", ast_from_file(Path(input_module)))
     code = f"# LEGO type:standard slot:{slot} autostart\n" + compyner.compyne()

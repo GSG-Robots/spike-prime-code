@@ -1,4 +1,4 @@
-import ast
+import ast_comments as ast
 import importlib.util
 from pathlib import Path
 import re
@@ -20,7 +20,7 @@ def name_replacement(
 ) -> ast.Attribute:
     if name == gr.compyner.static or name == "ComPYnerBuildTools":
         return ast.copy_location(ast.Name(id=name, ctx=ctx), original_node)
-    if gr.use_attr:
+    if gr.compyner.use_attr:
         attr = ast.Attribute(
             value=ast.Name(gr.tmp_self, ast.Load()),
             attr=name,
@@ -47,6 +47,9 @@ def path_from_module(module: str) -> Path:
 
 
 INTERNALS = ast_from_file(path_from_module("compyner.snippets.internals"))
+INTERNALS_USE_ATTR = ast_from_file(
+    path_from_module("compyner.snippets.internals_use_attr")
+)
 END = ast_from_file(path_from_module("compyner.snippets.end"))
 
 
@@ -55,11 +58,14 @@ class ComPYnerBuildTools:
     def get_modules_path_glob(
         replacer: "GlobalReplacer", node: ast.Call, /
     ) -> list[ast.AST]:
+
         args = [replacer.visit(arg) for arg in node.args]
         if len(args) != 1:
-            raise ValueError("Import regex takes exaclty one argument")
+            raise ValueError("Import regex takes exaclty one argument", args)
         if not isinstance(args[0], ast.Constant):
-            raise TypeError("The first argument of import_regex must be a constant")
+            raise TypeError(
+                "The first argument of import_regex must be a constant.", args[0]
+            )
         glob = args[0].value
         path = Path(sys.path[-1]).absolute()
         files = [file.absolute() for file in path.glob(glob)]
@@ -77,7 +83,9 @@ class ComPYnerBuildTools:
             elts.append(
                 ast.copy_location(
                     (
-                        ast.Call(
+                        ast.Name(replacer.compyner.names_for_modules[name])
+                        if replacer.compyner.use_attr
+                        else ast.Call(
                             ast.Attribute(
                                 ast.Name(replacer.compyner.static, ast.Load()),
                                 "get",
@@ -86,8 +94,6 @@ class ComPYnerBuildTools:
                             [ast.Constant(name)],
                             [],
                         )
-                        if not replacer.use_attr
-                        else ast.Name(replacer.compyner.names_for_modules[name])
                     ),
                     node,
                 )
@@ -108,12 +114,16 @@ class GlobalFinder(ast.NodeVisitor):
         self.globals = []
         self.explicit_only = explicit_only
         self.context = context or []
+        self.has_dunder_name = False
 
     def add(self, name):
         if name not in self.globals:
             self.globals.append((name, self.context))
 
     def visit_Name(self, node: ast.Name):
+        if node.id == "__name__":
+            self.has_dunder_name = True
+            self.add(node.id)
         if self.explicit_only:
             return
         if isinstance(node.ctx, ast.Store):
@@ -136,6 +146,8 @@ class GlobalFinder(ast.NodeVisitor):
         global_finder = GlobalFinder(
             explicit_only=True, context=self.context + [node.name]
         )
+        if global_finder.has_dunder_name:
+            self.has_dunder_name = True
         for subnode in node.body:
             global_finder.visit(subnode)
         for decorator in node.decorator_list:
@@ -148,6 +160,8 @@ class GlobalFinder(ast.NodeVisitor):
         global_finder = GlobalFinder(
             explicit_only=True, context=self.context + [node.name]
         )
+        if global_finder.has_dunder_name:
+            self.has_dunder_name = True
         for subnode in node.body:
             global_finder.visit(subnode)
         self.globals.extend(global_finder.globals)
@@ -174,7 +188,6 @@ class GlobalReplacer(ast.NodeTransformer):
         context=None,
         tmp_self=None,
         do_position_map=True,
-        use_attr: bool = False,
     ):
         super().__init__()
         self.globals = globals_
@@ -182,7 +195,6 @@ class GlobalReplacer(ast.NodeTransformer):
         self.parent = parent
         self.context = context or []
         self.tmp_self = tmp_self or "_comPYned_SELF"
-        self.use_attr = use_attr
         self.do_position_map = do_position_map
 
     def set_line(self, line):
@@ -213,9 +225,16 @@ class GlobalReplacer(ast.NodeTransformer):
         return [
             self.compyner.pop_stack(),
             node,
+            self.set_line(node.lineno),
         ]
 
     def visit_FunctionDef(self, node):
+        # arg_names = [arg.arg for arg in node.args.args + node.args.kwonlyargs + node.args.posonlyargs] + [node.args.kwarg, node.args.vararg]
+        # for subnode in ast.walk(node):
+        #     if isinstance(subnode, ast.Global):
+        #         for name in subnode.names:
+        #             arg_names.remove(name)
+# NOT NEEDED I THINK
         sub_replacer = GlobalReplacer(
             self.compyner,
             self.globals,
@@ -223,7 +242,6 @@ class GlobalReplacer(ast.NodeTransformer):
             self.context + [node.name],
             self.tmp_self,
             node.name not in ("__exit__", "__del__"),
-            use_attr=self.use_attr,
         )
         node.body = [sub_replacer.visit(n) for n in node.body]
         node.body = [
@@ -231,8 +249,10 @@ class GlobalReplacer(ast.NodeTransformer):
             *node.body,
             self.compyner.pop_stack(),
         ]
-        self.use_attr = True
+        old_use_attr = self.compyner.use_attr
+        self.compyner.use_attr = True
         node.decorator_list = [self.visit(n) for n in node.decorator_list]
+        self.compyner.use_attr = old_use_attr
         # node.decorator_list += [
         #     ast.Call(
         #         ast.Attribute(ast.Name(self.compyner.static), "has_stack"),
@@ -249,8 +269,10 @@ class GlobalReplacer(ast.NodeTransformer):
         #         [],
         #     )
         # ]
-        self.use_attr = False
+        # self.use_attr = False
         node.args = self.visit(node.args) if node.args else None
+        # for arg in node.args.args + node.args.kwarg + node.args.kwonlyargs + node.args.:
+            
         if node.returns is not None:
             node.returns = self.visit(node.returns)
 
@@ -264,15 +286,17 @@ class GlobalReplacer(ast.NodeTransformer):
                     ),
                     node,
                 ),
-                ast.copy_location(
-                    ast.Delete(
-                        [ast.Name(id=node.name, ctx=ast.Del())],
-                    ),
-                    node,
-                ),
+                self.set_line(node.lineno),
+                # TODO
+                # ast.copy_location(
+                #     ast.Delete(
+                #         [ast.Name(id=node.name, ctx=ast.Del())],
+                #     ),
+                #     node,
+                # ),
             ]
         else:
-            return node
+            return [node, self.set_line(node.lineno)]
 
     def visit_ClassDef(self, node: ast.ClassDef):
         sub_replacer = GlobalReplacer(
@@ -281,7 +305,6 @@ class GlobalReplacer(ast.NodeTransformer):
             self.parent,
             self.context + [node.name],
             self.tmp_self,
-            use_attr=self.use_attr,
         )
         node.body = [sub_replacer.visit(n) for n in node.body]
         node.bases = [self.visit(n) for n in node.bases]
@@ -296,21 +319,23 @@ class GlobalReplacer(ast.NodeTransformer):
                     ),
                     node,
                 ),
-                ast.copy_location(
-                    ast.Delete(
-                        [ast.Name(id=node.name, ctx=ast.Del())],
-                    ),
-                    node,
-                ),
+                self.set_line(node.lineno),
+                # TODO
+                # ast.copy_location(
+                #     ast.Delete(
+                #         [ast.Name(id=node.name, ctx=ast.Del())],
+                #     ),
+                #     node,
+                # ),
             ]
         else:
-            return node
+            return [node, self.set_line(node.lineno)]
 
     def visit_Import(self, node: ast.Import):
         new_imports = []
         for alias in node.names:
             replace_import = self.compyner.load_module(alias.name, self.parent)
-            if self.use_attr:
+            if self.compyner.use_attr:
                 tmp_name = (
                     self.compyner.names_for_modules.get(alias.name)
                     or self.compyner.namer.get_unique_name()
@@ -332,10 +357,14 @@ class GlobalReplacer(ast.NodeTransformer):
                                 )
                             ],
                             value=ast.Call(
-                                ast.Attribute(
-                                    ast.Name(self.compyner.static, ast.Load()),
-                                    "Module",
-                                    ast.Load(),
+                                (
+                                    ast.Name(self.compyner.static, ast.Load())
+                                    if self.compyner.use_attr
+                                    else ast.Attribute(
+                                        ast.Name(self.compyner.static, ast.Load()),
+                                        "Module",
+                                        ast.Load(),
+                                    )
                                 ),
                                 [],
                                 [],
@@ -375,7 +404,7 @@ class GlobalReplacer(ast.NodeTransformer):
                                     [ast.Constant(replace_import)],
                                     [],
                                 )
-                                if not self.use_attr
+                                if not self.compyner.use_attr
                                 else ast.Name(
                                     self.compyner.names_for_modules[replace_import]
                                 )
@@ -416,7 +445,7 @@ class GlobalReplacer(ast.NodeTransformer):
                             node,
                         )
                     )
-        return new_imports
+        return [new_imports, self.set_line(node.lineno)]
 
     def visit_Call(self, node: ast.Call):
         node.args = [self.visit(arg) for arg in node.args]
@@ -541,7 +570,7 @@ class GlobalReplacer(ast.NodeTransformer):
         if node is None:
             return None
         if isinstance(node, ast.stmt):
-            return [self.set_line(node.lineno), super().generic_visit(node)]
+            return [super().generic_visit(node), self.set_line(node.lineno)]
         return super().generic_visit(node)
 
 
@@ -581,6 +610,7 @@ class ComPYner:
         split_modules=True,
         use_attr=False,
         pastprocessor=None,
+        require_dunder_name=False,
     ):
         self.exclude = exclude or []
         self.loaded_modules = []
@@ -590,15 +620,17 @@ class ComPYner:
         self.pastprocessor = pastprocessor or (lambda x: x)
         self.namer = Namer()  # "_CPYD")
         self.use_attr = use_attr
+        self.names = {}
+        self.require_dunder_name = require_dunder_name
         self.static = self.namer.get_unique_name()
         internals = self.namer.get_unique_name()
         self.names_for_modules = {}
         self.result_module.body.append(
             ast.ClassDef(
                 name=internals,
-                bases=[],
+                bases=[ast.Name("dict", ast.Load())] if self.use_attr else [],
                 keywords=[],
-                body=[*INTERNALS.body],
+                body=[*(INTERNALS_USE_ATTR if self.use_attr else INTERNALS).body],
                 decorator_list=[],
                 lineno=0,
                 col_offset=0,
@@ -606,16 +638,19 @@ class ComPYner:
                 end_col_offset=0,
             )
         )
-        self.result_module.body.append(
-            ast.Assign(
-                targets=[ast.Name(self.static, ast.Store())],
-                value=ast.Call(ast.Name(internals, ast.Load()), [], []),
-                lineno=0,
-                col_offset=0,
-                end_lineno=0,
-                end_col_offset=0,
+        if self.use_attr:
+            self.static = internals
+        else:
+            self.result_module.body.append(
+                ast.Assign(
+                    targets=[ast.Name(self.static, ast.Store())],
+                    value=ast.Call(ast.Name(internals, ast.Load()), [], []),
+                    lineno=0,
+                    col_offset=0,
+                    end_lineno=0,
+                    end_col_offset=0,
+                )
             )
-        )
         self.stack_var = self.namer.get_unique_name()
         self.current_file = "<comPYned>"
         if debug_stack:
@@ -634,63 +669,16 @@ class ComPYner:
         self.split_modules = split_modules
 
     def set_file(self, file):
-        if not self.debug_stack:
-            return None
-        self.current_file = self.namer.get_unique_name()
-        return ast.Assign(
-            targets=[
-                ast.Name(
-                    self.current_file,
-                    ast.Store(),
-                )
-            ],
-            value=ast.Constant(value=str(file)),
-            lineno=0,
-            col_offset=0,
-            end_lineno=0,
-            end_col_offset=0,
-        )
+        self.current_file = str(file)
+        return ast.Comment(f"##{str(file)}##", inline=False)
 
     def set_line(self, line):
-        if not self.debug_line:
-            return None
-        return ast.Assign(
-            targets=[
-                ast.Tuple(
-                    [
-                        ast.Subscript(
-                            ast.Subscript(
-                                ast.Name(self.stack_var, ast.Load()),
-                                ast.Index(ast.Constant(value=-1)),
-                                ast.Load(),
-                            ),
-                            ast.Index(ast.Constant(value=2)),
-                            ast.Store(),
-                        ),
-                        ast.Subscript(
-                            ast.Subscript(
-                                ast.Name(self.stack_var, ast.Load()),
-                                ast.Index(ast.Constant(value=-1)),
-                                ast.Load(),
-                            ),
-                            ast.Index(ast.Constant(value=1)),
-                            ast.Store(),
-                        ),
-                    ]
-                )
-            ],
-            value=ast.Tuple(
-                [ast.Constant(value=line), ast.Name(self.current_file, ast.Load())]
-            ),
-            lineno=0,
-            col_offset=0,
-            end_lineno=0,
-            end_col_offset=0,
-        )
+        return ast.Comment(f"##{self.current_file}:{line}##", inline=True)
 
     def push_stack(self, name, lineno=0):
         if not self.debug_stack:
             return None
+        return None
         return ast.Expr(
             ast.Call(
                 ast.Attribute(
@@ -714,6 +702,7 @@ class ComPYner:
     def pop_stack(self):
         if not self.debug_stack:
             return None
+        return None
         return ast.Expr(
             ast.Call(
                 ast.Attribute(
@@ -784,13 +773,13 @@ class ComPYner:
         # for glob, target in gf.globals:
         # print(f"  {'.'.join(target + [glob])}", file=sys.stderr)
         # if not gf.globals:
-        # print("   (none)", file=sys.stderr)
+        #     print("   (none)", file=sys.stderr)
         tmp_self = self.namer.get_unique_name()
         old_file = self.current_file
         file_set = self.set_file(origin or name)
-        tree = GlobalReplacer(
-            self, gf.globals, parent=parent, tmp_self=tmp_self, use_attr=self.use_attr
-        ).visit(module)
+        tree = GlobalReplacer(self, gf.globals, parent=parent, tmp_self=tmp_self).visit(
+            module
+        )
         fname = self.namer.get_unique_name(
             "main" if name == "__main__" else "module_" + name
         )
@@ -810,43 +799,55 @@ class ComPYner:
                     body=[
                         file_set,
                         self.push_stack(f"<module {name}>"),
-                        ast.Assign(
-                            targets=[ast.Name(tmp_self, ast.Load())],
-                            value=ast.Call(
-                                func=ast.Attribute(
-                                    ast.Name(self.static, ast.Load()),
-                                    "Module",
-                                    ast.Load(),
+                        (
+                            ast.Assign(
+                                targets=[ast.Name(tmp_self, ast.Load())],
+                                value=ast.Call(
+                                    func=(
+                                        ast.Name(self.static, ast.Load())
+                                        if self.use_attr
+                                        else ast.Attribute(
+                                            ast.Name(self.static, ast.Load()),
+                                            "Module",
+                                            ast.Load(),
+                                        )
+                                    ),
+                                    args=[],
+                                    keywords=[],
                                 ),
-                                args=[],
-                                keywords=[],
-                            ),
-                            lineno=0,
-                            col_offset=0,
-                            end_lineno=0,
-                            end_col_offset=0,
+                                lineno=0,
+                                col_offset=0,
+                                end_lineno=0,
+                                end_col_offset=0,
+                            )
                         ),
-                        ast.Assign(
-                            targets=[
-                                (
-                                    ast.Attribute(
-                                        value=ast.Name(tmp_self, ast.Load()),
-                                        attr="__name__",
-                                        ctx=ast.Store(),
+                        (
+                            ast.Assign(
+                                targets=[
+                                    (
+                                        ast.Attribute(
+                                            value=ast.Name(tmp_self, ast.Load()),
+                                            attr="__name__",
+                                            ctx=ast.Store(),
+                                        )
+                                        if self.use_attr
+                                        else ast.Subscript(
+                                            value=ast.Name(tmp_self, ast.Load()),
+                                            slice=ast.Index(
+                                                ast.Constant(value="__name__")
+                                            ),
+                                            ctx=ast.Store(),
+                                        )
                                     )
-                                    if self.use_attr
-                                    else ast.Subscript(
-                                        value=ast.Name(tmp_self, ast.Load()),
-                                        slice=ast.Index(ast.Constant(value="__name__")),
-                                        ctx=ast.Store(),
-                                    )
-                                )
-                            ],
-                            value=ast.Constant(value=name),
-                            lineno=0,
-                            col_offset=0,
-                            end_lineno=0,
-                            end_col_offset=0,
+                                ],
+                                value=ast.Constant(value=name),
+                                lineno=0,
+                                col_offset=0,
+                                end_lineno=0,
+                                end_col_offset=0,
+                            )
+                            if gf.has_dunder_name or self.require_dunder_name
+                            else None
                         ),
                         *tree.body,
                         self.pop_stack(),
@@ -873,30 +874,49 @@ class ComPYner:
                 ),
             )
 
-            assign = ast.Assign(
-                targets=[
-                    ast.Subscript(
-                        value=ast.Attribute(
-                            ast.Name(self.static, ast.Load()), "modules", ast.Load()
-                        ),
-                        slice=ast.Constant(value=name),
-                        ctx=ast.Store(),
-                    )
-                ],
-                value=ast.Call(
-                    ast.Name(id=fname, ctx=ast.Load()),
-                    [],
-                    [],
+            if self.use_attr:
+                assign = ast.Assign(
+                    targets=[ast.Name(tmp_self, ast.Load())],
+                    value=ast.Call(
+                        ast.Name(id=fname, ctx=ast.Load()),
+                        [],
+                        [],
+                        lineno=0,
+                        col_offset=0,
+                        end_lineno=0,
+                        end_col_offset=0,
+                    ),
                     lineno=0,
                     col_offset=0,
                     end_lineno=0,
                     end_col_offset=0,
-                ),
-                lineno=0,
-                col_offset=0,
-                end_lineno=0,
-                end_col_offset=0,
-            )
+                )
+                self.names_for_modules[name] = tmp_self
+            else:
+                assign = ast.Assign(
+                    targets=[
+                        ast.Subscript(
+                            value=ast.Attribute(
+                                ast.Name(self.static, ast.Load()), "modules", ast.Load()
+                            ),
+                            slice=ast.Constant(value=name),
+                            ctx=ast.Store(),
+                        )
+                    ],
+                    value=ast.Call(
+                        ast.Name(id=fname, ctx=ast.Load()),
+                        [],
+                        [],
+                        lineno=0,
+                        col_offset=0,
+                        end_lineno=0,
+                        end_col_offset=0,
+                    ),
+                    lineno=0,
+                    col_offset=0,
+                    end_lineno=0,
+                    end_col_offset=0,
+                )
         else:
             self.result_module.body.extend(
                 [
@@ -905,10 +925,14 @@ class ComPYner:
                     ast.Assign(
                         targets=[ast.Name(tmp_self, ast.Load())],
                         value=ast.Call(
-                            func=ast.Attribute(
-                                ast.Name(self.static, ast.Load()),
-                                "Module",
-                                ast.Load(),
+                            func=(
+                                ast.Name(self.static, ast.Load())
+                                if self.use_attr
+                                else ast.Attribute(
+                                    ast.Name(self.static, ast.Load()),
+                                    "Module",
+                                    ast.Load(),
+                                )
                             ),
                             args=[],
                             keywords=[],
@@ -918,19 +942,31 @@ class ComPYner:
                         end_lineno=0,
                         end_col_offset=0,
                     ),
-                    ast.Assign(
-                        targets=[
-                            ast.Subscript(
-                                value=ast.Name(tmp_self, ast.Load()),
-                                slice=ast.Index(ast.Constant(value="__name__")),
-                                ctx=ast.Store(),
-                            ),
-                        ],
-                        value=ast.Constant(value=name),
-                        lineno=0,
-                        col_offset=0,
-                        end_lineno=0,
-                        end_col_offset=0,
+                    (
+                        ast.Assign(
+                            targets=[
+                                (
+                                    ast.Attribute(
+                                        value=ast.Name(tmp_self, ast.Load()),
+                                        attr="__name__",
+                                        ctx=ast.Store(),
+                                    )
+                                    if self.use_attr
+                                    else ast.Subscript(
+                                        value=ast.Name(tmp_self, ast.Load()),
+                                        slice=ast.Index(ast.Constant(value="__name__")),
+                                        ctx=ast.Store(),
+                                    )
+                                ),
+                            ],
+                            value=ast.Constant(value=name),
+                            lineno=0,
+                            col_offset=0,
+                            end_lineno=0,
+                            end_col_offset=0,
+                        )
+                        if gf.has_dunder_name or self.require_dunder_name
+                        else None
                     ),
                     *tree.body,
                     self.pop_stack(),
@@ -1033,3 +1069,38 @@ class ComPYner:
     def compyne(self):
         self.result_module.body.extend(END.body)
         return self.pastprocessor(CustomUnparser().visit(self.result_module))
+
+
+class LocationSearcher(ast.NodeVisitor):
+    def __init__(self):
+        self.lineno_map = {}
+        self.location = "<comPYned>"
+
+    def visit_Comment(self, node):
+        if (
+            isinstance(node, ast.Comment)
+            and node.value.startswith("##")
+            and node.value.endswith("##")
+        ):
+            self.location = node.value[2:-2]
+
+    def generic_visit(self, node: ast.AST) -> ast.AST:
+        if isinstance(node, ast.stmt):
+            self.lineno_map[node.lineno] = self.location
+        return super().generic_visit(node)
+
+
+def get_lineno_map(module: ast.Module):
+    searcher = LocationSearcher()
+    searcher.visit(module)
+    return searcher.lineno_map
+
+
+class CommentRemover(ast.NodeTransformer):
+    def generic_visit(self, node: ast.AST) -> ast.AST:
+        if isinstance(node, ast.Comment):
+            return None
+        return super().generic_visit(node)
+
+
+def without_comments(): ...

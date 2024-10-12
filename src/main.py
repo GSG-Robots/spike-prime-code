@@ -4,8 +4,15 @@ from gsgr.utils import DegreeOMeter
 import hub
 from spike import Motor, MotorPair, PrimeHub
 from compyner.typehints import ComPYnerBuildTools
+import gc
 
+gc.enable()
+gc.threshold(round((gc.mem_free() + gc.mem_alloc()) / 20))
 
+mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
+print("%s%% of memory used" % mem_perc)
+
+# raise RuntimeError
 menu = Menu(landscape=True)
 
 runs = ComPYnerBuildTools.get_modules_path_glob("runs/*.py")

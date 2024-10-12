@@ -17,6 +17,8 @@ tqdm = "^4.66.5"
 mpy-cross = "^1.23.0.post2"
 mpy-cross-v5 = "^1.0.2"
 compyner = "^0.1.4"
+ast-comments = "^1.2.2"
+more-itertools = "^10.5.0"
 
 [build-system]
 requires = ["poetry-core"]
