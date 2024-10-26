@@ -1,4 +1,5 @@
 import time
+
 from .configuration import hardware as hw
 
 

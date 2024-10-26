@@ -1,7 +1,9 @@
 from spike import Motor
+
+from .configuration import config as cnf
+from .configuration import hardware as hw
 from .display import light_up_display
 from .exceptions import ExitMenu, StopRun
-from .configuration import hardware as hw, config as cnf
 from .math import clamp
 
 

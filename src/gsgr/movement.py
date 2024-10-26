@@ -1,4 +1,9 @@
-from .conditions import Sec, Deg
+import hub
+
+from ._condition_base import ConditionBase
+from .conditions import Deg, Sec
+from .configuration import config
+from .configuration import hardware as hw
 from .correctors import (
     AccelerateSec,
     Corrector,
@@ -6,11 +11,8 @@ from .correctors import (
     GyroDrivePID,
     GyroTurnPID,
 )
-from ._condition_base import ConditionBase
 from .exceptions import BatteryLowError
-import hub
 from .utils import Timer
-from .configuration import config, hardware as hw
 
 
 def check_battery():
@@ -31,7 +33,9 @@ def hold_attachment(target_gear: int):
 def free_attachment(target_gear: int):
     check_battery()
     # Move to some other position. Anything over 45 degrees will do, but 90 is the most reliable.
-    hw.gear_selector.run_to_position((90 * (target_gear - 1)) + 90, "shortest path", 100)
+    hw.gear_selector.run_to_position(
+        (90 * (target_gear - 1)) + 90, "shortest path", 100
+    )
 
 
 def free_attachments():

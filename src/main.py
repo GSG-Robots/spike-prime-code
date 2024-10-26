@@ -1,10 +1,12 @@
-from gsgr.menu import Menu, MenuItem, Run
-from gsgr.configuration import config, hardware
-from gsgr.utils import DegreeOMeter
-import hub
-from spike import Motor, MotorPair, PrimeHub
-from compyner.typehints import ComPYnerBuildTools
 import gc
+
+from compyner.typehints import ComPYnerBuildTools
+
+import hub
+from gsgr.configuration import config, hardware
+from gsgr.menu import Menu, MenuItem, Run
+from gsgr.utils import DegreeOMeter
+from spike import Motor, MotorPair, PrimeHub
 
 gc.enable()
 gc.threshold(round((gc.mem_free() + gc.mem_alloc()) / 20))

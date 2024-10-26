@@ -1,6 +1,6 @@
 import time
-from gsgr.enums import Color
 
+from gsgr.enums import Color
 
 display_as = 1
 color = Color.RED

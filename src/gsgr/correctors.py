@@ -1,7 +1,9 @@
+import abc
+
+from .configuration import config
+from .configuration import hardware as hw
 from .math import clamp, sigmoid
 from .utils import Timer
-import abc
-from .configuration import config, hardware as hw
 
 
 class Corrector(abc.ABC):
@@ -33,9 +35,8 @@ class GyroDrivePID(Corrector):
         self.d_correction = (
             config.d_correction if d_correction is None else d_correction
         )
-        
-    def setup(self):
-        ...
+
+    def setup(self): ...
 
     def apply(
         self, left: int | float, right: int | float

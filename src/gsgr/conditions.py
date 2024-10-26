@@ -1,7 +1,9 @@
-from .utils import Timer
-from .configuration import hardware as hw, config
 import math
+
 from ._condition_base import ConditionBase
+from .configuration import config
+from .configuration import hardware as hw
+from .utils import Timer
 
 
 class Infinite(ConditionBase): ...
@@ -10,7 +12,7 @@ class Infinite(ConditionBase): ...
 class Cm(ConditionBase):
     def __init__(self, value: int) -> None:
         self.value = value
-        
+
     def setup(self):
         hw.right_motor.set_degrees_counted(0)
         hw.left_motor.set_degrees_counted(0)
@@ -31,7 +33,7 @@ class Sec(ConditionBase):
     def __init__(self, value: int) -> None:
         self.value = value
         self.timer = Timer()
-        
+
     def setup(self):
         self.timer.reset()
 

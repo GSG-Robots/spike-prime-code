@@ -1,7 +1,6 @@
 from gsgr.conditions import Sec
 from gsgr.enums import Color
-from gsgr.movement import gyro_drive, gyro_turn, gyro_set_origin
-
+from gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn
 
 display_as = 2
 color = Color.GREEN

@@ -1,6 +1,9 @@
-import spike
-from ._config_base import ConfigBase
 import typing
+
+import spike
+
+from ._config_base import ConfigBase
+
 if typing.TYPE_CHECKING:
     from .utils import DegreeOMeter
 

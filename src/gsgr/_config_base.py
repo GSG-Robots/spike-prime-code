@@ -1,5 +1,3 @@
-
-
 class _ConfigContext:
     def __init__(self, _parent: "ConfigBase", **kwargs):
         self._parent = _parent
