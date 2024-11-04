@@ -198,8 +198,8 @@ class GlobalReplacer(ast.NodeTransformer):
         self.do_position_map = do_position_map
 
     def set_line(self, line):
-        if not self.do_position_map:
-            return ast.Pass()
+        # if not self.do_position_map:
+        #     return ast.Pass()
         return self.compyner.set_line(line)
 
     def check(self, name, readonly):
@@ -223,9 +223,8 @@ class GlobalReplacer(ast.NodeTransformer):
     def visit_Return(self, node: ast.Return):
         node.value = self.visit(node.value)
         return [
-            self.compyner.pop_stack(),
-            node,
             self.set_line(node.lineno),
+            node,
         ]
 
     def visit_FunctionDef(self, node):
@@ -234,7 +233,7 @@ class GlobalReplacer(ast.NodeTransformer):
         #     if isinstance(subnode, ast.Global):
         #         for name in subnode.names:
         #             arg_names.remove(name)
-# NOT NEEDED I THINK
+        # NOT NEEDED I THINK
         sub_replacer = GlobalReplacer(
             self.compyner,
             self.globals,
@@ -245,9 +244,7 @@ class GlobalReplacer(ast.NodeTransformer):
         )
         node.body = [sub_replacer.visit(n) for n in node.body]
         node.body = [
-            self.compyner.push_stack(node.name, node.lineno),
             *node.body,
-            self.compyner.pop_stack(),
         ]
         old_use_attr = self.compyner.use_attr
         self.compyner.use_attr = True
@@ -272,12 +269,13 @@ class GlobalReplacer(ast.NodeTransformer):
         # self.use_attr = False
         node.args = self.visit(node.args) if node.args else None
         # for arg in node.args.args + node.args.kwarg + node.args.kwonlyargs + node.args.:
-            
+
         if node.returns is not None:
             node.returns = self.visit(node.returns)
 
         if self.check(node.name, False):
             return [
+                self.set_line(node.lineno),
                 node,
                 ast.copy_location(
                     ast.Assign(
@@ -286,7 +284,6 @@ class GlobalReplacer(ast.NodeTransformer):
                     ),
                     node,
                 ),
-                self.set_line(node.lineno),
                 # TODO
                 # ast.copy_location(
                 #     ast.Delete(
@@ -296,7 +293,10 @@ class GlobalReplacer(ast.NodeTransformer):
                 # ),
             ]
         else:
-            return [node, self.set_line(node.lineno)]
+            return [
+                self.set_line(node.lineno),
+                node,
+            ]
 
     def visit_ClassDef(self, node: ast.ClassDef):
         sub_replacer = GlobalReplacer(
@@ -311,6 +311,7 @@ class GlobalReplacer(ast.NodeTransformer):
 
         if self.check(node.name, False):
             return [
+                self.set_line(node.lineno),
                 node,
                 ast.copy_location(
                     ast.Assign(
@@ -319,7 +320,6 @@ class GlobalReplacer(ast.NodeTransformer):
                     ),
                     node,
                 ),
-                self.set_line(node.lineno),
                 # TODO
                 # ast.copy_location(
                 #     ast.Delete(
@@ -329,7 +329,10 @@ class GlobalReplacer(ast.NodeTransformer):
                 # ),
             ]
         else:
-            return [node, self.set_line(node.lineno)]
+            return [
+                self.set_line(node.lineno),
+                node,
+            ]
 
     def visit_Import(self, node: ast.Import):
         new_imports = []
@@ -445,7 +448,10 @@ class GlobalReplacer(ast.NodeTransformer):
                             node,
                         )
                     )
-        return [new_imports, self.set_line(node.lineno)]
+        return [
+            self.set_line(node.lineno),
+            new_imports,
+        ]
 
     def visit_Call(self, node: ast.Call):
         node.args = [self.visit(arg) for arg in node.args]
@@ -570,7 +576,10 @@ class GlobalReplacer(ast.NodeTransformer):
         if node is None:
             return None
         if isinstance(node, ast.stmt):
-            return [super().generic_visit(node), self.set_line(node.lineno)]
+            return [
+                self.set_line(node.lineno),
+                super().generic_visit(node),
+            ]
         return super().generic_visit(node)
 
 
@@ -669,51 +678,10 @@ class ComPYner:
         self.split_modules = split_modules
 
     def set_file(self, file):
-        self.current_file = str(file)
         return ast.Comment(f"##{str(file)}##", inline=False)
 
     def set_line(self, line):
-        return ast.Comment(f"##{self.current_file}:{line}##", inline=True)
-
-    def push_stack(self, name, lineno=0):
-        if not self.debug_stack:
-            return None
-        return None
-        return ast.Expr(
-            ast.Call(
-                ast.Attribute(
-                    ast.Name(self.stack_var, ast.Load()),
-                    "append",
-                    ast.Load(),
-                ),
-                [
-                    ast.List(
-                        [
-                            ast.Constant(name),
-                            ast.Name(self.current_file, ast.Load()),
-                            ast.Constant(lineno),
-                        ],
-                    )
-                ],
-                [],
-            )
-        )
-
-    def pop_stack(self):
-        if not self.debug_stack:
-            return None
-        return None
-        return ast.Expr(
-            ast.Call(
-                ast.Attribute(
-                    ast.Name(self.stack_var, ast.Load()),
-                    "pop",
-                    ast.Load(),
-                ),
-                [],
-                [],
-            )
-        )
+        return ast.Comment(f"##{self.current_file}:{line}##", inline=False)
 
     def load_module(self, name, parent=None):
         if name.split(".", 1)[0] in self.exclude:
@@ -777,9 +745,11 @@ class ComPYner:
         tmp_self = self.namer.get_unique_name()
         old_file = self.current_file
         file_set = self.set_file(origin or name)
+        self.current_file = str(origin or name)
         tree = GlobalReplacer(self, gf.globals, parent=parent, tmp_self=tmp_self).visit(
             module
         )
+        self.current_file = old_file
         fname = self.namer.get_unique_name(
             "main" if name == "__main__" else "module_" + name
         )
@@ -798,7 +768,6 @@ class ComPYner:
                     ),
                     body=[
                         file_set,
-                        self.push_stack(f"<module {name}>"),
                         (
                             ast.Assign(
                                 targets=[ast.Name(tmp_self, ast.Load())],
@@ -850,7 +819,6 @@ class ComPYner:
                             else None
                         ),
                         *tree.body,
-                        self.pop_stack(),
                         ast.Return(
                             value=ast.Name(
                                 tmp_self,
@@ -921,7 +889,6 @@ class ComPYner:
             self.result_module.body.extend(
                 [
                     file_set,
-                    self.push_stack(f"<module {name}>"),
                     ast.Assign(
                         targets=[ast.Name(tmp_self, ast.Load())],
                         value=ast.Call(
@@ -969,7 +936,6 @@ class ComPYner:
                         else None
                     ),
                     *tree.body,
-                    self.pop_stack(),
                 ]
             )
             if self.use_attr:
@@ -995,7 +961,6 @@ class ComPYner:
 
         if not assign:
             return
-        self.current_file = old_file
         if name == "__main__" and (self.debug_stack or self.debug_line):
             error_name = self.namer.get_unique_name()
             self.result_module.body.append(

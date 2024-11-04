@@ -8,9 +8,9 @@ from gsgr.menu import Menu, MenuItem, Run
 from gsgr.utils import DegreeOMeter
 from spike import Motor, MotorPair, PrimeHub
 
-gc.enable()
-gc.threshold(round((gc.mem_free() + gc.mem_alloc()) / 20))
-
+# gc.enable()
+# gc.threshold(round((gc.mem_free() + gc.mem_alloc()) / 20))
+gc.collect()
 mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
 print("%s%% of memory used" % mem_perc)
 

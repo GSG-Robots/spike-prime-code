@@ -1,7 +1,7 @@
 import hub
 
 from ._condition_base import ConditionBase
-from .conditions import Deg, Sec
+# from .conditions import Deg, Sec
 from .configuration import config
 from .configuration import hardware as hw
 from .correctors import (
@@ -80,19 +80,17 @@ def stop_attachment():
 
 def drive(
     speed: int,
-    until: ConditionBase,
+    until,
     correctors: list[Corrector] | Corrector = None,
 ):
     if correctors is None:
         correctors = []
     correctors = [correctors] if not isinstance(correctors, list) else correctors
     check_battery()
-    until.setup()
     for corrector in correctors:
         corrector.setup()
-    while not until.check():
-        left_speed = speed
-        right_speed = speed
+    while not next(until):
+        left_speed, right_speed = speed, speed
         for corrector in correctors:
             left_speed, right_speed = corrector.apply(left_speed, right_speed)
 
@@ -104,8 +102,6 @@ def drive(
             left_speed = -5
         if -5 < right_speed < 0:
             right_speed = -5
-
-        # print(left_speed, right_speed)
 
         hw.driving_motors.start_tank(
             round(left_speed * config.speed_multiplier),
@@ -153,43 +149,43 @@ def gyro_drive(
     )
 
 
-def gyro_turn(
-    degree: int,
-    speed: int = 80,
-    do_for: ConditionBase | None = None,
-    p_correction: int | None = None,
-    i_correction: int | None = None,
-    d_correction: int | None = None,
-    accelerate_for: int = 0,
-    decelerate_for: int = 0,
-):
-    # Auto-setup PID
-    correctors = [GyroTurnPID(degree, p_correction, i_correction, d_correction)]
+# def gyro_turn(
+#     degree: int,
+#     speed: int = 80,
+#     do_for: ConditionBase | None = None,
+#     p_correction: int | None = None,
+#     i_correction: int | None = None,
+#     d_correction: int | None = None,
+#     accelerate_for: int = 0,
+#     decelerate_for: int = 0,
+# ):
+#     # Auto-setup PID
+#     correctors = [GyroTurnPID(degree, p_correction, i_correction, d_correction)]
 
-    # Auto-setup acceleration and deceleration
-    if accelerate_for > 0:
-        if isinstance(do_for, Sec):
-            correctors.append(
-                AccelerateSec(
-                    accelerate_for,
-                    0,
-                )
-            )
-    if decelerate_for > 0:
-        if isinstance(do_for, Sec):
-            correctors.append(
-                DecelerateSec(
-                    decelerate_for,
-                    do_for.value - decelerate_for,
-                )
-            )
+#     # Auto-setup acceleration and deceleration
+#     if accelerate_for > 0:
+#         if isinstance(do_for, Sec):
+#             correctors.append(
+#                 AccelerateSec(
+#                     accelerate_for,
+#                     0,
+#                 )
+#             )
+#     if decelerate_for > 0:
+#         if isinstance(do_for, Sec):
+#             correctors.append(
+#                 DecelerateSec(
+#                     decelerate_for,
+#                     do_for.value - decelerate_for,
+#                 )
+#             )
 
-    # Delegate to normal drive function
-    drive(
-        speed,
-        do_for or Deg(degree),
-        correctors,
-    )
+#     # Delegate to normal drive function
+#     drive(
+#         speed,
+#         # do_for or (Degdegree),
+#         correctors,
+#     )
 
 
 def gyro_set_origin(set_to=0):

@@ -137,9 +137,9 @@ class PastOptimize(ast.NodeTransformer):
         self.namer = Namer()
         
         
-    def visit_Comment(self, node: ast.Comment):
-        if node.inline:
-            return None
+    # def visit_Comment(self, node: ast.Comment):
+    #     if node.inline:
+    #         return None
 
     def visit_Constant(self, node: ast.Constant):
         if isinstance(node.value, bool):
@@ -196,7 +196,7 @@ def spike_prime_compyne(input_module, slot=0, debug_build=False):
         pastprocessor=past_optimize,
         require_dunder_name=debug_build,
     )
-    compyner.add_module("__main__", ast_from_file(Path(input_module)))
+    compyner.add_module("__main__", ast_from_file(Path(input_module)), origin=Path(input_module).absolute())
     code = f"# LEGO type:standard slot:{slot} autostart\n" + compyner.compyne()
     sys.path.pop()
     return code

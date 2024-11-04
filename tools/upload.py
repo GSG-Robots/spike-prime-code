@@ -34,16 +34,16 @@ print(colorama.Fore.GREEN + "> ComPYning..." + colorama.Fore.RESET)
 comPYned: str = spike_prime_compyne(file, slot=slot, debug_build=True)
 file.with_suffix(".cpyd.py").write_text(comPYned, "utf-8")
 
-# Step 1.5: ComPYning
-print(colorama.Fore.GREEN + "> Optimizing..." + colorama.Fore.RESET)
-optimized = ast.unparse(compyner.attr_to_names.AttrToNames().visit(ast.parse(comPYned)))
-file.with_suffix(".cpyd.opt.py").write_text(optimized, "utf-8")
+# # Step 1.5: ComPYning
+# print(colorama.Fore.GREEN + "> Optimizing..." + colorama.Fore.RESET)
+# optimized = ast.unparse(compyner.attr_to_names.AttrToNames().visit(ast.parse(comPYned)))
+# file.with_suffix(".cpyd.opt.py").write_text(optimized, "utf-8")
 
 # Step 2: Compiling
 print(colorama.Fore.GREEN + "> Compiling...", end="")
-proc = subprocess.run(["mpy-cross-v5", file.with_suffix(".cpyd.opt.py")])
-mpy = file.with_suffix(".cpyd.opt.mpy").read_bytes()
-file.with_suffix(".cpyd.opt.mpy").unlink()
+proc = subprocess.run(["mpy-cross-v5", file.with_suffix(".cpyd.py")])
+mpy = file.with_suffix(".cpyd.mpy").read_bytes()
+# file.with_suffix(".cpyd.mpy").unlink()
 print(" done" + colorama.Fore.RESET)
 
 # Step 3: Uploading
@@ -78,7 +78,7 @@ print(colorama.Fore.CYAN + ">> Press any key to exit" + colorama.Fore.RESET)
 
 # Step 5: Monitoring
 
-error_replace_location = file.with_suffix(".cpyd.opt.py")
+error_replace_location = file.with_suffix(".cpyd.py")
 lineno_map = compyner.engine.get_lineno_map(
     ast.parse(error_replace_location.read_text("utf-8"))
 )
@@ -88,10 +88,11 @@ def error_replacer(match: re.Match[str]):
     match_str = match.group(0)
     if not match_str.startswith(f'"{error_replace_location}"'):
         return match_str
+    mapped = lineno_map.get(int(match_str.rsplit("line ", 1)[1][:-1]))
+    if mapped is None:
+        return match_str
     return (
-        '"'
-        + lineno_map.get(int(match_str.rsplit("line ", 1)[1][:-1]), "<unknown>")
-        + '"'
+        f'(comPYned) "{mapped}"'
     )
 
 
@@ -106,7 +107,7 @@ while True:
         if log.type == spikeapi.LogType.USER_PROGRAM_PRINT:
             print(log.entry)
         elif log.type == spikeapi.LogType.USER_PROGRAM_ERROR:
-            # log.entry = re.sub(r'".*", line \d*,', error_replacer, log.entry)
+            log.entry = re.sub(r'".*", line \d*,', error_replacer, log.entry)
             print(colorama.Fore.RED + log.entry + colorama.Fore.RESET)
         elif log.type == spikeapi.LogType.RUNTIME_ERROR:
             print(colorama.Fore.YELLOW + log.entry + colorama.Fore.RESET)
