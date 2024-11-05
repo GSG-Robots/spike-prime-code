@@ -64,30 +64,59 @@ from .configuration import hardware as hw
 #         )
 
 
-def check(type: int, value: int):
-    while type == 0:
-        yield value
+def static(value: bool):
+    return (0, value)
 
-    while type == 1:
-        yield (
-            (
-                abs(hw.right_motor.get_degrees_counted())
-                + abs(hw.left_motor.get_degrees_counted())
+
+def cm(distance: int):
+    return (
+        1,
+        distance,
+    )
+
+
+def sec(duration: int):
+    return (
+        2,
+        duration * 1000,
+    )
+
+
+def deg(angle: int):
+    return (3, angle)
+
+
+def check(type: int, value: int | tuple):
+    if type == 0:
+        while True:
+            yield value
+
+    elif type == 1:
+        start_degrees = hw.left_motor.get_degrees_counted()
+        while True:
+            yield (
+                (
+                    abs(hw.right_motor.get_degrees_counted() - start_degrees)
+                    + abs(hw.left_motor.get_degrees_counted() - start_degrees)
+                )
+                / 360
+                * math.pi
+                * hw.tire_radius
+            ) >= value
+
+    elif type == 2:
+        start_time = time.ticks_ms()
+        while True:
+            yield time.ticks_ms() > (value + start_time)
+
+    elif type == 3:
+        while True:
+            yield (
+                value - config.gyro_tolerance
+                <= (config.degree_o_meter.turned)
+                <= value + config.gyro_tolerance
             )
-            / 360
-            * math.pi
-            * hw.tire_radius
-        ) >= value
 
-    while type == 2:
-        yield time.ticks_ms() > value
-
-    while type == 3:
-        yield (
-            value - config.gyro_tolerance
-            <= hw.brick.motion_sensor.get_yaw_angle()
-            <= value + config.gyro_tolerance
-        )
-
-    while True:
-        yield False
+    else:
+        while True:
+            yield False
