@@ -1,7 +1,9 @@
 import gc
+import time
 
 from compyner.typehints import ComPYnerBuildTools
 
+from gsgr.movement import run_attachment, stop_attachment
 import hub
 from gsgr.configuration import config, hardware
 from gsgr.menu import Menu, MenuItem, Run
@@ -23,6 +25,81 @@ for run in runs:
     menu.add_item(
         Run(run.get("display_as"), run.get("color"), run.get("config"), run.get("run"))
     )
+    
+
+FRONT_RIGHT = 3
+FRONT_LEFT = 1
+BACK_RIGHT = 4
+BACK_LEFT = 2
+
+
+def run_motorcontrol():
+    """Motorcontrol"""
+    select = 1
+    last_select = -1
+    motor = FRONT_LEFT
+    try:
+        while True:
+            if hardware.brick.left_button.is_pressed():
+                select -= 1
+                hardware.brick.left_button.wait_until_released()
+                time.sleep(0.1)
+            if hardware.brick.right_button.is_pressed():
+                select += 1
+                hardware.brick.right_button.wait_until_released()
+                time.sleep(0.1)
+            if select < 1:
+                select = 4
+            if select > 4:
+                select = 1
+            if last_select != select:
+                last_select = select
+                # mcp.light_up_display(run.brick, motor, 4)
+                hardware.brick.light_matrix.off()
+                if select == 1:
+                    hardware.brick.light_matrix.set_pixel(0, 0, 100)
+                    motor = FRONT_LEFT
+                if select == 2:
+                    hardware.brick.light_matrix.set_pixel(4, 0, 100)
+                    motor = FRONT_RIGHT
+                if select == 3:
+                    hardware.brick.light_matrix.set_pixel(0, 4, 100)
+                    motor = BACK_LEFT
+                if select == 4:
+                    hardware.brick.light_matrix.set_pixel(4, 4, 100)
+                    motor = BACK_RIGHT
+    except KeyboardInterrupt:
+        speed = 100
+        is_inverted = motor in (FRONT_LEFT, BACK_LEFT, BACK_RIGHT)
+        hardware.brick.light_matrix.off()
+        hardware.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
+        try:
+            while True:
+                if (
+                    hardware.brick.left_button.is_pressed()
+                    and hardware.brick.right_button.is_pressed()
+                ):
+                    return
+                if hardware.brick.right_button.is_pressed():
+                    speed = 100
+                    hardware.brick.light_matrix.show_image(
+                        "GO_RIGHT" if is_inverted else "GO_LEFT"
+                    )
+                if hardware.brick.left_button.is_pressed():
+                    speed = -100
+                    hardware.brick.light_matrix.show_image(
+                        "GO_LEFT" if is_inverted else "GO_RIGHT"
+                    )
+        except KeyboardInterrupt:
+            try:
+                run_attachment(motor, speed)
+                while True:
+                    time.sleep(0.1)
+            except KeyboardInterrupt:
+                stop_attachment()
+                time.sleep(1.0)
+
+menu.add_item(Run("C", "yellow", {}, run_motorcontrol))
 
 exit_item = MenuItem("x", "white")
 
@@ -60,72 +137,7 @@ with (
     menu.loop(autoscroll=True)
 
 
-# @mcp.run(display_as="C", debug_mode=False)
-# def run_motorcontrol(run: Run):
-#     """Motorcontrol"""
-#     select = 1
-#     last_select = -1
-#     motor = FRONT_RIGHT
-#     try:
-#         while True:
-#             if run.brick.left_button.is_pressed():
-#                 select -= 1
-#                 run.brick.left_button.wait_until_released()
-#                 time.sleep(0.1)
-#             if run.brick.right_button.is_pressed():
-#                 select += 1
-#                 run.brick.right_button.wait_until_released()
-#                 time.sleep(0.1)
-#             if select < 1:
-#                 select = 4
-#             if select > 4:
-#                 select = 1
-#             if last_select != select:
-#                 last_select = select
-#                 # mcp.light_up_display(run.brick, motor, 4)
-#                 mcp.brick.light_matrix.off()
-#                 if select == 1:
-#                     mcp.brick.light_matrix.set_pixel(0, 0, 100)
-#                     motor = FRONT_LEFT
-#                 if select == 2:
-#                     mcp.brick.light_matrix.set_pixel(4, 0, 100)
-#                     motor = FRONT_RIGHT
-#                 if select == 3:
-#                     mcp.brick.light_matrix.set_pixel(0, 4, 100)
-#                     motor = BACK_LEFT
-#                 if select == 4:
-#                     mcp.brick.light_matrix.set_pixel(4, 4, 100)
-#                     motor = BACK_RIGHT
-#     except KeyboardInterrupt:
-#         speed = 100
-#         is_inverted = motor in (BACK_RIGHT, FRONT_RIGHT)
-#         mcp.brick.light_matrix.off()
-#         mcp.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
-#         try:
-#             while True:
-#                 if (
-#                     run.brick.left_button.is_pressed()
-#                     and run.brick.right_button.is_pressed()
-#                 ):
-#                     return
-#                 if run.brick.right_button.is_pressed():
-#                     speed = 100
-#                     mcp.brick.light_matrix.show_image(
-#                         "GO_RIGHT" if is_inverted else "GO_LEFT"
-#                     )
-#                 if run.brick.left_button.is_pressed():
-#                     speed = -100
-#                     mcp.brick.light_matrix.show_image(
-#                         "GO_LEFT" if is_inverted else "GO_RIGHT"
-#                     )
-#         except KeyboardInterrupt:
-#             try:
-#                 run.drive_attachment(motor, speed)
-#                 while True:
-#                     time.sleep(0.1)
-#             except KeyboardInterrupt:
-#                 run.drive_shaft.stop()
-#                 time.sleep(1.0)
+
 
 
 # debug_menu = MasterControlProgram(PrimeHub(), DEBUG_MODE)
