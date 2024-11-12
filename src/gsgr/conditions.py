@@ -1,4 +1,4 @@
-from collections import namedtuple
+# from collections import namedtuple
 import math
 import time
 
@@ -76,7 +76,7 @@ def cm(distance: int):
 
 
 def sec(duration: int):
-    return (
+    return check(
         2,
         duration * 1000,
     )

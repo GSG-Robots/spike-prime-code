@@ -20,7 +20,7 @@ class ConfigBase:
     def _dict(self):
         return {key: value for layer in self._layers for key, value in layer.items()}
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         if name.startswith("_"):
             return getattr(self, name)
         _dict = self._dict

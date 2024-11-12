@@ -2,6 +2,7 @@ from gsgr.conditions import check, deg
 import hub
 
 from ._condition_base import ConditionBase
+
 # from .conditions import Deg, Sec
 from .configuration import config
 from .configuration import hardware as hw
@@ -52,7 +53,7 @@ def free_attachments():
 def run_attachment(
     attachment: int,
     speed: int,
-    duration: int,
+    duration: int = None,
     stop_on_resistance: bool = False,
 ):
     check_battery()
@@ -65,6 +66,8 @@ def run_attachment(
     if stop_on_resistance:
         hw.drive_shaft.set_stall_detection(True)
     hw.drive_shaft.start(speed)
+    if not duration:
+        return
     while timer.elapsed < duration:
         if stop_on_resistance and hw.drive_shaft.was_stalled():
             break
@@ -74,27 +77,19 @@ def run_attachment(
 
 
 def stop_attachment():
-    check_battery()
+    # check_battery()
     # Stop the drive shaft
     hw.drive_shaft.stop()
 
 
 def drive(
-    speed: int,
-    until,
-    correctors: list[Corrector] | Corrector = None,
+    speed_generator,
+    until_generator,
 ):
-    until = check(*until)
-    if correctors is None:
-        correctors = []
-    correctors = [correctors] if not isinstance(correctors, list) else correctors
     check_battery()
-    for corrector in correctors:
-        corrector.setup()
-    while not next(until):
-        left_speed, right_speed = speed, speed
-        for corrector in correctors:
-            left_speed, right_speed = corrector.apply(left_speed, right_speed)
+    while not next(until_generator):
+        left_speed, right_speed = next(speed_generator)
+        print(22, left_speed, right_speed)
 
         if 0 < left_speed < 5:
             left_speed = 5
@@ -148,7 +143,7 @@ def gyro_drive(
     drive(
         speed,
         do_for,
-        correctors,
+        # correctors,
     )
 
 

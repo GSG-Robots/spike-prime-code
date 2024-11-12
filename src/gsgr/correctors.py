@@ -60,6 +60,49 @@ class GyroDrivePID(Corrector):
         return (left + corrector, right - corrector)
 
 
+def speed(left, right=None):
+    right = right if right is not None else left
+    while True:
+        yield (left, right)
+
+
+def gyro_turn_pid(
+    degree_target: int,
+    parent,
+    p_correction: float | None = None,
+    i_correction: float | None = None,
+    d_correction: float | None = None,
+):
+    p_correction = config.p_correction if p_correction is None else p_correction
+    i_correction = config.i_correction if i_correction is None else i_correction
+    d_correction = config.d_correction if d_correction is None else d_correction
+    target = degree_target - config.degree_offset
+    print(target)
+
+    last_error = 0
+    error_sum = 0
+
+    while True:
+        left, right = next(parent)
+        error_value = target - config.degree_o_meter.turned
+        while error_value > 180:
+            error_value -= 360
+        while error_value <= -180:
+            error_value += 360
+        differential = error_value - last_error
+        error_sum += error_value
+        if error_value < config.error_threshold:
+            error_sum = 0
+            differential = 0
+        corrector = (
+            error_sum * i_correction
+            + differential * d_correction
+            + error_value * p_correction
+        )
+        last_error = error_value
+        yield (left + corrector * (left / 100), right - corrector * (right / 100))
+
+
 class GyroTurnPID(Corrector):
     def __init__(
         self,
