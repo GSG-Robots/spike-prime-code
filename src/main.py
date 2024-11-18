@@ -127,9 +127,7 @@ with (
         d_correction=-0.2,
         speed_multiplier=1,
         debug_mode=False,
-        error_threshold=1,
-        degree_offset=0,
-        gyro_tolerance=1,
+        gyro_tolerance=3,
         degree_o_meter=DegreeOMeter(),
     ),
 ):
