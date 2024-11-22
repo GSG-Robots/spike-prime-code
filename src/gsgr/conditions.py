@@ -8,10 +8,10 @@ def static(value: bool):
     while True:
         yield value
 
-
 def cm(distance: int):
     start_degrees = hw.left_motor.get_degrees_counted()
     while True:
+        print(hw.right_motor.get_degrees_counted() - start_degrees)
         yield (
             (
                 abs(hw.right_motor.get_degrees_counted() - start_degrees)
@@ -22,15 +22,12 @@ def cm(distance: int):
             * hw.tire_radius
         ) >= distance
 
-
 def sec(duration: int):
     start_time = time.ticks_ms()
     while True:
         yield time.ticks_ms() > (duration * 1000 + start_time)
 
-
 def deg(angle: int):
-    print("bstarted at", config.degree_o_meter.oeioei)
     while True:
         yield (
             angle - config.gyro_tolerance / 2
@@ -38,6 +35,26 @@ def deg(angle: int):
             <= angle + config.gyro_tolerance / 2
         )
 
+def THEN(first, second):
+    while not next(first):
+        yield False
+    
+    while not next(second):
+        yield False
+    
+    yield True
+
+def OR(first, second):
+    while True:
+        yield next(first) or next(second)
+
+def AND(first, second):
+    while True:
+        yield next(first) and next(second)
+
+def NOT(cond):
+    while True:
+        yield not next(cond)
 
 def line():
     return (

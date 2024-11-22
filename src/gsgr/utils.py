@@ -21,17 +21,30 @@ class Timer:
 
 class DegreeOMeter:
     def __init__(self) -> None:
-        self.started_at = hw.brick.motion_sensor.get_yaw_angle()
+        self.started_at = 0
 
     def reset(self, offset=0) -> None:
-        self.started_at = hw.brick.motion_sensor.get_yaw_angle() - offset
-        if self.started_at < -180:
-            self.started_at += 360
+        # self.started_at =  self._get_yaw_angle() - offset
+        # if self.started_at < -180:
+        #     self.started_at += 360
+        # if self.started_at > 180:
+        #     self.started_at -= 360
+        self.started_at = 0
+        hw.brick.motion_sensor.reset_yaw_angle()
+        
+    def _get_yaw_angle(self):
+        deg = hw.brick.motion_sensor.get_yaw_angle()
+        deg += 146
+        if deg >= 292:
+            deg -= 292
+        deg -= 146
+        print(deg, deg / 73 * 90)
+        return deg / 73 * 90
 
     @property
     def oeioei(self) -> float:
         """-180 to 180"""
-        res = hw.brick.motion_sensor.get_yaw_angle() - self.started_at
+        res = self._get_yaw_angle() - self.started_at
         if res < -180:
             res += 360
         if res > 180:

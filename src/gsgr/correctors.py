@@ -23,6 +23,10 @@ def gyro_drive_pid(
     gyro_tolerance: int | None = None,
 ):
     target = degree_target
+    while target < -180:
+        target += 360
+    while target > 180:
+        target -= 360
     last_error = 0
     error_sum = 0
     p_correction = config.p_correction if p_correction is None else p_correction
@@ -32,11 +36,8 @@ def gyro_drive_pid(
 
     while True:
         left, right = next(parent)
-        error_value = target - config.degree_o_meter.oeioei
-        while error_value < -180:
-            error_value += 360
-        while error_value > 180:
-            error_value -= 360
+        tar, cur = target, config.degree_o_meter.oeioei
+        error_value = min((tar-cur, tar-cur-360, tar-cur+360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
         if error_value < gyro_tolerance:
@@ -66,22 +67,21 @@ def gyro_turn_pid(
     gyro_tolerance: int | None = None,
 ):
     target = degree_target
+    while target < -180:
+        target += 360
+    while target > 180:
+        target -= 360
     last_error = 0
     error_sum = 0
     p_correction = config.p_correction if p_correction is None else p_correction
     i_correction = config.i_correction if i_correction is None else i_correction
     d_correction = config.d_correction if d_correction is None else d_correction
     gyro_tolerance = config.gyro_tolerance if gyro_tolerance is None else gyro_tolerance
-    print("start", config.degree_o_meter.oeioei)
 
     while True:
         left, right = next(parent)
-        error_value = target - config.degree_o_meter.oeioei
-        print(33, error_value)
-        while error_value < -180:
-            error_value += 360
-        while error_value > 180:
-            error_value -= 360
+        tar, cur = target, config.degree_o_meter.oeioei
+        error_value = min((tar-cur, tar-cur-360, tar-cur+360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
         if error_value < gyro_tolerance:
