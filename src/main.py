@@ -129,6 +129,7 @@ with (
         debug_mode=False,
         gyro_tolerance=2,
         degree_o_meter=DegreeOMeter(),
+        loop_throttle=0.025,
     ),
 ):
     hub.display.align(hub.RIGHT)

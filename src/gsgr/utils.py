@@ -34,12 +34,12 @@ class DegreeOMeter:
         
     def _get_yaw_angle(self):
         deg = hw.brick.motion_sensor.get_yaw_angle()
-        deg += 146
-        if deg >= 292:
-            deg -= 292
-        deg -= 146
-        print(deg, deg / 73 * 90)
-        return deg / 73 * 90
+        # deg += 146
+        # if deg >= 292:
+        #     deg -= 292
+        # deg -= 146
+        # print(deg, deg / 73 * 90)
+        return deg# / 73 * 90
 
     @property
     def oeioei(self) -> float:
@@ -49,6 +49,7 @@ class DegreeOMeter:
             res += 360
         if res > 180:
             res -= 360
+        print(res)
         return res
     
     @property

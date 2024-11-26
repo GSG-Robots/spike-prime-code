@@ -1,5 +1,7 @@
 import abc
 
+from gsgr.utils import Timer
+
 from .configuration import config
 from .configuration import hardware as hw
 from .math import clamp, sigmoid
@@ -15,8 +17,8 @@ class Corrector(abc.ABC):
 
 
 def gyro_drive_pid(
-    degree_target: int,
     parent,
+    degree_target: int,
     p_correction: float | None = None,
     i_correction: float | None = None,
     d_correction: float | None = None,
@@ -37,7 +39,7 @@ def gyro_drive_pid(
     while True:
         left, right = next(parent)
         tar, cur = target, config.degree_o_meter.oeioei
-        error_value = min((tar-cur, tar-cur-360, tar-cur+360), key=abs)
+        error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
         if error_value < gyro_tolerance:
@@ -59,8 +61,8 @@ def speed(left, right=None):
 
 
 def gyro_turn_pid(
-    degree_target: int,
     parent,
+    degree_target: int,
     p_correction: float | None = None,
     i_correction: float | None = None,
     d_correction: float | None = None,
@@ -81,7 +83,7 @@ def gyro_turn_pid(
     while True:
         left, right = next(parent)
         tar, cur = target, config.degree_o_meter.oeioei
-        error_value = min((tar-cur, tar-cur-360, tar-cur+360), key=abs)
+        error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
         if error_value < gyro_tolerance:
@@ -96,113 +98,45 @@ def gyro_turn_pid(
         yield (corrector * (left / 100), -corrector * (right / 100))
 
 
-##
-# class Pause(Corrector):
-#     def __init__(self, at: int, duration: int) -> None:
-#         self.start = at
-#         self.duration = duration
-#         self.timer = Timer()
-
-#     def setup(self): ...
-
-#     def apply(
-#         self, left: int | float, right: int | float
-#     ) -> tuple[float | int, float | int]:
-#         if self.start < self.timer.elapsed < (self.start + self.duration):
-#             return (0, 0)
-#         return (left, right)
-
-##
-# class AccelerateSec(Corrector):
-#     def __init__(self, duration: int, delay: int = 0) -> None:
-#         self.delay = delay
-#         self.duration = duration
-#         self.timer = Timer()
-
-#     def setup(self): ...
-
-#     def apply(
-#         self, left: int | float, right: int | float
-#     ) -> tuple[float | int, float | int]:
-#         speed_mutiplier = clamp(
-#             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
-#         )
-#         return (left * speed_mutiplier, right * speed_mutiplier)
+def pause(parent, start: int, duration: int):
+    timer = Timer()
+    while True:
+        if start < timer.elapsed < (start + duration):
+            yield (0, 0)
+        yield next(parent)
 
 
-# class AccelerateCm(Corrector):
-#     def __init__(self, duration: int, delay: int = 0) -> None:
-#         self.delay = delay
-#         self.duration = duration
-#         self.timer = Timer()
-
-#     def apply(
-#         self, left: int | float, right: int | float
-#     ) -> tuple[float | int, float | int]:
-#         speed_mutiplier = clamp(
-#             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
-#         )
-#         return (left * speed_mutiplier, right * speed_mutiplier)
-
-##
-# class DecelerateSec(Corrector):
-#     def __init__(self, duration: int, delay: int = 0) -> None:
-#         self.delay = delay
-#         self.duration = duration
-#         self.timer = Timer()
-
-#     def setup(self): ...
-
-#     def apply(
-#         self, left: int | float, right: int | float
-#     ) -> tuple[float | int, float | int]:
-#         speed_mutiplier = 1 - clamp(
-#             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
-#         )
-#         return (left * speed_mutiplier, right * speed_mutiplier)
+def accelerate_sec(parent, duration: int, start: int = 0):
+    timer = Timer()
+    while True:
+        left, right = next(parent)
+        speed_mutiplier = clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
+        yield (left * speed_mutiplier, right * speed_mutiplier)
 
 
-# class DecelerateCm(Corrector):
-#     def __init__(self, duration: int, delay: int = 0) -> None:
-#         self.delay = delay
-#         self.duration = duration
-#         self.started_at = 0
+def decelerate_sec(parent, duration: int, start: int = 0):
+    timer = Timer()
+    while True:
+        left, right = next(parent)
+        speed_mutiplier = 1 - clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
+        yield (left * speed_mutiplier, right * speed_mutiplier)
 
-#     def apply(
-#         self, left: int | float, right: int | float
-#     ) -> tuple[float | int, float | int]:
-#         speed_mutiplier = 1 - clamp(
-#             max(self.timer.elapsed - self.delay, 0) / self.duration, 0, 1
-#         )
-#         return (left * speed_mutiplier, right * speed_mutiplier)
 
-##
-# class SigmoidAcceleration(Corrector):
-#     def __init__(self, duration: int, smooth: int = 6, stretch: bool = True) -> None:
-#         self.duration = duration
-#         self.timer = Timer()
-#         self.smooth = smooth
-#         self.cutoff = sigmoid(-smooth) if stretch else 0
-
-#     def setup(self): ...
-
-#     def apply(
-#         self, left: int | float, right: int | float
-#     ) -> tuple[float | int, float | int]:
-#         now = self.timer.elapsed
-#         speed_mutiplier = clamp(
-#             round(
-#                 (
-#                     sigmoid(
-#                         (clamp(now / self.duration, 0, 1) * 2 * self.smooth)
-#                         - self.smooth
-#                     )
-#                     - self.cutoff
-#                 )
-#                 / (1 - self.cutoff),
-#                 2,
-#             ),
-#             0,
-#             1,
-#         )
-#         return (left * speed_mutiplier, right * speed_mutiplier)
+def sigmoid_accelerate_sec(
+    parent, duration: int, smooth: int = 6, stretch: bool = True
+):
+    timer = Timer()
+    cutoff = sigmoid(-smooth) if stretch else 0
+    while True:
+        left, right = next(parent)
+        now = timer.elapsed
+        speed_mutiplier = clamp(
+            round(
+                (sigmoid((clamp(now / duration, 0, 1) * 2 * smooth) - smooth) - cutoff)
+                / (1 - cutoff),
+                2,
+            ),
+            0,
+            1,
+        )
+        yield (left * speed_mutiplier, right * speed_mutiplier)
