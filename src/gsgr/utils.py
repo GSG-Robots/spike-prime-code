@@ -49,7 +49,7 @@ class DegreeOMeter:
             res += 360
         if res > 180:
             res -= 360
-        print(res)
+        print(88, res)
         return res
     
     @property

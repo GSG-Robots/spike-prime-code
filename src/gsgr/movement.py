@@ -79,6 +79,31 @@ def run_attachment(
     # Cleanup
     hw.drive_shaft.set_stall_detection(False)
 
+def run_attachment_degrees(
+    attachment: int,
+    speed: int,
+    degrees: int = None,
+    stop_on_resistance: bool = False,
+):
+    check_battery()
+    # Stop the drive shaft if it is running
+    hw.drive_shaft.stop()
+    start = hw.drive_shaft.get_position()
+    # Select the target gear, this is the same as holding the attachment
+    hold_attachment(attachment)
+    # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
+    if stop_on_resistance:
+        hw.drive_shaft.set_stall_detection(True)
+    hw.drive_shaft.start(speed)
+    if not degrees:
+        return
+    while abs(hw.drive_shaft.get_position() - start) < degrees:
+        if stop_on_resistance and hw.drive_shaft.was_stalled():
+            break
+    hw.drive_shaft.stop()
+    # Cleanup
+    hw.drive_shaft.set_stall_detection(False)
+
 
 def stop_attachment():
     # check_battery()
@@ -92,7 +117,7 @@ def drive(
 ):
     check_battery()
     last_left, last_right = 0, 0
-    while not next(until_generator):
+    while next(until_generator) < 100:
         left_speed, right_speed = next(speed_generator)
 
         if 0 < left_speed < 5:
@@ -134,7 +159,7 @@ def gyro_drive(
     d_correction: int | None = None,
     gyro_tolerance: int | None = None,
     accelerate_for: int = 0,
-    decelerate_for: int = 0,
+    # decelerate_for: int = 0,
 ):
     # Auto-setup PID
     corrector = corr.gyro_drive_pid(
@@ -148,21 +173,21 @@ def gyro_drive(
 
     # Auto-setup acceleration and deceleration
     if accelerate_for > 0:
-        if do_for[0] == 2:
-            corrector = corr.accelerate_sec(
-                corrector,
-                accelerate_for,
-                0,
-            )
+        # if do_for[0] == 2:
+        corrector = corr.accelerate_sec(
+            corrector,
+            accelerate_for,
+            0,
+        )
 
-    if decelerate_for > 0:
-        # if isinstance(do_for, Sec):
-        if do_for[0] == 2:
-            corrector = corr.decelerate_sec(
-                corrector,
-                decelerate_for,
-                do_for[1] - decelerate_for,
-            )
+    # if decelerate_for > 0:
+    #     # if isinstance(do_for, Sec):
+    #     if do_for[0] == 2:
+    #         corrector = corr.decelerate_sec(
+    #             corrector,
+    #             decelerate_for,
+    #             do_for[1] - decelerate_for,
+    #         )
 
     # Delegate to normal drive function
     drive(

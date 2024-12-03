@@ -9,40 +9,39 @@ def static(value: bool):
         yield value
 
 def cm(distance: int):
-    start_degrees = hw.left_motor.get_degrees_counted()
+    start_degrees = hw.left_motor.get_degrees_counted(), hw.right_motor.get_degrees_counted()
     while True:
-        print(hw.right_motor.get_degrees_counted() - start_degrees)
-        yield (
+        yield math.floor((
             (
-                abs(hw.right_motor.get_degrees_counted() - start_degrees)
-                + abs(hw.left_motor.get_degrees_counted() - start_degrees)
+                abs(hw.right_motor.get_degrees_counted() - start_degrees[1])
+                + abs(hw.left_motor.get_degrees_counted() - start_degrees[0])
             )
             / 360
             * math.pi
             * hw.tire_radius
-        ) >= distance
+        ) / distance * 100)
 
 def sec(duration: int):
     start_time = time.ticks_ms()
     while True:
-        yield time.ticks_ms() > (duration * 1000 + start_time)
+        yield math.floor((time.ticks_ms() - start_time) / (duration * 1000) * 100)
 
 def deg(angle: int):
     while True:
-        yield (
+        yield 100 if (
             angle - config.gyro_tolerance / 2
             <= config.degree_o_meter.oeioei
             <= angle + config.gyro_tolerance / 2
-        )
+        ) else 0
 
 def THEN(first, second):
-    while not next(first):
-        yield False
+    while (a := next(first)) < 100:
+        yield a // 2
     
-    while not next(second):
-        yield False
+    while (b := next(second)) < 100:
+        yield 50 + b // 2
     
-    yield True
+    yield 100
 
 def OR(first, second):
     while True:
@@ -52,9 +51,9 @@ def AND(first, second):
     while True:
         yield next(first) and next(second)
 
-def NOT(cond):
-    while True:
-        yield not next(cond)
+# def NOT(cond):
+#     while True:
+#         yield next(cond) < 100
 
 def line():
     return (
