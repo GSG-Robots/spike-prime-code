@@ -106,20 +106,39 @@ def pause(parent, start: int, duration: int):
         yield next(parent)
 
 
-def accelerate_sec(parent, duration: int, start: int = 0):
-    timer = Timer()
+def accelerate(parent, for_, start_at = None):
     while True:
         left, right = next(parent)
-        speed_mutiplier = clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
-        yield (left * speed_mutiplier, right * speed_mutiplier)
-
-
-def decelerate_sec(parent, duration: int, start: int = 0):
-    timer = Timer()
+        if start_at is not None and next(start_at) < 100:
+            yield left, right
+        else:
+            speed_mutiplier = clamp(next(for_)/ 100, 0.5, 1)
+            print(speed_mutiplier)
+            yield (left * speed_mutiplier, right * speed_mutiplier)
+            
+def decelerate(parent, from_, for_):
     while True:
         left, right = next(parent)
-        speed_mutiplier = 1 - clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
-        yield (left * speed_mutiplier, right * speed_mutiplier)
+        if next(from_) < 100:
+            yield left, right
+        else:
+            speed_mutiplier = 1 - clamp(next(for_)/ 100, 0.5, 1)
+            yield (left * speed_mutiplier, right * speed_mutiplier)
+        
+# def accelerate_sec(parent, duration: int, start: int = 0):
+#     timer = Timer()
+#     while True:
+#         left, right = next(parent)
+#         speed_mutiplier = clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
+#         yield (left * speed_mutiplier, right * speed_mutiplier)
+
+
+# def decelerate_sec(parent, duration: int, start: int = 0):
+#     timer = Timer()
+#     while True:
+#         left, right = next(parent)
+#         speed_mutiplier = 1 - clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
+#         yield (left * speed_mutiplier, right * speed_mutiplier)
 
 
 def sigmoid_accelerate_sec(

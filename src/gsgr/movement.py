@@ -59,6 +59,7 @@ def run_attachment(
     speed: int,
     duration: int = None,
     stop_on_resistance: bool = False,
+    untension: bool = False,
 ):
     check_battery()
     # Stop the drive shaft if it is running
@@ -78,6 +79,9 @@ def run_attachment(
     hw.drive_shaft.stop()
     # Cleanup
     hw.drive_shaft.set_stall_detection(False)
+    if untension:
+        free_attachment(attachment)
+        hold_attachment(attachment)
 
 def run_attachment_degrees(
     attachment: int,
@@ -158,8 +162,10 @@ def gyro_drive(
     i_correction: int | None = None,
     d_correction: int | None = None,
     gyro_tolerance: int | None = None,
-    accelerate_for: int = 0,
-    # decelerate_for: int = 0,
+    accelerate_from = None,
+    accelerate_for = None,
+    decelerate_from = None,
+    decelerate_for = None,
 ):
     # Auto-setup PID
     corrector = corr.gyro_drive_pid(
@@ -172,22 +178,19 @@ def gyro_drive(
     )
 
     # Auto-setup acceleration and deceleration
-    if accelerate_for > 0:
-        # if do_for[0] == 2:
-        corrector = corr.accelerate_sec(
+    if accelerate_for:
+        corrector = corr.accelerate(
             corrector,
             accelerate_for,
-            0,
+            accelerate_from,
         )
 
-    # if decelerate_for > 0:
-    #     # if isinstance(do_for, Sec):
-    #     if do_for[0] == 2:
-    #         corrector = corr.decelerate_sec(
-    #             corrector,
-    #             decelerate_for,
-    #             do_for[1] - decelerate_for,
-    #         )
+    if decelerate_for:
+        corrector = corr.decelerate(
+            corrector,
+            decelerate_from,
+            decelerate_for,
+        )
 
     # Delegate to normal drive function
     drive(
@@ -204,8 +207,10 @@ def gyro_turn(
     i_correction: int | None = None,
     d_correction: int | None = None,
     gyro_tolerance: int | None = None,
-    accelerate_for: int = 0,
-    decelerate_for: int = 0,
+    accelerate_from = None,
+    accelerate_for = None,
+    decelerate_from = None,
+    decelerate_for = None,
 ):
     # Auto-setup PID
     corrector = corr.gyro_drive_pid(
@@ -218,16 +223,17 @@ def gyro_turn(
     )
 
     # Auto-setup acceleration and deceleration
-    if accelerate_for > 0:
-        corrector = corr.accelerate_sec(
+    if accelerate_for:
+        corrector = corr.accelerate(
             corrector,
             accelerate_for,
-            0,
+            accelerate_from,
         )
-    if decelerate_for > 0:
-        corrector = corr.accelerate_sec(
+
+    if decelerate_for and decelerate_from:
+        corrector = corr.decelerate(
             corrector,
-            9999,
+            decelerate_from,
             decelerate_for,
         )
 
