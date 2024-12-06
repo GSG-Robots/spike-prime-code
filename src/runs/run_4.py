@@ -8,13 +8,20 @@ color = Color.RED
 
 
 def run():
+    # Set Gyro Origin
     gyro_set_origin()
-
-    run_attachment(Attachment.FRONT_RIGHT, 50, 0.75)
-    free_attachment(Attachment.FRONT_RIGHT)
-    hold_attachment(Attachment.FRONT_RIGHT)
     
-    gyro_drive(0, 50, cm(45), accelerate_for=1)
-    run_attachment(Attachment.FRONT_RIGHT, -50, 1)
-    gyro_drive(0, -50, cm(50), accelerate_for=1)
+    gyro_drive(0, 50, cm(5))
+
+    run_attachment(Attachment.FRONT_RIGHT, -75, 1, stop_on_resistance=True, untension=True)
+
+    run_attachment(Attachment.FRONT_RIGHT, 20, 2, stop_on_resistance=True, untension=True)
+    
+    gyro_drive(0, 50, cm(40), accelerate_for=cm(10), decelerate_from=cm(30), decelerate_for=cm(10))
+    
+    run_attachment(Attachment.FRONT_RIGHT, -30, 1, stop_on_resistance=True)
+    
+    gyro_drive(0, -50, cm(50), accelerate_for=cm(10), decelerate_from=cm(30), decelerate_for=cm(10))
+
+    free_attachment(Attachment.FRONT_RIGHT)
 
