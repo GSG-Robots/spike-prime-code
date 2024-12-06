@@ -1,19 +1,8 @@
-import abc
-
 from gsgr.utils import Timer
-
+from typing import Iterator
 from .configuration import config
 from .configuration import hardware as hw
 from .math import clamp, sigmoid
-
-
-class Corrector(abc.ABC):
-    @abc.abstractmethod
-    def apply(
-        self, left: float | int, right: float | int
-    ) -> tuple[float | int, float | int]: ...
-    @abc.abstractmethod
-    def setup(self) -> None: ...
 
 
 def gyro_drive_pid(
@@ -24,6 +13,28 @@ def gyro_drive_pid(
     d_correction: float | None = None,
     gyro_tolerance: int | None = None,
 ):
+    """Gyro Drive PID
+
+    :param parent: Parent corrector
+    :type parent: Iterator[tuple[int, int]]
+    
+    :param degree_target: Direction to drive in
+    :type degree_target: int
+    
+    :param p_correction: p correction value. Defaults to gsgr.configuration.config.p_correction.
+    :type p_correction: float | None
+    
+    :param i_correction: i correction value. Defaults to gsgr.configuration.config.i_correction.
+    :type i_correction: float | None
+    
+    :param d_correction: d correction value. Defaults to gsgr.configuration.config.d_correction.
+    :type d_correction: float | None
+    
+    :param gyro_tolerance: tolerance for target degree. Defaults to gsgr.configuration.config.gyro_tolerance.
+    :type gyro_tolerance: int | None
+
+    :rtype: Iterator[tuple[int, int]]
+    """
     target = degree_target
     while target < -180:
         target += 360

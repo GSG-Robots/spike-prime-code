@@ -81,3 +81,10 @@ def run():
 ```
 
 [WIP]
+
+To build docs:
+
+```bash
+poetry install . --with dev
+poetry run make html
+```
