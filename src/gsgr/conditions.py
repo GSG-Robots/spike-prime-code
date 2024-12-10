@@ -30,7 +30,7 @@ def deg(angle: int):
     while True:
         yield 100 if (
             angle - config.gyro_tolerance / 2
-            <= config.degree_o_meter.oeioei
+            <= config._degree_o_meter.oeioei
             <= angle + config.gyro_tolerance / 2
         ) else 0
 

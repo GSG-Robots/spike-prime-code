@@ -3,3 +3,5 @@
 
 .. automodule:: gsgr.conditions
    :members:
+   :undoc-members:
+   

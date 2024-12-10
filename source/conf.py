@@ -16,6 +16,8 @@ author = "GSG Robots"
 extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
+    "sphinx_toolbox.more_autodoc.variables",
+    "sphinx_autodoc_typehints",
 ]
 
 templates_path = ["_templates"]
@@ -35,3 +37,5 @@ html_static_path = ["_static"]
 html_theme_options = {
   "navigation_depth": 4,
 }
+
+autodoc_member_order = "bysource"

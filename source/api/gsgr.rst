@@ -2,7 +2,7 @@
 ==================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    :caption: Contents:
 
    gsgr.configuration
@@ -16,3 +16,7 @@
    gsgr.movement
    gsgr.run
    gsgr.utils
+
+.. automodule:: gsgr.__init__
+   :members:
+   :undoc-members:

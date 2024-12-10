@@ -19,7 +19,7 @@ class Config(ConfigBase):
     speed_multiplier: float
     "The speed multiplier for the robot. This should be a float between -1 and 1. Negative values will make the robot drive backwards."
     gyro_tolerance: int
-    degree_o_meter: "DegreeOMeter"
+    _degree_o_meter: "DegreeOMeter"
     loop_throttle: float
 
 
@@ -40,6 +40,7 @@ class HardwareConfig(ConfigBase):
     "The motor that drives the right tire"
     driving_motors: "spike.MotorPair"
     "The motor pair that drives the robot. This should be the same as the left and right motors combined."
+
 
 
 config = Config()

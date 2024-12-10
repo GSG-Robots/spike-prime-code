@@ -245,4 +245,4 @@ def gyro_turn(
 
 
 def gyro_set_origin(set_to=0):
-    config.degree_o_meter.reset(set_to)
+    config._degree_o_meter.reset(set_to)

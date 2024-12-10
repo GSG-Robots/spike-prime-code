@@ -3,3 +3,5 @@
 
 .. automodule:: gsgr.correctors
    :members:
+   :undoc-members:
+   
