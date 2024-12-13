@@ -1,6 +1,7 @@
 LICENSE FOR ``abc.py`` AND ``typing.py``, WHICH ARE PART OF ``pycopy-lib``
 
 THE ``metadata.txt`` FILES OF ``abc.py`` AND ``typing.py`` DID NOT CONTAIN ANY ADDITIONAL LICENSING INFORMATION, UNLIKE MENTIONED BELOW.
+``typing.py`` was modified by us to reduce RAM usage.
 
 =========================================================
 

@@ -57,10 +57,18 @@ def free_attachments():
 def run_attachment(
     attachment: int,
     speed: int,
-    duration: int = None,
+    duration: int | None = None,
     stop_on_resistance: bool = False,
     untension: bool = False,
-):
+) -> None:
+    """Move attachment for given time or until stopped
+    
+    If run with ``duration``, runs until duration passed. If run without ``duration``, only starts and call finished immideately after starting motor.
+
+    :param attachment: Number of attachment to move, value of enum :py:class:`gsgr.enums.Attachment`
+    :param speed: Speed to move attachment at, in percent. Value from 0-100
+    :param duration: Time in seconds to stop after. If not supplied motor will be started without ending condition.
+    """
     check_battery()
     # Stop the drive shaft if it is running
     hw.drive_shaft.stop()

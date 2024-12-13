@@ -18,7 +18,10 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx_toolbox.more_autodoc.variables",
     "sphinx_autodoc_typehints",
+    "sphinx.ext.intersphinx",
 ]
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 templates_path = ["_templates"]
 exclude_patterns = []

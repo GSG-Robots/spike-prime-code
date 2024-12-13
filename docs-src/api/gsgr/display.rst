@@ -1,5 +1,5 @@
 ``gsgr.display``
-==================
+================
 
 .. automodule:: gsgr.display
    :members:

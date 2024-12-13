@@ -1,5 +1,5 @@
 ``gsgr.menu``
-==================
+=============
 
 .. automodule:: gsgr.menu
    :members:

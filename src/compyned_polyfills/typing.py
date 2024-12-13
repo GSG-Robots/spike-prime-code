@@ -1,84 +1,29 @@
 class _Subscriptable:
-
     def __getitem__(self, sub):
         return None
-
-
 _SubSingleton = _Subscriptable()
-
-
 def TypeVar(new_type, *types):
     return None
-
-
 TYPE_CHECKING = False
-
-
-class Any:
-    pass
-
-
+Any = object
 Text = str
-
-
-class NoReturn:
-    pass
-
-
-class ClassVar:
-    pass
-
-
+NoReturn = None
+ClassVar = object
 Union = _SubSingleton
 Optional = _SubSingleton
 Generic = _SubSingleton
 NamedTuple = _SubSingleton
-
-
-class Hashable:
-    pass
-
-
-class Awaitable:
-    pass
-
-
-class Coroutine:
-    pass
-
-
-class AsyncIterable:
-    pass
-
-
-class AsyncIterator:
-    pass
-
-
-class Iterable:
-    pass
-
-
-class Iterator:
-    pass
-
-
-class Reversible:
-    pass
-
-
-class Sized:
-    pass
-
-
-class Container:
-    pass
-
-
-class Collection:
-    pass
-
-
+Hashable = object
+Awaitable = object
+Coroutine = object
+AsyncIterable = object
+AsyncIterator = object
+Iterable = object
+Iterator = object
+Reversible = object
+Sized = object
+Container = object
+Collection = object
 Callable = _SubSingleton
 AbstractSet = _SubSingleton
 MutableSet = _SubSingleton
@@ -86,83 +31,31 @@ Mapping = _SubSingleton
 MutableMapping = _SubSingleton
 Sequence = _SubSingleton
 MutableSequence = _SubSingleton
-
-
-class ByteString:
-    pass
-
-
+ByteString = object
 Tuple = _SubSingleton
 List = _SubSingleton
-
-
-class Deque:
-    pass
-
-
+Deque = object
 Set = _SubSingleton
 FrozenSet = _SubSingleton
-
-
-class MappingView:
-    pass
-
-
-class KeysView:
-    pass
-
-
-class ItemsView:
-    pass
-
-
-class ValuesView:
-    pass
-
-
-class ContextManager:
-    pass
-
-
-class AsyncContextManager:
-    pass
-
-
+MappingView = object
+KeysView = object
+ItemsView = object
+ValuesView = object
+ContextManager = object
+AsyncContextManager = object
 Dict = _SubSingleton
 DefaultDict = _SubSingleton
-
-
-class Counter:
-    pass
-
-
-class ChainMap:
-    pass
-
-
-class Generator:
-    pass
-
-
-class AsyncGenerator:
-    pass
-
-
-class Type:
-    pass
-
-
+Counter = object
+ChainMap = object
+Generator = object
+AsyncGenerator = object
+Type = object
 IO = _SubSingleton
 TextIO = IO[str]
 BinaryIO = IO[bytes]
-
 AnyStr = TypeVar("AnyStr", str, bytes)
-
-
 def cast(typ, val):
     return val
-
-
 def _overload_dummy(*args, **kwds):
     """Helper for @overload to raise when called."""
     raise NotImplementedError(
@@ -171,7 +64,5 @@ def _overload_dummy(*args, **kwds):
         "outside a stub module should always be followed "
         "by an implementation that is not @overload-ed."
     )
-
-
 def overload(fun):
     return _overload_dummy

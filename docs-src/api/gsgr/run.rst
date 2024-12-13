@@ -1,5 +1,5 @@
 ``gsgr.run``
-==================
+============
 
 .. automodule:: gsgr.run
    :members:

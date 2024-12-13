@@ -1,5 +1,5 @@
 ``gsgr.utils``
-==================
+==============
 
 .. automodule:: gsgr.utils
    :members:

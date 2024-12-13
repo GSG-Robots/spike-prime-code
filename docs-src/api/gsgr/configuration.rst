@@ -1,5 +1,5 @@
 ``gsgr.configuration``
-==================
+======================
 
 .. automodule:: gsgr.configuration
    :members:
