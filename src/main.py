@@ -15,6 +15,7 @@ from spike import Motor, MotorPair, PrimeHub
 gc.collect()
 mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
 print("%s%% of memory used" % mem_perc)
+print("%s%% battery left" % hub.battery.capacity_left())
 
 # raise RuntimeError
 menu = Menu(landscape=True)
@@ -122,11 +123,12 @@ with (
         tire_radius=3,
     ),
     config(
-        p_correction=1.5,
+        p_correction=1.2,
         i_correction=0,
-        d_correction=-0.2,
+        # d_correction=-0.2,
+        d_correction=0,
         speed_multiplier=1,
-        debug_mode=False,
+        debug_mode=True,
         gyro_tolerance=2,
         degree_o_meter=DegreeOMeter(),
         loop_throttle=0.025,
