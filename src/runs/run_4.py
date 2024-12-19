@@ -13,9 +13,9 @@ def run():
 
     gyro_drive(0, 50, cm(5))
 
-    run_attachment(Attachment.FRONT_RIGHT, -75, 1, stop_on_resistance=True, untension=True)
+    run_attachment(Attachment.FRONT_RIGHT, -80, 1, stop_on_resistance=True, untension=True)
 
-    run_attachment(Attachment.FRONT_RIGHT, 20, 1.5, stop_on_resistance=True, untension=True)
+    run_attachment(Attachment.FRONT_RIGHT, 20, 2, stop_on_resistance=True, untension=True)
 
     gyro_drive(0, 50, cm(40))#, accelerate_for=cm(10))
 
