@@ -89,7 +89,11 @@ class Menu:
             light_up_display(result.display_as, True, True, False)
             try:
                 callback = result.get_callback()
-                callback()
+                try:
+                    callback()
+                except Exception as e:
+                    if cnf.debug_mode:
+                        hw.brick.light_matrix.write(type(e).__name__ + ":" + str(e))
                 result.cleanup()
             except KeyboardInterrupt:
                 result.cleanup()
