@@ -1,7 +1,6 @@
-import time
-from gsgr.conditions import deg
-import gsgr.correctors as corr
-from gsgr.math import clamp
+from .conditions import deg
+from . import correctors as corr
+from .math import clamp
 import hub
 
 from ._condition_base import ConditionBase
@@ -141,8 +140,8 @@ def drive(
         if -5 < right_speed < 0:
             right_speed = -5
 
-        left_speed = clamp(-100, left_speed // 5 * 5, 100)
-        right_speed = clamp(-100, right_speed // 5 * 5, 100)
+        left_speed = clamp(-100, left_speed, 100)
+        right_speed = clamp(-100, right_speed, 100)
 
         if (
             left_speed,
@@ -253,4 +252,4 @@ def gyro_turn(
 
 
 def gyro_set_origin(set_to=0):
-    config._degree_o_meter.reset(set_to)
+    config.degree_o_meter.reset(set_to)

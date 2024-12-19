@@ -8,7 +8,7 @@ packages = [{include = "*", from="src"}]
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "3.12.*"
+python = "3.13.*"
 bleak = "^0.22.2"
 pyserial = "^3.5"
 dataclasses-json = "^0.6.7"

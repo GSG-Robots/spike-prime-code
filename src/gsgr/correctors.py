@@ -1,4 +1,4 @@
-from gsgr.utils import Timer
+from .utils import Timer
 from .configuration import config
 from .math import clamp, sigmoid
 
@@ -47,11 +47,11 @@ def gyro_drive_pid(
 
     while True:
         left, right = next(parent)
-        tar, cur = target, config._degree_o_meter.oeioei
+        tar, cur = target, config.degree_o_meter.oeioei
         error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
-        if error_value < gyro_tolerance:
+        if abs(error_value) < gyro_tolerance:
             error_sum = 0
             differential = 0
         corrector = (
@@ -91,7 +91,7 @@ def gyro_turn_pid(
 
     while True:
         left, right = next(parent)
-        tar, cur = target, config._degree_o_meter.oeioei
+        tar, cur = target, config.degree_o_meter.oeioei
         error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
