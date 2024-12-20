@@ -26,8 +26,8 @@ def check_battery():
     if not config.debug_mode:
         return
     # Check if the battery is low and raise an error if it is
-    # if hub.battery.capacity_left() < 80:
-    #     raise BatteryLowError("Battery capacity got below 80%")
+    if hub.battery.capacity_left() < 100:
+        raise BatteryLowError("Battery capacity got below 100%")
 
 
 def hold_attachment(target_gear: int):
