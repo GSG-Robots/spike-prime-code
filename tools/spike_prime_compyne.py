@@ -193,7 +193,7 @@ def spike_prime_compyne(input_module, slot=0, debug_build=False):
         split_modules=False,
         use_attr=True,
         module_preprocessor=pre_optimize,
-        pastprocessor=past_optimize,
+        # pastprocessor=past_optimize,
         require_dunder_name=debug_build,
     )
     compyner.add_module("__main__", ast_from_file(Path(input_module)), origin=Path(input_module).absolute())
