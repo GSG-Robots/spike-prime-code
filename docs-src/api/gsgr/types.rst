@@ -1,7 +1,7 @@
-``gsgr.menu``
-=============
+``gsgr.types``
+==============
 
-.. automodule:: gsgr.menu
+.. automodule:: gsgr.types
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,37 +1,28 @@
+"""Basic correctors
+"""
+
+from .types import Corrector
 from .utils import Timer
 from .configuration import config
 from .math import clamp, sigmoid
 
 
 def gyro_drive_pid(
-    parent,
+    parent: Corrector,
     degree_target: int,
     p_correction: float | None = None,
     i_correction: float | None = None,
     d_correction: float | None = None,
     gyro_tolerance: int | None = None,
-):
+) -> Corrector:
     """Gyro Drive PID
 
-    :param parent: Parent corrector
-    :type parent: Iterator[tuple[int, int]]
-    
-    :param degree_target: Direction to drive in
-    :type degree_target: int
-    
-    :param p_correction: p correction value. Defaults to gsgr.configuration.config.p_correction.
-    :type p_correction: float | None
-    
-    :param i_correction: i correction value. Defaults to gsgr.configuration.config.i_correction.
-    :type i_correction: float | None
-    
-    :param d_correction: d correction value. Defaults to gsgr.configuration.config.d_correction.
-    :type d_correction: float | None
-    
-    :param gyro_tolerance: tolerance for target degree. Defaults to gsgr.configuration.config.gyro_tolerance.
-    :type gyro_tolerance: int | None
-
-    :rtype: Iterator[tuple[int, int]]
+    :param parent: Parent corrector [TODO: Read more]
+    :param degree_target: Direction to drive in/correct towards to
+    :param p_correction: p correction value. Defaults to general config.
+    :param i_correction: i correction value. Defaults to general config.
+    :param d_correction: d correction value. Defaults to general config.
+    :param gyro_tolerance: tolerance for target degree. Defaults to general config.
     """
     target = degree_target
     while target < -180:
@@ -63,20 +54,34 @@ def gyro_drive_pid(
         yield (left + corrector, right - corrector)
 
 
-def speed(left, right=None):
+def speed(left, right=None) -> Corrector:
+    """Static speed. Used at the top of a corrector chain.
+
+    :param left: Speed of left motor.
+    :param right: Speed of right motor. Defaults to :py:obj:`left`.
+    """
     right = right if right is not None else left
     while True:
         yield (left, right)
 
 
 def gyro_turn_pid(
-    parent,
+    parent: Corrector,
     degree_target: int,
     p_correction: float | None = None,
     i_correction: float | None = None,
     d_correction: float | None = None,
     gyro_tolerance: int | None = None,
-):
+) -> Corrector:
+    """Gyro Turn PID
+
+    :param parent: Parent corrector [TODO: Read more]
+    :param degree_target: Direction to turn to
+    :param p_correction: p correction value. Defaults to general config.
+    :param i_correction: i correction value. Defaults to general config.
+    :param d_correction: d correction value. Defaults to general config.
+    :param gyro_tolerance: tolerance for target degree. Defaults to general config.
+    """
     target = degree_target
     while target < -180:
         target += 360
@@ -107,7 +112,13 @@ def gyro_turn_pid(
         yield (corrector * (left / 100), -corrector * (right / 100))
 
 
-def pause(parent, start: int, duration: int):
+def pause(parent: Corrector, start: int, duration: int) -> Corrector:
+    """Auxiliary corrector to pause in a specific time range.
+    
+    :param parent: Parent corrector [TODO: Read more]
+    :param start: Amount of seconds to stop after.
+    :param duration: Amount of seconds to stop for.
+    """
     timer = Timer()
     while True:
         if start < timer.elapsed < (start + duration):
@@ -115,7 +126,13 @@ def pause(parent, start: int, duration: int):
         yield next(parent)
 
 
-def accelerate(parent, for_, start_at = None):
+def accelerate(parent: Corrector, for_: int, start_at: int | None = None) -> Corrector:
+    """Auxiliary corrector to accelerate in a specific time range.
+    
+    :param parent: Parent corrector [TODO: Read more]
+    :param for_: Amount of seconds to accelerate for.
+    :param start_at: Amount of seconds to delay accelerating.
+    """
     while True:
         left, right = next(parent)
         if start_at is not None and next(start_at) < 100:
@@ -125,7 +142,13 @@ def accelerate(parent, for_, start_at = None):
             print(speed_mutiplier)
             yield (left * speed_mutiplier, right * speed_mutiplier)
             
-def decelerate(parent, from_, for_):
+def decelerate(parent: Corrector, from_: int, for_: int) -> Corrector:
+    """Auxiliary corrector to deccelerate in a specific time range.
+    
+    :param parent: Parent corrector [TODO: Read more]
+    :param start: Amount of seconds to deccelerate after.
+    :param duration: Amount of seconds to deccelerate for.
+    """
     while True:
         left, right = next(parent)
         if next(from_) < 100:
@@ -151,8 +174,18 @@ def decelerate(parent, from_, for_):
 
 
 def sigmoid_accelerate_sec(
-    parent, duration: int, smooth: int = 6, stretch: bool = True
-):
+    parent: Corrector, duration: int, smooth: int = 6, stretch: bool = True
+) -> Corrector:
+    """Auxiliary corrector to accelerate in a specific time range, softened using the sigmoid function.
+    
+    TODO: WTH is smooth & stretch again?
+    
+    :param parent: Parent corrector [TODO: Read more]
+    :param duration: Amount of seconds to accelerate for.
+    """
+    
+    #:param smooth: Amount of seconds to delay accelerating.
+    
     timer = Timer()
     cutoff = sigmoid(-smooth) if stretch else 0
     while True:

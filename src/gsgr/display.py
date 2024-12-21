@@ -1,4 +1,5 @@
-import hub
+"""Display utils
+"""
 from micropython import const
 
 from .configuration import hardware as hw
@@ -8,7 +9,16 @@ _30 = const(30)
 _100 = const(100)
 
 
-chars = const(
+chars: dict[
+    str,
+    tuple[
+        tuple[int, int, int],
+        tuple[int, int, int],
+        tuple[int, int, int],
+        tuple[int, int, int],
+        tuple[int, int, int],
+    ],
+] = const(
     {
         "1": ((0, 1, 0), (1, 1, 0), (0, 1, 0), (0, 1, 0), (1, 1, 1)),
         "2": ((1, 1, 1), (0, 0, 1), (1, 1, 1), (1, 0, 0), (1, 1, 1)),
@@ -30,7 +40,12 @@ chars = const(
 
 
 def light_up_display(char: int | str, border_right=True, border_left=True, bright=True):
-    """Show number on display with styled lines"""
+    """Show given symbol on light matrix.
+
+    :param border_right: Whether to display a border on the right, rather than the two dots.
+    :param border_left: Whether to display a border on the left, rather than the two dots.
+    :param bright: Whether to display at full brightness.
+    """
 
     light = _100 if bright else _70
     dark = _70 if bright else _30

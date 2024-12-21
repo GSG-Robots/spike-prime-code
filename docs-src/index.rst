@@ -10,5 +10,5 @@ gsgr documentation
    :maxdepth: 3
    :caption: Contents:
    
-   getting-started
+   usage/index
    api/index

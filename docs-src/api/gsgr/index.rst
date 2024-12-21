@@ -14,7 +14,7 @@
    math
    menu
    movement
-   run
+   types
    utils
 
 .. automodule:: gsgr.__init__
