@@ -17,11 +17,12 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx_toolbox.more_autodoc.variables",
+    "sphinx_toolbox.wikipedia",
     "sphinx_autodoc_typehints",
     "sphinx.ext.intersphinx",
 ]
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -38,7 +39,8 @@ sys.path.insert(0, str(Path("..", "src").resolve()))
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_theme_options = {
-  "navigation_depth": 4,
+    "navigation_depth":5,
 }
 
 autodoc_member_order = "bysource"
+autoclass_content = "both"
