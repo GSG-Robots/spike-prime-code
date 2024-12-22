@@ -1,0 +1,299 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2024, GSG Robots
+# This file is distributed under the same license as the gsgr package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: gsgr \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-22 19:32+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: de\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+
+#: ../../usage/getting-started.rst:2
+msgid "How to Use"
+msgstr ""
+
+#: ../../usage/getting-started.rst:4
+msgid ""
+"Add a file in the ``runs`` folder. The order of appereance in the menu is"
+" alphabetically by the filename."
+msgstr "Füge eine Datei zum ``runs`` Ordner hinzu. Die Reihenfolge der Anzeige im Menu erfolgt alphabetisch nach Dateinamen."
+
+#: ../../usage/getting-started.rst:6
+msgid "The file should look like this:"
+msgstr "Die Satei sollte wiefolgt aussehen:"
+
+#: ../../usage/getting-started.rst:20
+msgid ""
+"The code in the ``run`` function is executed when the run is selected. "
+"The variables ``display_as`` and ``color`` represent the symbol to show "
+"and the color to light the button with when the run is selected in the "
+"menu, respectively. To add special config values to a run, you can "
+"additionally use the ``config`` variable like this:"
+msgstr ""
+
+#: ../../usage/index.rst:4 ../../usage/knowledge/index.rst:4
+msgid "Contents:"
+msgstr "Inhalt:"
+
+#: ../../usage/index.rst:2
+msgid "Usage"
+msgstr "Nutzung"
+
+#: ../../usage/knowledge/attachments.rst:2
+msgid "Controlling Attachments"
+msgstr "Steuern von Attachments"
+
+#: ../../usage/knowledge/attachments.rst:5
+msgid ""
+"Even though you are probably be here to look up one specific thing, you "
+"might profit of reading the hole page from the beginning, as you will "
+"need the knowledge gained in the upper paragraphs when reading the ones "
+"further down."
+msgstr ""
+"Auch wenn du nur hier bist um eine spezielle Sache nachzugucken, "
+"kann es Sinn machen, die ganze Seite zu lesen, da die unteren Abschnitte "
+"vorraussetzen, dass du die vorhergehenden Abschnitte verstanden hast."
+
+#: ../../usage/knowledge/attachments.rst:10
+msgid "[TODO: Reference general tips (eg. function signature)]"
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:13
+msgid ""
+"When speaking about the robot, we name the hole thing you can swap out on"
+" the robot \"attachment\". However, when coding, an \"attachment\" simply"
+" refers to one of the output gears of the gearbox."
+msgstr ""
+"Wenn wir über den Roboter reden, nennen wir die gesamte Anbaute \"Attachment\". "
+"Wenn wir allerdings Programmieren, bezeichnet \"Attachment\" einen der Zahnrad-Anschlüsse, "
+"der in Anbauten verwendet wird."
+
+#: ../../usage/knowledge/attachments.rst:16
+msgid ""
+"The two most important things when controlling attachments are the "
+"attachment functions in the :py:mod:`gsgr.movement` module and the "
+":py:class:`~gsgr.enums.Attachment` enum."
+msgstr ""
+"Die zweich wichtigsten Dinge für das Steuern sind die Funktionen des "
+":py:mod:`gsgr.movement` Moduls und das :py:class:`~gsgr.enums.Attachment` enum."
+
+#: ../../usage/knowledge/attachments.rst:20
+msgid "Holding an attachment in place"
+msgstr "Ein Attachment an der Stelle festhalten"
+
+#: ../../usage/knowledge/attachments.rst:22
+msgid ""
+"We will begin with the :py:func:`~gsgr.movement.hold_attachment` "
+"function, as it is the easiest one to understand. Here is an example code"
+" block:"
+msgstr ""
+"Wir beginnen mit der Funktion :py:func:`~gsgr.movement.hold_attachment`, "
+"da sie am einfachsten zu verstehen ist. Hier is ein Beispiel:"
+
+#: ../../usage/knowledge/attachments.rst:35
+msgid ""
+"The :py:func:`~gsgr.movement.hold_attachment` functions is given the "
+"information which attachment to select using the gear selector. The enum "
+":py:class:`~gsgr.enums.Attachment` serves as a place to store the "
+"arbitrary numbers which are asociated with the output gears in relation "
+"to names like :py:attr:`~gsgr.enums.Attachment.FRONT_LEFT` or "
+":py:attr:`~gsgr.enums.Attachment.BACK_RIGHT`."
+msgstr ""
+"Die Funktion :py:func:`~gsgr.movement.hold_attachment` wird mit der Information, "
+"welches Attachment mit dem \"gear selector\" ausgewählt werden soll, aufgerufen. "
+"Das enum :py:class:`~gsgr.enums.Attachment` stellt lediglich einen Weg dar, die "
+"unspezifischen Zahlen, welche mit den verschiedenen Ausgängen in Verbindung "
+"gebracht werden, mithilfe von sinvollen Namen zu wie :py:attr:`~gsgr.enums.Attachment.FRONT_LEFT` oder"
+" :py:attr:`~gsgr.enums.Attachment.BACK_RIGHT` speichern und zu nutzen."
+
+#: ../../usage/knowledge/attachments.rst:39
+msgid ""
+"The example code will simply select the front left gear, so it is no "
+"songer freely movable. This can be useful for arms that should not fall "
+"or other things that should be held in place."
+msgstr ""
+"In diesem Beispiel wird einfach nur der vordere, linke Ausgang angesteuert, "
+"sodass er nicht mehr frei bewegt werden kann. Das kann zum Beispiel nützlich sein, wenn "
+"ein aufrechter Arm in seiner Position gehalten werden soll, während der Roboter fährt."
+
+#: ../../usage/knowledge/attachments.rst:44
+msgid "Allowing an attachment to move freely"
+msgstr "Einem Attachment ermöglichen, sich frei zu bewegen"
+
+#: ../../usage/knowledge/attachments.rst:46
+msgid ""
+"This is a very similar thing, so most of it can be explained with a "
+"simple code example, altough there are a few special cases which are "
+"handled below the example:"
+msgstr ""
+"Das ist sehr ähnlich, also kann es größtenteils mit einem einfachen "
+"Code-Beispiel erklärt werden, obwohl es ein paar spezielle Fälle gibt, "
+"welche wir weiter unten behandeln."
+
+#: ../../usage/knowledge/attachments.rst:57
+msgid ""
+"This code will allow the attachment in the front left to move freely. But"
+" you have to be cautionous! This code has a side effect that is not "
+"visible at first glance: It blocks one of the other attachments. This is "
+"because the gearbox only has 4 stable/safe states and we try to move out "
+"of the way as far as possible to ensure the front left attachment can "
+"really move freely."
+msgstr ""
+"Dieser Code erlaubt es dem attachment vorne links, sich frei zu bewegen. "
+"Aber Vorsicht! Dieser Code hat einen Effekt, der nicht direkt sichtbar ist: "
+"Er blockiert einen der anderen Ausgänge. Das liegt daran, dass das Getriebe "
+"nur vier stabiele bzw. sichere Positionen hat, und wir versuchen, es so einzustellen, "
+"das der angegebene Ausgang sicher frei ist."
+
+#: ../../usage/knowledge/attachments.rst:63
+msgid ""
+"If you want to ensure multiple attachments are freed at the same time, "
+"you can simply select one of the left over attachments using "
+":py:func:`~gsgr.movement.hold_attachment`."
+msgstr ""
+"Wenn man mehreren Attachments gleichzeitig ermöglichen möchte, sich zu bewegen, "
+"kann man einfach einen der Ausgänge ansteuern, der sich nich frei bewegen können muss."
+"Dazu kann wieder :py:func:`~gsgr.movement.hold_attachment`. verwendet werden."
+
+#: ../../usage/knowledge/attachments.rst:66
+msgid ""
+"If you, for some unknown reasons, want to \"unselect\" all attachments at"
+" the same time, you can use the (unsafe!) "
+":py:func:`~gsgr.movement.free_attachments` function, which turns the gear"
+" selector at a 45° angle so none of the attachments is selected. This is "
+"possible, but because being just 5° off will already paritally block one "
+"of the attachments, this will not always work and is discouraged."
+msgstr ""
+"Wenn man, aus welchen Gründen auch immer, freie Bewegung an allen Ausgängen gleichzeitig "
+"ermöglichen will, kann man die (unsichere!) Funktion :py:func:`~gsgr.movement.free_attachments` "
+"nutzen, welche den \"gear selector\" auf eine 45° Position genau zwischen zwei Ausgängen "
+"stellt. Das ist möglich, wegen der dazu Benötigten aber nicht vorhandenen Genauigkeit des Motors "
+"aber nicht immer funktional und sollte eher nicht verwendet werden."
+
+#: ../../usage/knowledge/attachments.rst:73
+msgid "Move an attachment"
+msgstr "Bewegen eines Attachments"
+
+#: ../../usage/knowledge/attachments.rst:75
+msgid ""
+"Finally, to move an attachment, you can use the "
+":py:func:`~gsgr.movement.run_attachment` function."
+msgstr ""
+"Um ein Attachment zu bewegen, kann die :py:func:`~gsgr.movement.run_attachment` "
+"Funktion verwendet werden."
+
+#: ../../usage/knowledge/attachments.rst:77
+msgid "Parameters you have to supply are:"
+msgstr "Parameter, die angegeben werden müssen, sind:"
+
+#: ../../usage/knowledge/attachments.rst:79
+msgid "The attachment to move"
+msgstr "Das zu bewegende Attachment"
+
+#: ../../usage/knowledge/attachments.rst:80
+msgid "The speed to move it at"
+msgstr "Die Geschwindigkeit"
+
+#: ../../usage/knowledge/attachments.rst:81
+msgid "The duration to move it for"
+msgstr "Die Dauer, wie lange es bewegt werden soll."
+
+#: ../../usage/knowledge/attachments.rst:83
+msgid "This can look like this:"
+msgstr "Das kann so aussehen:"
+
+#: ../../usage/knowledge/attachments.rst:94
+msgid ""
+"This code will move the front left attachment at full speed for 5 "
+"seconds. :py:func:`~gsgr.movement.run_attachment` uses "
+":py:func:`~gsgr.movement.hold_attachment` in the background to select the"
+" right attachment, and then runs the drive shaft with the given speed and"
+" for the given time."
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:99
+msgid "Additional options"
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:101
+msgid ""
+"All additional options are combinable, although they are explained in "
+"seperate paragraphs, so it is easier to understand and differenciate what"
+" each of them actually does."
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:105
+msgid "Only start attachment"
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:107
+msgid ""
+"If no duration is given, the function will also run "
+":py:func:`~gsgr.movement.hold_attachment` and then start the motor with "
+"the given speed, but will not wait for anything. This means that right "
+"after running :py:func:`~gsgr.movement.run_attachment`, the motor is "
+"started and the next line of the code will be executed without delay. If "
+"this was the last line of your program, almost nothing will happen, as "
+"the run will finish before the movement of the motor can really affect "
+"anything. To make use of this, you have to do some action afterwards. For"
+" example, you could use this to move an attachment while driving like "
+"this:"
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:127
+msgid ""
+"In this code example, we move the front_left attachment at full speed, "
+"while driving forward for 10 cm. Also, as you can see, a new function is "
+"used here: :py:func:`~gsgr.movement.stop_attachment`. It is used to stop "
+"the attachment when called. Here, after we drove for 10cm. In this case, "
+"it is actually not required, as it is the last line of the run and all "
+"motors will be stopped anyways, but it is good practise to always include"
+" it, as this will be the case rarely and the process to stop all motors "
+"at the end of a run is not always successfull."
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:136
+msgid "Release tension after movement"
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:138
+msgid ""
+"After moving the attachment, it might be under stress, as it was turned "
+"against a blockade or some other part. To minimize the stress on the "
+"pieces and ensure to continue the run without pressing parts on the floor"
+" at full force, it may be applicable to loosen the attachment for a "
+"moment, before fastening it again. To do this, you can use the "
+":py:obj:`untension` parameter like this:"
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:155
+msgid "Stop automatically when stalled"
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:157
+msgid ""
+"To enable LEGO's stall detection while moving the attachment, you can use"
+" the :py:obj:`stop_on_resistance` parameter. This will make the motor "
+"stop automatically when a resistance is felt and will exit early if the "
+"given duration has not passed yet."
+msgstr ""
+
+#: ../../usage/knowledge/attachments.rst:163
+msgid "This has never worked yet."
+msgstr ""
+
+#: ../../usage/knowledge/index.rst:2
+msgid "Knowledgebase"
+msgstr ""
+
