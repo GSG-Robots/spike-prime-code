@@ -17,6 +17,7 @@ mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
 print("%s%% of memory used" % mem_perc)
 print("%s%% battery left" % hub.battery.capacity_left())
 
+hub.display.align(hub.RIGHT)
 # raise RuntimeError
 menu = Menu(landscape=True)
 
@@ -26,7 +27,7 @@ for run in runs:
     menu.add_item(
         Run(run.get("display_as"), run.get("color"), run.get("config"), run.get("run"))
     )
-    
+
 
 FRONT_RIGHT = 3
 FRONT_LEFT = 1
@@ -100,6 +101,7 @@ def run_motorcontrol():
                 stop_attachment()
                 time.sleep(1.0)
 
+
 menu.add_item(Run("C", "yellow", {}, run_motorcontrol))
 
 exit_item = MenuItem("x", "white")
@@ -111,6 +113,7 @@ def exit_callback():
 
 
 menu.add_item(exit_item)
+
 
 with (
     hardware(
@@ -134,11 +137,7 @@ with (
         loop_throttle=0.025,
     ),
 ):
-    hub.display.align(hub.RIGHT)
     menu.loop(autoscroll=True)
-
-
-
 
 
 # debug_menu = MasterControlProgram(PrimeHub(), DEBUG_MODE)

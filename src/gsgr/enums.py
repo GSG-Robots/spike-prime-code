@@ -1,13 +1,17 @@
-import enum
+"""static enums for basic constants
+"""
 
 
-class Color(enum.Enum):
+class Color:
+    """SPIKE-Prime colors"""
     WHITE = "white"
     GREEN = "green"
     RED = "red"
     YELLOW = "yellow"
 
+
 class Attachment:
+    """Attachment numbers after position"""
     FRONT_RIGHT = 3
     FRONT_LEFT = 1
     BACK_RIGHT = 4
