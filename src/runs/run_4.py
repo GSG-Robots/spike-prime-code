@@ -1,13 +1,11 @@
 import time
 from gsgr.conditions import sec, deg, cm, THEN
 from gsgr.enums import Color, Attachment
-from gsgr.movement import gyro_set_origin, gyro_drive, gyro_turn, run_attachment, hold_attachment, run_attachment_degrees, free_attachment
+from gsgr.movement import gyro_set_origin, gyro_drive, gyro_turn, run_attachment, hold_attachment, free_attachment
 from gsgr.configuration import config as cnf
 
 display_as = 4
 color = Color.RED
-
-config = cnf(p_correction=1)
 
 
 def run():
