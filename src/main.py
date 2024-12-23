@@ -131,7 +131,7 @@ with (
         d_correction=-0.5,
         # d_correction=0,
         speed_multiplier=1,
-        debug_mode=False,
+        debug_mode=True,
         gyro_tolerance=2,
         degree_o_meter=DegreeOMeter(),
         loop_throttle=0.025,

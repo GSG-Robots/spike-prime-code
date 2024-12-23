@@ -244,15 +244,7 @@ def gyro_drive(
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
 
-    # Auto-setup PID
-    corrector = corr.gyro_drive_pid(
-        corr.speed(speed),
-        degree,
-        p_correction,
-        i_correction,
-        d_correction,
-        gyro_tolerance,
-    )
+    corrector = corr.speed(speed)
 
     # Auto-setup acceleration and deceleration
     if accelerate_for:
@@ -268,6 +260,16 @@ def gyro_drive(
             decelerate_from,
             decelerate_for,
         )
+
+    # Auto-setup PID
+    corrector = corr.gyro_drive_pid(
+        corrector,
+        degree,
+        p_correction,
+        i_correction,
+        d_correction,
+        gyro_tolerance,
+    )
 
     # Delegate to normal drive function
     drive(
@@ -306,15 +308,7 @@ def gyro_turn(
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
 
-    # Auto-setup PID
-    corrector = corr.gyro_drive_pid(
-        corr.speed(speed),
-        degree,
-        p_correction,
-        i_correction,
-        d_correction,
-        gyro_tolerance,
-    )
+    corrector = corr.speed(speed)
 
     # Auto-setup acceleration and deceleration
     if accelerate_for:
@@ -330,6 +324,16 @@ def gyro_turn(
             decelerate_from,
             decelerate_for,
         )
+
+    # Auto-setup PID
+    corrector = corr.gyro_turn_pid(
+        corrector,
+        degree,
+        p_correction,
+        i_correction,
+        d_correction,
+        gyro_tolerance,
+    )
 
     # Delegate to normal drive function
     drive(
