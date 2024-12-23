@@ -13,6 +13,7 @@ import msvcrt
 import spikeapi
 
 
+print(colorama.Fore.GREEN + "> Searching for devices..." + colorama.Fore.RESET)
 devices = serial.tools.list_ports_windows.comports()
 if len(devices) == 0:
     print(colorama.Fore.RED + "No devices found" + colorama.Fore.RESET)
@@ -24,6 +25,7 @@ else:
         print(f"{index+1:>2}. {device.device}")
     device_choice = devices[int(input("Device: ")) - 1]
 
+print(colorama.Fore.GREEN + "> Connecting..." + colorama.Fore.RESET)
 device = spikeapi.Device(device_choice.device)
 
 slot = 0

@@ -125,10 +125,10 @@ with (
     config(
         p_correction=1.2,
         i_correction=0,
-        # d_correction=-0.2,
-        d_correction=0,
+        d_correction=-0.5,
+        # d_correction=0,
         speed_multiplier=1,
-        debug_mode=True,
+        debug_mode=False,
         gyro_tolerance=2,
         degree_o_meter=DegreeOMeter(),
         loop_throttle=0.025,
