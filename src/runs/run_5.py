@@ -39,8 +39,9 @@ def run():
     gyro_drive(45, -50, cm(15))
 
     gyro_turn(87, 20, THEN(deg(87), sec(1)))
-    gyro_drive(87, -50, cm(20))
+    gyro_drive(87, -50, cm(22))
 
-    run_attachment(Attachment.FRONT_LEFT, 100, 4, True)
-
+    run_attachment(Attachment.FRONT_LEFT, 100, 5.5, True)
+    run_attachment(Attachment.FRONT_LEFT, -100, 2, True, untension=True)
+    
     gyro_drive(87, -50, cm(20))
