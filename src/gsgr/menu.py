@@ -168,6 +168,7 @@ class Menu:
                 except Exception as e:
                     if cnf.debug_mode:
                         hw.brick.light_matrix.write(type(e).__name__ + ":" + str(e))
+                    raise e
                 result.cleanup()
             except KeyboardInterrupt:
                 result.cleanup()
