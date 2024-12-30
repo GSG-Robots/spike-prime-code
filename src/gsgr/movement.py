@@ -71,7 +71,7 @@ def free_attachment(target_gear: int):
     check_battery()
     # Move to some other position. Anything over 45 degrees will do, but 90 is the most reliable.
     hw.gear_selector.run_to_position(
-        (90 * (target_gear - 1)) + 90, "shortest path", 100
+        ((90 * (target_gear - 1)) + 90) % 360, "shortest path", 100
     )
 
 
@@ -127,6 +127,7 @@ def run_attachment(
     while timer.elapsed < duration:
         if stop_on_resistance and hw.drive_shaft.was_stalled():
             break
+        time.sleep(.02)
     hw.drive_shaft.stop()
     # Cleanup
     hw.drive_shaft.set_stall_detection(False)
