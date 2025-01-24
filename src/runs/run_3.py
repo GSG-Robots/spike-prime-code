@@ -22,11 +22,13 @@ def run():
     run_attachment(Attachment.FRONT_RIGHT, -50, 1)
     free_attachment(Attachment.FRONT_RIGHT)
 
-    gyro_drive(0, 50, cm(15))
+    gyro_drive(0, 40, cm(15))
 
     # time.sleep(0.3)
 
-    gyro_drive(0, 80, cm(80), i_correction=3, accelerate_for=cm(10))
+    gyro_drive(0, 70, cm(80), i_correction=3, accelerate_for=cm(10))
+    
+    gyro_drive(0, 40, cm(10), i_correction=3)
 
     # gyro_turn(0, 20)
 
@@ -45,6 +47,9 @@ def run():
 
     gyro_drive(-90, -90, cm(10))
 
-    gyro_set_origin()
-
-    gyro_drive(0, 50, cm(20))
+    gyro_drive(-90, 50, cm(20))
+    
+    gyro_turn(0, 45)
+    
+    gyro_drive(0, 50, cm(30))
+    gyro_drive(0, 100, cm(50))
