@@ -12,7 +12,7 @@ class Color:
 
 class Attachment:
     """Attachment numbers after position"""
-    FRONT_RIGHT = 3
-    FRONT_LEFT = 1
-    BACK_RIGHT = 4
-    BACK_LEFT = 2
+    FRONT_RIGHT = 2
+    FRONT_LEFT = 4
+    BACK_RIGHT = 1
+    BACK_LEFT = 3
