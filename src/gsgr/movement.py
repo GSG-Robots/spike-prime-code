@@ -127,13 +127,12 @@ def run_attachment(
     while timer.elapsed < duration:
         if stop_on_resistance and hw.drive_shaft.was_stalled():
             break
-        time.sleep(.02)
+        time.sleep(0.02)
     hw.drive_shaft.stop()
     # Cleanup
     hw.drive_shaft.set_stall_detection(False)
     if untension:
-        free_attachment(attachment)
-        hold_attachment(attachment)
+        hw.drive_shaft.run_for_degrees(-80 * (speed // abs(speed)))
 
 
 # def run_attachment_degrees(
