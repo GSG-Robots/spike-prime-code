@@ -6,7 +6,7 @@ from compyner.typehints import ComPYnerBuildTools
 from gsgr.movement import run_attachment, stop_attachment
 import hub
 from gsgr.configuration import config, hardware
-from gsgr.menu import Menu, MenuItem, Run
+from gsgr.menu import ActionMenu, ActionMenuItem, Run
 from gsgr.utils import DegreeOMeter
 from spike import Motor, MotorPair, PrimeHub
 
@@ -19,7 +19,7 @@ print("%s%% battery left" % hub.battery.capacity_left())
 
 hub.display.align(hub.RIGHT)
 # raise RuntimeError
-menu = Menu(landscape=True)
+menu = ActionMenu(landscape=True)
 
 runs = ComPYnerBuildTools.get_modules_path_glob("runs/*.py")
 
@@ -29,14 +29,15 @@ for run in runs:
     )
 
 
-FRONT_RIGHT = 3
-FRONT_LEFT = 1
-BACK_RIGHT = 4
-BACK_LEFT = 2
+FRONT_RIGHT = 2
+FRONT_LEFT = 4
+BACK_RIGHT = 1
+BACK_LEFT = 3
 
 
 def run_motorcontrol():
     """Motorcontrol"""
+    print("TEST")
     select = 1
     last_select = -1
     motor = FRONT_LEFT
@@ -104,12 +105,8 @@ def run_motorcontrol():
 
 menu.add_item(Run("C", "yellow", {}, run_motorcontrol))
 
-exit_item = MenuItem("x", "white")
-
-
-@exit_item.set_callback
-def exit_callback():
-    menu.exit()
+exit_item = ActionMenuItem("x", "white")
+exit_item.set_action(menu.exit)
 
 
 menu.add_item(exit_item)
