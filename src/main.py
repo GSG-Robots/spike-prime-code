@@ -6,7 +6,8 @@ from compyner.typehints import ComPYnerBuildTools
 from gsgr.movement import run_attachment, stop_attachment
 import hub
 from gsgr.configuration import config, hardware
-from gsgr.menu import ActionMenu, ActionMenuItem, Run
+from gsgr.menu import ActionMenu, ActionMenuItem
+from gsgr.run import Run
 from gsgr.utils import DegreeOMeter
 from spike import Motor, MotorPair, PrimeHub
 
@@ -105,8 +106,7 @@ def run_motorcontrol():
 
 menu.add_item(Run("C", "yellow", {}, run_motorcontrol))
 
-exit_item = ActionMenuItem("x", "white")
-exit_item.set_action(menu.exit)
+exit_item = ActionMenuItem(menu.exit, "x", "white")
 
 
 menu.add_item(exit_item)
