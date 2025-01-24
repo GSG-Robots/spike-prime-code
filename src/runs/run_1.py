@@ -18,9 +18,10 @@ def run():
     # Set Gyro Origin
     gyro_set_origin()
 
-    gyro_drive(1, 50, cm(49), p_correction=0.5)
+    gyro_drive(0, 50, cm(49))
     run_attachment(Attachment.BACK_LEFT, 100, 2, False, True)
-    run_attachment(Attachment.FRONT_RIGHT, 100, 4)
+    run_attachment(Attachment.FRONT_RIGHT, -100, 3, False, True)
+    run_attachment(Attachment.FRONT_LEFT, 50, 1)
 
 
 # gyro_drive(0, -40, cm(70))
