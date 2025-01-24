@@ -1,15 +1,12 @@
 """Display utils
 """
+
 from micropython import const
 
 from .configuration import hardware as hw
 
-_70 = const(70)
-_30 = const(30)
-_100 = const(100)
 
-
-chars: dict[
+images: dict[
     str,
     tuple[
         tuple[int, int, int],
@@ -35,11 +32,28 @@ chars: dict[
         "T": ((1, 1, 1), (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 0, 0)),
         "R": ((1, 1, 1), (1, 0, 1), (1, 1, 0), (1, 0, 1), (1, 0, 1)),
         "D": ((1, 1, 0), (1, 0, 1), (1, 0, 1), (1, 0, 1), (1, 1, 0)),
+        "on": ((1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1)),
+        "off": ((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)),
     }
 )
 
 
-def light_up_display(char: int | str, border_right=True, border_left=True, bright=True):
+def show_image(
+    image: (
+        int
+        | str
+        | tuple[
+            tuple[int, int, int],
+            tuple[int, int, int],
+            tuple[int, int, int],
+            tuple[int, int, int],
+            tuple[int, int, int],
+        ]
+    ),
+    border_right=True,
+    border_left=True,
+    bright=True,
+):
     """Show given symbol on light matrix.
 
     :param border_right: Whether to display a border on the right, rather than the two dots.
@@ -47,18 +61,25 @@ def light_up_display(char: int | str, border_right=True, border_left=True, brigh
     :param bright: Whether to display at full brightness.
     """
 
-    light = _100 if bright else _70
-    dark = _70 if bright else _30
+    light = 100 if bright else 70
+    dark = 70 if bright else 30
 
-    char = str(char)
+    if isinstance(image, int):
+        image = str(image)
 
-    if char in chars:
+    if isinstance(image, str):
+        if image not in images:
+            raise ValueError("No image named '%s'" % image)
+        image = images[image]
+
+    if isinstance(image, tuple):
         hw.brick.light_matrix.off()
-        for y, row in enumerate(chars[char]):
+        for y, row in enumerate(image):
             for x, pixel in enumerate(row, 1):
-                hw.brick.light_matrix.set_pixel(x, y, pixel * light)
+                hw.brick.light_matrix.set_pixel(x, y, int(pixel * light))
     else:
-        raise ValueError("Huh?")
+        raise TypeError("Image cannot be rendered, invalid type")
+
     hw.brick.light_matrix.set_pixel(0, 1, brightness=dark)
     hw.brick.light_matrix.set_pixel(0, 3, brightness=dark)
     hw.brick.light_matrix.set_pixel(4, 1, brightness=dark)

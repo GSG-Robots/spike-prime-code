@@ -8,7 +8,7 @@ from spike import Motor
 
 from .configuration import config as cnf
 from .configuration import hardware as hw
-from .display import light_up_display
+from .display import show_image
 from .exceptions import ExitMenu, StopRun
 from .math import clamp
 
@@ -18,8 +18,6 @@ class MenuItem:
     """Character or digit to display in menu, indicating which menu item is selected."""
     color: str
     """Color of the status light to indicate which menu item is selected."""
-    callback: Callable
-    """Function to call when menu item is selected."""
 
     def __init__(self, display_as: int | str, color: str = "white") -> None:
         """
@@ -28,20 +26,41 @@ class MenuItem:
         """
         self.display_as = display_as
         self.color = color
-        self.callback = lambda: ...
 
-    def get_callback(self) -> Callable:
+
+class ActionMenuItem(MenuItem):
+    action: Callable | None
+    """Function to call when menu item is selected."""
+
+    def __init__(
+        self, action: Callable | None, display_as: int | str, color: str = "white"
+    ):
+        """
+        :param display_as: Charackter or digit to display in menu, indicating which menu item is selected. Sets :py:attr:`display_as` initially.
+        :param color: Color of the status light to indicate which menu item is selected. Sets :py:attr:`color` initially. Defaults to `"white"`.
+        :param action: Callback to run on selection.
+        """
+        super().__init__(display_as, color)
+        self.action = action
+
+    def run(self) -> Callable:
         """Getter function for :py:attr:`callback`."""
-        return self.callback
+        self.prepare()
+        if self.action:
+            self.action()
+        self.cleanup()
 
-    def set_callback(self, func: Callable | None = None):
-        """Setter function for :py:attr:`callback`.
+    def prepare(self):
+        """Function to call before :py:attr:`action` is run."""
 
-        :param func: Function to set as callback. If not provided, returns a decorator function. Defaults to `None`.
+    def set_action(self, func: Callable | None = None):
+        """Setter function for :py:attr:`action`.
+
+        :param func: Function to set as action callback. If not provided, returns a decorator function. Defaults to `None`.
         """
 
         def decorator(func):
-            self.callback = func
+            self.action = func
             return func
 
         if func:
@@ -49,7 +68,7 @@ class MenuItem:
         return decorator
 
     def cleanup(self):
-        """Funtion called after menu item callback has finished."""
+        """Function to call after :py:attr:`action` ran."""
 
     def stop(self):
         """Helper function to stop the callback function of a :py:class:`~gsgr.menu.MenuItem`.
@@ -59,7 +78,7 @@ class MenuItem:
         raise StopRun
 
 
-class Run(MenuItem):
+class Run(ActionMenuItem):
     context: ContextManager
     """A context manager in which the run is being executed.
     
@@ -77,18 +96,19 @@ class Run(MenuItem):
         :param display_as: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`display_as` initially.
         :param color: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`color` initially.
         :param config: A context manager to execute the run in. Designed for :py:class:`~gsgr.configuration.Config` calls. Sets :py:attr:`context` initially.
+        :param run: The run's main function / callback.
         """
         super().__init__(display_as, color)
         self.context = config or cnf()
-        self.set_callback(run)
+        self.set_action(run)
 
-    def get_callback(self):
-        """Patched verison of :py:meth:`MenuItem.get_callback` to enter the context manager / loading run specific config before returning the callback."""
+    def prepare(self):
+        """Patched verison of :py:meth:`MenuItem.prepare` to enter the context manager / loading run specific config before returning the callback."""
         self.context.__enter__()
         return super().get_callback()
 
     def cleanup(self):
-        """Stop all motors and exit the context manager. This means resetting the config."""
+        """Patched verison of :py:meth:`MenuItem.cleanup` to stop all motors and exit the context manager. This means resetting the config."""
         for port in ("A", "B", "C", "D", "E", "F"):
             try:
                 Motor(port).stop()
@@ -125,7 +145,7 @@ class Menu:
         """
         self.items.append(item)
 
-    def get(self) -> MenuItem:
+    def choose(self) -> MenuItem:
         """Show menu and allow to select item
 
         :returns: the selected item
@@ -141,7 +161,7 @@ class Menu:
                 self.position = int(clamp(self.position, 0, len(self.items) - 1))
 
                 if last_position != self.position:
-                    light_up_display(
+                    show_image(
                         self.items[self.position].display_as,
                         self.position == 0,
                         self.position == (len(self.items) - 1),
@@ -153,36 +173,47 @@ class Menu:
         except (KeyboardInterrupt, SystemExit):
             return self.items[self.position]
 
-    def loop(self, autoscroll=False):
-        """Show the menu and run the callback of the selected item in an infinite loop.
-
-        :param autoscroll: whether to scroll to the next item after executing the callback of a :py:class:`~gsgr.menu.MenuItem` automatically.
-        """
-        while True:
-            result = self.get()
-            light_up_display(result.display_as, True, True, False)
-            try:
-                callback = result.get_callback()
-                try:
-                    callback()
-                except Exception as e:
-                    if cnf.debug_mode:
-                        hw.brick.light_matrix.write(type(e).__name__ + ":" + str(e))
-                    raise e
-                result.cleanup()
-            except KeyboardInterrupt:
-                result.cleanup()
-                continue
-            except ExitMenu:
-                result.cleanup()
-                break
-
-            if autoscroll:
-                self.position += 1
-
     def exit(self):
         """Helper function to exit :py:meth:`~gsgr.menu.Menu.loop`.
 
         :raises: ExitMenu
         """
         raise ExitMenu
+
+
+class ActionMenu(Menu):
+    items: list[ActionMenuItem]
+    """A list of all :py:class:`~gsgr.menu.ActionMenuItem` s in the menu"""
+
+    def choose_and_run(self):
+        """Show menu and allow to select item which then is being executed
+
+        :returns: the selected item
+        """
+        result = self.choose()
+        show_image(result.display_as, True, True, False)
+        result.prepare()
+        try:
+            result.action()
+        except Exception as e:
+            if cnf.debug_mode:
+                hw.brick.light_matrix.write(type(e).__name__ + ":" + str(e))
+            raise e
+        finally:
+            result.cleanup()
+
+    def loop(self, autoscroll=False):
+        """Show the menu and run the callback of the selected item in an infinite loop.
+
+        :param autoscroll: whether to scroll to the next item after executing the callback of a :py:class:`~gsgr.menu.MenuItem` automatically.
+        """
+        while True:
+            try:
+                self.choose_and_run()
+            except KeyboardInterrupt:
+                continue
+            except ExitMenu:
+                break
+
+            if autoscroll:
+                self.position += 1
