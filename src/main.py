@@ -3,6 +3,7 @@ import time
 
 from compyner.typehints import ComPYnerBuildTools
 
+from gsgr.display import show_image
 from gsgr.movement import run_attachment, stop_attachment
 import hub
 from gsgr.configuration import config, hardware
@@ -111,7 +112,6 @@ exit_item = ActionMenuItem(menu.exit, "x", "white")
 
 menu.add_item(exit_item)
 
-
 with (
     hardware(
         drive_shaft=Motor("B"),
@@ -134,7 +134,23 @@ with (
         loop_throttle=0.025,
     ),
 ):
-    menu.loop(autoscroll=True)
+    show_image(
+        (
+            (0, 0, 0),
+            (0, 0, 0),
+            (0, 1, 0),
+            (0, 0, 0),
+            (0, 0, 0),
+        )
+    )
+
+    while hub.battery.charger_detect() in [
+        hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
+        hub.battery.CHARGER_STATE_CHARGING_ONGOING,
+    ]:
+        time.sleep(0.2)
+
+    menu.loop(autoscroll=True, exit_on_charge=config.debug_mode)
 
 
 # debug_menu = MasterControlProgram(PrimeHub(), DEBUG_MODE)

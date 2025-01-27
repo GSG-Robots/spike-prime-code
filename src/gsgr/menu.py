@@ -5,6 +5,8 @@ Also supplies run class, being a menu item.
 
 from typing import Callable
 
+import hub
+
 from .configuration import config as cnf
 from .configuration import hardware as hw
 from .display import show_image
@@ -89,7 +91,12 @@ class Menu:
     position: int
     """Currently displayed menu item index"""
 
-    def __init__(self, items: list[MenuItem] | None = None, landscape=False):
+    def __init__(
+        self,
+        items: list[MenuItem] | None = None,
+        landscape=False,
+        close_on_charge=False,
+    ):
         """
         :param items: a list of :py:class:`~gsgr.menu.MenuItem` s to be included initially. Defaults to an empty list.
         :param landscape: whether to optimize controls for landscape mode. Defaults to False.
@@ -105,7 +112,7 @@ class Menu:
         """
         self.items.append(item)
 
-    def choose(self) -> MenuItem:
+    def choose(self, exit_on_charge=False) -> MenuItem:
         """Show menu and allow to select item
 
         :returns: the selected item
@@ -117,6 +124,11 @@ class Menu:
                     self.position = self.position - (-1 if self.landscape else 1)
                 if hw.brick.right_button.was_pressed():
                     self.position = self.position + (-1 if self.landscape else 1)
+                if exit_on_charge and hub.battery.charger_detect() in [
+                    hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
+                    hub.battery.CHARGER_STATE_CHARGING_ONGOING,
+                ]:
+                    raise ExitMenu
 
                 self.position = int(clamp(self.position, 0, len(self.items) - 1))
 
@@ -129,7 +141,8 @@ class Menu:
                     )
                     hw.brick.status_light.on(self.items[self.position].color)
                     last_position = self.position
-
+        except ExitMenu as e:
+            raise e
         except (KeyboardInterrupt, SystemExit):
             return self.items[self.position]
 
@@ -145,12 +158,12 @@ class ActionMenu(Menu):
     items: list[ActionMenuItem]
     """A list of all :py:class:`~gsgr.menu.ActionMenuItem` s in the menu"""
 
-    def choose_and_run(self):
+    def choose_and_run(self, exit_on_charge=False):
         """Show menu and allow to select item which then is being executed
 
         :returns: the selected item
         """
-        result = self.choose()
+        result = self.choose(exit_on_charge=exit_on_charge)
         show_image(result.display_as, True, True, False)
         result.prepare()
         try:
@@ -162,14 +175,14 @@ class ActionMenu(Menu):
         finally:
             result.cleanup()
 
-    def loop(self, autoscroll=False):
+    def loop(self, autoscroll=False, exit_on_charge=False):
         """Show the menu and run the callback of the selected item in an infinite loop.
 
         :param autoscroll: whether to scroll to the next item after executing the callback of a :py:class:`~gsgr.menu.MenuItem` automatically.
         """
         while True:
             try:
-                self.choose_and_run()
+                self.choose_and_run(exit_on_charge=exit_on_charge)
             except KeyboardInterrupt:
                 continue
             except ExitMenu:
