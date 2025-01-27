@@ -12,7 +12,7 @@ from gsgr.movement import (
 from gsgr.configuration import config as cnf
 
 display_as = 3
-color = Color.YELLOW
+color = Color.BLUE
 
 
 def run():
@@ -36,6 +36,6 @@ def run():
     gyro_turn(-50, 70)
     gyro_drive(-50, 70, cm(20))
     gyro_turn(-10, 70)
-    gyro_drive(-10, 70, cm(37))
+    gyro_drive(-10, 70, cm(40))
     gyro_turn(15, 70)
     gyro_drive(15, 100, cm(60))

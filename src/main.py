@@ -126,7 +126,6 @@ with (
         p_correction=1.2,
         i_correction=0,
         d_correction=-0.5,
-        # d_correction=0,
         speed_multiplier=1,
         debug_mode=True,
         gyro_tolerance=2,
