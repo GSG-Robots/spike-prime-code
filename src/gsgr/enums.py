@@ -4,14 +4,17 @@
 
 class Color:
     """SPIKE-Prime colors"""
+
     WHITE = "white"
     GREEN = "green"
     RED = "red"
     YELLOW = "yellow"
+    BLUE = "blue"
 
 
 class Attachment:
     """Attachment numbers after position"""
+
     FRONT_RIGHT = 2
     FRONT_LEFT = 4
     BACK_RIGHT = 1
