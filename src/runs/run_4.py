@@ -12,16 +12,16 @@ def run():
     # Set Gyro Origin
     gyro_set_origin()
 
-    gyro_drive(0, -100, cm(5))
+    gyro_drive(0, -80, cm(5))
 
     run_attachment(Attachment.BACK_LEFT, -80, 1, stop_on_resistance=True, untension=True)
 
     run_attachment(Attachment.BACK_LEFT, 50, 1, stop_on_resistance=True, untension=True)
 
-    gyro_drive(0, -80, cm(40))#, accelerate_for=cm(10))
+    gyro_drive(0, -80, cm(40))
 
-    run_attachment(Attachment.BACK_LEFT, -30, 1.5, stop_on_resistance=0)
+    run_attachment(Attachment.BACK_LEFT, -30, 1.5)
 
-    gyro_drive(0, 50, cm(60), p_correction=0.3)#, accelerate_for=cm(10), decelerate_from=cm(50), decelerate_for=cm(10))
+    gyro_drive(0, 50, cm(60), p_correction=0.3)
 
     free_attachment(Attachment.BACK_LEFT)

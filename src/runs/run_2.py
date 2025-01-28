@@ -17,10 +17,10 @@ color = Color.WHITE
 def run():
     # Set Gyro Origin
     gyro_set_origin()
-    run_attachment(Attachment.FRONT_RIGHT, 100, 1.3, True, False)
-    # run_attachment(Attachment.FRONT_RIGHT, -30, 1, False, True)
-    run_attachment(Attachment.FRONT_LEFT, 75, 1, True, True)
-   # free_attachment(Attachment.FRONT_RIGHT)
+    run_attachment(Attachment.FRONT_RIGHT, 100, 1.3, untension=False)
+    run_attachment(Attachment.FRONT_RIGHT, -100, 1, False, True)
+    run_attachment(Attachment.FRONT_LEFT, 75, 1, stop_on_resistance=True, untension=True)
+    # free_attachment(Attachment.FRONT_RIGHT)
 
     gyro_drive(0, 90, cm(10))
 
@@ -30,17 +30,15 @@ def run():
     gyro_turn(0, 50)
     gyro_drive(0, 75, cm(20))
 
-    run_attachment(Attachment.BACK_RIGHT, 100, 3.5, True, False)
-    run_attachment(Attachment.BACK_RIGHT, -100, 1.5, False, True)
+    run_attachment(Attachment.BACK_RIGHT, 100, 3.5, stop_on_resistance=True)
+    run_attachment(Attachment.BACK_RIGHT, -100, 1.5, untension=True)
 
-    gyro_drive(2, 30, cm(9))
+    gyro_drive(2, 70, cm(9))
 
-    run_attachment(Attachment.FRONT_RIGHT, 100, 1.8, True, False)
-    gyro_drive(0, 20, cm(1))
-    run_attachment(Attachment.FRONT_RIGHT, 100, .8, True, False)
+    run_attachment(Attachment.FRONT_RIGHT, 100, 1.8, stop_on_resistance=True)
     run_attachment(Attachment.FRONT_RIGHT, -100, 1.2, True, True)
     
-    gyro_drive(0, -10, cm(5))
+    # gyro_drive(0, -10, cm(5))
 
     run_attachment(Attachment.FRONT_LEFT, -80, 1.5, True, False)
 

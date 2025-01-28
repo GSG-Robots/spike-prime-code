@@ -25,22 +25,21 @@ def run():
     gyro_drive(-45, 75, cm(15))
 
     gyro_turn(0, 50)
-    gyro_drive(0, 60, cm(22))
+    gyro_drive(0, 61, cm(23))
 
     gyro_turn(45, 50, THEN(deg(45), sec(1)))
     gyro_drive(45, 60, cm(20), decelerate_from=cm(10), decelerate_for=cm(13))
 
-    run_attachment(Attachment.FRONT_RIGHT, -30, 1.5, True)
-    run_attachment(Attachment.FRONT_RIGHT, 30, 1, True)
-    run_attachment(Attachment.FRONT_RIGHT, -30, 1, True)
-    run_attachment(Attachment.FRONT_RIGHT, 30, 1, True)
+    run_attachment(Attachment.FRONT_RIGHT, -80,1.5, True,True)
+    #run_attachment(Attachment.FRONT_RIGHT, 50, 1, True)
+    #run_attachment(Attachment.FRONT_RIGHT, -30, 1, True)
+    #run_attachment(Attachment.FRONT_RIGHT, 30, 1, True)
     free_attachment(Attachment.FRONT_RIGHT)
 
     gyro_drive(45, -50, cm(15))
 
     gyro_turn(87, 20, THEN(deg(87), sec(1)))
-    gyro_drive(87, -50, cm(22))
-
+    gyro_drive(87, -50, cm(22.5))
     run_attachment(Attachment.FRONT_LEFT, 100, 5.5, True)
     run_attachment(Attachment.FRONT_LEFT, -100, 2, True, untension=True)
     

@@ -33,9 +33,9 @@ def run():
     
     # In die andere Base fahren
     gyro_drive(0, -90, cm(21))
-    gyro_turn(-50, 70)
-    gyro_drive(-50, 70, cm(20))
-    gyro_turn(-10, 70)
-    gyro_drive(-10, 70, cm(40))
+    gyro_turn(-35, 70)
+    gyro_drive(-35, 70, cm(33))
+    gyro_turn(-10, 45)
+    gyro_drive(-10, 70, cm(25))
     gyro_turn(15, 70)
-    gyro_drive(15, 100, cm(60))
+    gyro_drive(15, 100, cm(70))
