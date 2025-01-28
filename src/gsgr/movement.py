@@ -118,19 +118,18 @@ def run_attachment(
     # Select the target gear, this is the same as holding the attachment
     hold_attachment(attachment)
     # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
-    timer = Timer()
-    if stop_on_resistance:
-        hw.drive_shaft.set_stall_detection(True)
+    hw.drive_shaft.set_stall_detection(stop_on_resistance)
     hw.drive_shaft.start(speed)
     if not duration:
         return
-    while timer.elapsed < duration:
-        if stop_on_resistance and hw.drive_shaft.was_stalled():
-            break
-        time.sleep(0.02)
+    if stop_on_resistance:
+        timer = Timer()
+        while timer.elapsed < duration and not hw.drive_shaft.was_stalled() and not hw.drive_shaft.was_interrupted():
+            time.sleep(config.loop_throttle)
+    else:
+        time.sleep(duration)
     hw.drive_shaft.stop()
     # Cleanup
-    hw.drive_shaft.set_stall_detection(False)
     if untension:
         hw.drive_shaft.run_for_degrees(-80 * (speed // abs(speed)))
 
