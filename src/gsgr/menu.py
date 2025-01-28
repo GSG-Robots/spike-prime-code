@@ -3,6 +3,7 @@
 Also supplies run class, being a menu item.
 """
 
+import time
 from typing import Callable
 
 import hub
@@ -94,8 +95,7 @@ class Menu:
     def __init__(
         self,
         items: list[MenuItem] | None = None,
-        landscape=False,
-        close_on_charge=False,
+        landscape=False
     ):
         """
         :param items: a list of :py:class:`~gsgr.menu.MenuItem` s to be included initially. Defaults to an empty list.
@@ -141,6 +141,8 @@ class Menu:
                     )
                     hw.brick.status_light.on(self.items[self.position].color)
                     last_position = self.position
+                    
+                time.sleep(cnf.loop_throttle)
         except ExitMenu as e:
             raise e
         except (KeyboardInterrupt, SystemExit):
