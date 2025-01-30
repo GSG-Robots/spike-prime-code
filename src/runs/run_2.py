@@ -22,18 +22,18 @@ def run():
     run_attachment(Attachment.FRONT_LEFT, 75, 1, stop_on_resistance=True, untension=True)
     # free_attachment(Attachment.FRONT_RIGHT)
 
-    gyro_drive(0, 90, cm(10))
+    gyro_drive(0, 90, cm(11))
 
-    gyro_turn(50, 60)
-    gyro_drive(50, 80, cm(22))
+    gyro_turn(45, 50)
+    gyro_drive(45, 75, cm(20))
 
     gyro_turn(0, 50)
-    gyro_drive(0, 75, cm(20))
+    gyro_drive(0, 75, cm(21))
 
     run_attachment(Attachment.BACK_RIGHT, 100, 3.5, stop_on_resistance=True)
     run_attachment(Attachment.BACK_RIGHT, -100, 1.5, untension=True)
 
-    gyro_drive(2, 70, cm(9))
+    gyro_drive(0, 70, cm(6))
 
     run_attachment(Attachment.FRONT_RIGHT, 100, 1.8, stop_on_resistance=True)
     run_attachment(Attachment.FRONT_RIGHT, -100, 1.2, True, True)
@@ -44,6 +44,6 @@ def run():
 
     gyro_drive(0, -75, cm(5))
     gyro_turn(35, 50, OR(deg(35), sec(2))) 
-    gyro_drive(45, -100, cm(60))
+    gyro_drive(45, -100, cm(70))
     # gyro_turn(20, 70, OR(deg(0), sec(2)))
     # gyro_drive(20, -100, cm(45))
