@@ -114,7 +114,7 @@ def gyro_turn_pid(
 
 def pause(parent: Corrector, start: int, duration: int) -> Corrector:
     """Auxiliary corrector to pause in a specific time range.
-    
+
     :param parent: Parent corrector [TODO: Read more]
     :param start: Amount of seconds to stop after.
     :param duration: Amount of seconds to stop for.
@@ -126,9 +126,11 @@ def pause(parent: Corrector, start: int, duration: int) -> Corrector:
         yield next(parent)
 
 
-def accelerate(parent: Corrector, for_: int, start_at: int | None = None) -> Corrector:
+def accelerate_linar(
+    parent: Corrector, for_: int, start_at: int | None = None
+) -> Corrector:
     """Auxiliary corrector to accelerate in a specific time range.
-    
+
     :param parent: Parent corrector [TODO: Read more]
     :param for_: Amount of seconds to accelerate for.
     :param start_at: Amount of seconds to delay accelerating.
@@ -138,13 +140,13 @@ def accelerate(parent: Corrector, for_: int, start_at: int | None = None) -> Cor
         if start_at is not None and next(start_at) < 100:
             yield left, right
         else:
-            speed_mutiplier = clamp(next(for_)/ 100, 0.5, 1)
-            print(speed_mutiplier)
+            speed_mutiplier = clamp(next(for_) / 100, 0.5, 1)
             yield (left * speed_mutiplier, right * speed_mutiplier)
-            
+
+
 def decelerate(parent: Corrector, from_: int, for_: int) -> Corrector:
     """Auxiliary corrector to deccelerate in a specific time range.
-    
+
     :param parent: Parent corrector [TODO: Read more]
     :param start: Amount of seconds to deccelerate after.
     :param duration: Amount of seconds to deccelerate for.
@@ -154,38 +156,23 @@ def decelerate(parent: Corrector, from_: int, for_: int) -> Corrector:
         if next(from_) < 100:
             yield left, right
         else:
-            speed_mutiplier = 1 - clamp(next(for_)/ 100, 0.5, 1)
+            speed_mutiplier = 1 - clamp(next(for_) / 100, 0.5, 1)
             yield (left * speed_mutiplier, right * speed_mutiplier)
-        
-# def accelerate_sec(parent, duration: int, start: int = 0):
-#     timer = Timer()
-#     while True:
-#         left, right = next(parent)
-#         speed_mutiplier = clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
-#         yield (left * speed_mutiplier, right * speed_mutiplier)
-
-
-# def decelerate_sec(parent, duration: int, start: int = 0):
-#     timer = Timer()
-#     while True:
-#         left, right = next(parent)
-#         speed_mutiplier = 1 - clamp(max(timer.elapsed - start, 0) / duration, 0, 1)
-#         yield (left * speed_mutiplier, right * speed_mutiplier)
 
 
 def sigmoid_accelerate_sec(
     parent: Corrector, duration: int, smooth: int = 6, stretch: bool = True
 ) -> Corrector:
     """Auxiliary corrector to accelerate in a specific time range, softened using the sigmoid function.
-    
+
     TODO: WTH is smooth & stretch again?
-    
+
     :param parent: Parent corrector [TODO: Read more]
     :param duration: Amount of seconds to accelerate for.
     """
-    
+
     #:param smooth: Amount of seconds to delay accelerating.
-    
+
     timer = Timer()
     cutoff = sigmoid(-smooth) if stretch else 0
     while True:
@@ -201,3 +188,30 @@ def sigmoid_accelerate_sec(
             1,
         )
         yield (left * speed_mutiplier, right * speed_mutiplier)
+
+
+def accelerate_sigmoid(
+    parent: Corrector, for_: int, smooth: int = 6, stretch: bool = True
+) -> Corrector:
+    """Auxiliary corrector to accelerate in a specific time range.
+
+    :param parent: Parent corrector [TODO: Read more]
+    :param for_: Amount of seconds to accelerate for.
+    :param start_at: Amount of seconds to delay accelerating.
+    """
+    cutoff = sigmoid(-smooth) if stretch else 0
+    while True:
+        left, right = next(parent)
+        speed_mutiplier = clamp(
+            round(
+                (
+                    sigmoid((next(for_) / 100 * 2 * smooth) - smooth)
+                    - cutoff
+                )
+                / (1 - cutoff),
+                2,
+            ),
+            0,
+            1,
+        )
+        yield (clamp(left * speed_mutiplier, 25, 100), clamp(right * speed_mutiplier, 25, 100))
