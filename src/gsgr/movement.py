@@ -1,6 +1,7 @@
 """Motor control functions and presets
 """
 
+import math
 import time
 from typing import Iterator
 from .conditions import deg
@@ -124,7 +125,11 @@ def run_attachment(
         return
     if stop_on_resistance:
         timer = Timer()
-        while timer.elapsed < duration and not hw.drive_shaft.was_stalled() and not hw.drive_shaft.was_interrupted():
+        while (
+            timer.elapsed < duration
+            and not hw.drive_shaft.was_stalled()
+            and not hw.drive_shaft.was_interrupted()
+        ):
             time.sleep(config.loop_throttle)
     else:
         time.sleep(duration)
@@ -167,10 +172,7 @@ def stop_attachment():
     hw.drive_shaft.stop()
 
 
-def drive(
-    speed_generator: Condition,
-    until_generator: Condition,
-):
+def drive(speed_generator: Condition, until_generator: Condition, use_power=True):
     """General drive function, mostly only for internal use.
 
     :param speed_generator: a generator supplying speeds at request. [TODO: Read more]
@@ -202,10 +204,16 @@ def drive(
             last_left,
             last_right,
         ):
-            hw.driving_motors.start_tank(
-                round(left_speed * config.speed_multiplier),
-                round(right_speed * config.speed_multiplier),
-            )
+            if use_power:
+                hw.driving_motors.start_tank_at_power(
+                    round(left_speed * config.speed_multiplier + math.copysign(10, left_speed)),
+                    round(right_speed * config.speed_multiplier),
+                )
+            else:
+                hw.driving_motors.start_tank(
+                    round(left_speed * config.speed_multiplier),
+                    round(right_speed * config.speed_multiplier),
+                )
 
         last_left, last_right = left_speed, right_speed
 
@@ -221,7 +229,7 @@ def gyro_drive(
     i_correction: int | None = None,
     d_correction: int | None = None,
     gyro_tolerance: int | None = None,
-    accelerate_from: Condition | None = None,
+    # accelerate_from: Condition | None = None,
     accelerate_for: Condition | None = None,
     decelerate_from: Condition | None = None,
     decelerate_for: Condition | None = None,
@@ -235,7 +243,7 @@ def gyro_drive(
     :param i_correction: I Correction Value for PID-Controller. Defaults to general config.
     :param d_correction: D Correction Value for PID-Controller. Defaults to general config.
     :param gyro_tolerance: D Correction Value for PID-Controller. Defaults to general config.
-    :param accelerate_from: Condition to start accelerating at. (Don't know why anyone would ever want to do this...) Same values as for :py:obj:`do_for`
+    # :param accelerate_from: Condition to start accelerating at. (Don't know why anyone would ever want to do this...) Same values as for :py:obj:`do_for`
     :param accelerate_for: Condition to determine how long to accelerate. Same values as for :py:obj:`do_for`
     :param decelerate_from: Condition to start deccelerating at. Same values as for :py:obj:`do_for`
     :param decelerate_for: Condition to determine how long to deccelerate. Same values as for :py:obj:`do_for`
@@ -247,10 +255,11 @@ def gyro_drive(
 
     # Auto-setup acceleration and deceleration
     if accelerate_for:
-        corrector = corr.accelerate(
+        corrector = corr.accelerate_sigmoid(
             corrector,
             accelerate_for,
-            accelerate_from,
+            # accelerate_from,
+            smooth=2,
         )
 
     if decelerate_for:
@@ -311,11 +320,17 @@ def gyro_turn(
 
     # Auto-setup acceleration and deceleration
     if accelerate_for:
-        corrector = corr.accelerate(
+        corrector = corr.accelerate_sigmoid(
             corrector,
             accelerate_for,
-            accelerate_from,
+            # accelerate_from,
+            smooth=2,
         )
+        # corrector = corr.accelerate(
+        #     corrector,
+        #     accelerate_for,
+        #     accelerate_from,
+        # )
 
     if decelerate_for and decelerate_from:
         corrector = corr.decelerate(
@@ -338,6 +353,7 @@ def gyro_turn(
     drive(
         corrector,
         do_for or deg(degree),
+        use_power=False,
     )
 
 
