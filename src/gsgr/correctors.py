@@ -17,12 +17,12 @@ def gyro_drive_pid(
 ) -> Corrector:
     """Gyro Drive PID
 
-    :param parent: Parent corrector [TODO: Read more]
-    :param degree_target: Direction to drive in/correct towards to
+    :param parent: Übergeordneter Corrector [TODO: Read more]
+    :param degree_target: Zielfahrrichtung, zu der korrigiert werden soll
     :param p_correction: p correction value. Defaults to general config.
     :param i_correction: i correction value. Defaults to general config.
     :param d_correction: d correction value. Defaults to general config.
-    :param gyro_tolerance: tolerance for target degree. Defaults to general config.
+    :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
     """
     target = degree_target
     while target < -180:
@@ -55,10 +55,10 @@ def gyro_drive_pid(
 
 
 def speed(left, right=None) -> Corrector:
-    """Static speed. Used at the top of a corrector chain.
+    """Statische Geschwindigkeit. Steht ganz oben in der Corrector-Kette.
 
-    :param left: Speed of left motor.
-    :param right: Speed of right motor. Defaults to :py:obj:`left`.
+    :param left: Geschwindigkeit für den linken Motor, bzw. beiden
+    :param right: Geschwindigkeit für den rechten Motor. Entspricht :py:obj:`left`, falls nicht angegeben
     """
     right = right if right is not None else left
     while True:
@@ -75,12 +75,12 @@ def gyro_turn_pid(
 ) -> Corrector:
     """Gyro Turn PID
 
-    :param parent: Parent corrector [TODO: Read more]
-    :param degree_target: Direction to turn to
+    :param parent: Übergeordneter Corrector [TODO: Read more]
+    :param degree_target: Zieldrehung, zu der korrigiert werden soll
     :param p_correction: p correction value. Defaults to general config.
     :param i_correction: i correction value. Defaults to general config.
     :param d_correction: d correction value. Defaults to general config.
-    :param gyro_tolerance: tolerance for target degree. Defaults to general config.
+    :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
     """
     target = degree_target
     while target < -180:
@@ -112,44 +112,26 @@ def gyro_turn_pid(
         yield (corrector * (left / 100), -corrector * (right / 100))
 
 
-def pause(parent: Corrector, start: int, duration: int) -> Corrector:
-    """Auxiliary corrector to pause in a specific time range.
-
-    :param parent: Parent corrector [TODO: Read more]
-    :param start: Amount of seconds to stop after.
-    :param duration: Amount of seconds to stop for.
-    """
-    timer = Timer()
-    while True:
-        if start < timer.elapsed < (start + duration):
-            yield (0, 0)
-        yield next(parent)
-
-
 def accelerate_linar(
-    parent: Corrector, for_: int, start_at: int | None = None
+    parent: Corrector, for_: int
 ) -> Corrector:
-    """Auxiliary corrector to accelerate in a specific time range.
+    """Lineare Beschleunigung
 
-    :param parent: Parent corrector [TODO: Read more]
-    :param for_: Amount of seconds to accelerate for.
-    :param start_at: Amount of seconds to delay accelerating.
+    :param parent: Übergeordneter Corrector [TODO: Read more]
+    :param for_: Dauer der Beschleunigung als Condition
     """
     while True:
         left, right = next(parent)
-        if start_at is not None and next(start_at) < 100:
-            yield left, right
-        else:
-            speed_mutiplier = clamp(next(for_) / 100, 0.5, 1)
-            yield (left * speed_mutiplier, right * speed_mutiplier)
+        speed_mutiplier = clamp(next(for_) / 100, 0.5, 1)
+        yield (left * speed_mutiplier, right * speed_mutiplier)
 
 
 def decelerate(parent: Corrector, from_: int, for_: int) -> Corrector:
-    """Auxiliary corrector to deccelerate in a specific time range.
+    """Lineare Entschleunigung
 
-    :param parent: Parent corrector [TODO: Read more]
-    :param start: Amount of seconds to deccelerate after.
-    :param duration: Amount of seconds to deccelerate for.
+    :param parent: Übergeordneter Corrector [TODO: Read more]
+    :param start: Startzeitpunkt der Entschleunigung als Condition
+    :param duration: Dauer der Entschleunigung als Condition
     """
     while True:
         left, right = next(parent)
@@ -160,44 +142,15 @@ def decelerate(parent: Corrector, from_: int, for_: int) -> Corrector:
             yield (left * speed_mutiplier, right * speed_mutiplier)
 
 
-def sigmoid_accelerate_sec(
-    parent: Corrector, duration: int, smooth: int = 6, stretch: bool = True
-) -> Corrector:
-    """Auxiliary corrector to accelerate in a specific time range, softened using the sigmoid function.
-
-    TODO: WTH is smooth & stretch again?
-
-    :param parent: Parent corrector [TODO: Read more]
-    :param duration: Amount of seconds to accelerate for.
-    """
-
-    #:param smooth: Amount of seconds to delay accelerating.
-
-    timer = Timer()
-    cutoff = sigmoid(-smooth) if stretch else 0
-    while True:
-        left, right = next(parent)
-        now = timer.elapsed
-        speed_mutiplier = clamp(
-            round(
-                (sigmoid((clamp(now / duration, 0, 1) * 2 * smooth) - smooth) - cutoff)
-                / (1 - cutoff),
-                2,
-            ),
-            0,
-            1,
-        )
-        yield (left * speed_mutiplier, right * speed_mutiplier)
-
-
 def accelerate_sigmoid(
     parent: Corrector, for_: int, smooth: int = 6, stretch: bool = True
 ) -> Corrector:
-    """Auxiliary corrector to accelerate in a specific time range.
+    """Sigmoid Beschleunigung
 
-    :param parent: Parent corrector [TODO: Read more]
-    :param for_: Amount of seconds to accelerate for.
-    :param start_at: Amount of seconds to delay accelerating.
+    :param parent: Übergeordneter Corrector [TODO: Read more]
+    :param for_: Dauer der Beschleunigung als Condition
+    :param smooth: Glättungsfaktor für die Sigmoid-Funktion
+    :param stretch: Ob die Sigmoid-Funktion gestreckt werden soll
     """
     cutoff = sigmoid(-smooth) if stretch else 0
     while True:

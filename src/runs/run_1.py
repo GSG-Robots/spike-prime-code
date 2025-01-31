@@ -20,6 +20,7 @@ def run():
     # Set Gyro Origin
     gyro_set_origin()
 
+    # Fahre zu den Korallen
     gyro_drive(
         0,
         50,
@@ -29,14 +30,15 @@ def run():
         d_correction=-0.7,
         accelerate_for=cm(10),
     )
+    # Korallenbank
     run_attachment(Attachment.BACK_LEFT, 100, 2)
     run_attachment(Attachment.BACK_LEFT, -30, 1)
-    # drive(speed(-50), cm(1))
+    # Korallenturm
     run_attachment(Attachment.FRONT_RIGHT, -100, 3, untension=True)
     gyro_turn(-100, 50, sec(0.2))
     run_attachment(Attachment.FRONT_LEFT, 50, 1)
-    # gyro_turn(90, 50)
-    # gyro_drive(90, 40, cm(10))
+    
+    # Zurück zu base
     gyro_turn(0, 100)
     gyro_drive(0, -100, cm(50))
 

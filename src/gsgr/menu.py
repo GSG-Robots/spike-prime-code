@@ -17,14 +17,14 @@ from .math import clamp
 
 class MenuItem:
     display_as: int | str
-    """Character or digit to display in menu, indicating which menu item is selected."""
+    """Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist."""
     color: str
-    """Color of the status light to indicate which menu item is selected."""
+    """Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist."""
 
     def __init__(self, display_as: int | str, color: str = "white") -> None:
         """
-        :param display_as: Charackter or digit to display in menu, indicating which menu item is selected. Sets :py:attr:`display_as` initially.
-        :param color: Color of the status light to indicate which menu item is selected. Sets :py:attr:`color` initially. Defaults to `"white"`.
+        :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
+        :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
         """
         self.display_as = display_as
         self.color = color
@@ -32,33 +32,33 @@ class MenuItem:
 
 class ActionMenuItem(MenuItem):
     action: Callable | None
-    """Function to call when menu item is selected."""
+    """Funktion, die ausgeführt werden soll, falls das Menüelement gewählt wird."""
 
     def __init__(
         self, action: Callable | None, display_as: int | str, color: str = "white"
     ):
         """
-        :param display_as: Charackter or digit to display in menu, indicating which menu item is selected. Sets :py:attr:`display_as` initially.
-        :param color: Color of the status light to indicate which menu item is selected. Sets :py:attr:`color` initially. Defaults to `"white"`.
-        :param action: Callback to run on selection.
+        :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
+        :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
+        :param action: Callback, der ausgeführt wird, wenn das Menüelement gewählt wird. Setzt :py:attr:`action`.
         """
         super().__init__(display_as, color)
         self.action = action
 
     def run(self) -> Callable:
-        """Getter function for :py:attr:`callback`."""
+        """:py:attr:`callback` unter Berücksichtigung von :py:func:`prepare` und :py:func:`cleanup`."""
         self.prepare()
         if self.action:
             self.action()
         self.cleanup()
 
     def prepare(self):
-        """Function to call before :py:attr:`action` is run."""
+        """Wird direkt vor :py:attr:`action` ausgeführt."""
 
     def set_action(self, func: Callable | None = None):
-        """Setter function for :py:attr:`action`.
+        """Setter-Funktion für :py:attr:`action`.
 
-        :param func: Function to set as action callback. If not provided, returns a decorator function. Defaults to `None`.
+        :param func: Funktion, die als Callback festgelegt werden soll. Falls nicht angegeben, wird eine decorator-Funktion zurückgegeben.
         """
 
         def decorator(func):
@@ -70,10 +70,10 @@ class ActionMenuItem(MenuItem):
         return decorator
 
     def cleanup(self):
-        """Function to call after :py:attr:`action` ran."""
+        """Wird direkt nach :py:attr:`action` ausgeführt."""
 
     def stop(self):
-        """Helper function to stop the callback function of a :py:class:`~gsgr.menu.MenuItem`.
+        """Hilfsfunktion um die Ausführung der Callback-Funktuion vorzeitig zu stoppen.
 
         :raises: :py:class:`~gsgr.exceptions.StopRun`
         """
@@ -81,54 +81,54 @@ class ActionMenuItem(MenuItem):
 
 
 class Menu:
-    """A general menu holding :py:class:`~gsgr.menu.MenuItem` s"""
+    """Ein geerellen Menü, welches :py:class:`~gsgr.menu.MenuItem` s enthält"""
 
     items: list[MenuItem]
-    """A list of all :py:class:`~gsgr.menu.MenuItem` s in the menu"""
+    """Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s im Menü"""
 
-    landscape: bool
-    """Whether controls are optimized for landscape usage"""
+    swap_buttons: bool
+    """Ob die Funktionen der beiden Buttons getauscht werden sollen"""
 
     position: int
-    """Currently displayed menu item index"""
+    """Position des aktuell ausgewählten :py:class:`~gsgr.menu.MenuItem` s"""
 
     def __init__(
         self,
         items: list[MenuItem] | None = None,
-        landscape=False
+        swap_buttons=False
     ):
         """
-        :param items: a list of :py:class:`~gsgr.menu.MenuItem` s to be included initially. Defaults to an empty list.
-        :param landscape: whether to optimize controls for landscape mode. Defaults to False.
+        :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
+        :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:`False`.
         """
         self.items = items or []
-        self.landscape = landscape
+        self.swap_buttons = swap_buttons
         self.position = 0
 
     def add_item(self, item: MenuItem):
-        """Helper function to append an item to the menu
+        """Ein Element zum Menü hinzufügen
 
-        :param item: Item to append
+        :param item: Hinzuzufügendes Element
         """
         self.items.append(item)
 
     def choose(self, exit_on_charge=False) -> MenuItem:
-        """Show menu and allow to select item
+        """Menü zeigen und ein Menü-Element wählen lassen.
 
-        :returns: the selected item
+        :returns: Das gewählte Menü-Element
         """
         last_position = -1
         try:
             while True:
                 if hw.brick.left_button.was_pressed():
-                    self.position = self.position - (-1 if self.landscape else 1)
+                    self.position = self.position - (-1 if self.swap_buttons else 1)
                 if hw.brick.right_button.was_pressed():
-                    self.position = self.position + (-1 if self.landscape else 1)
+                    self.position = self.position + (-1 if self.swap_buttons else 1)
                 if exit_on_charge and hub.battery.charger_detect() in [
                     hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
                     hub.battery.CHARGER_STATE_CHARGING_ONGOING,
                 ]:
-                    raise ExitMenu
+                    self.exit()
 
                 self.position = int(clamp(self.position, 0, len(self.items) - 1))
 
@@ -149,7 +149,7 @@ class Menu:
             return self.items[self.position]
 
     def exit(self):
-        """Helper function to exit :py:meth:`~gsgr.menu.Menu.loop`.
+        """Funktion um :py:meth:`~gsgr.menu.Menu.choose` vorzeitig zu beenden.
 
         :raises: ExitMenu
         """
@@ -158,12 +158,12 @@ class Menu:
 
 class ActionMenu(Menu):
     items: list[ActionMenuItem]
-    """A list of all :py:class:`~gsgr.menu.ActionMenuItem` s in the menu"""
+    """Eine List aller :py:class:`~gsgr.menu.ActionMenuItem` s im Menü"""
 
     def choose_and_run(self, exit_on_charge=False):
-        """Show menu and allow to select item which then is being executed
+        """Menü zeigen und ein Menü-Element wählen lassen, wessen Callback dann ausgeführt wird
 
-        :returns: the selected item
+        :returns: Das gewählte Element
         """
         result = self.choose(exit_on_charge=exit_on_charge)
         show_image(result.display_as, True, True, False)
@@ -178,9 +178,9 @@ class ActionMenu(Menu):
             result.cleanup()
 
     def loop(self, autoscroll=False, exit_on_charge=False):
-        """Show the menu and run the callback of the selected item in an infinite loop.
+        """Endlos immer wieder Menü zeigen und ein Menü-Element wählen lassen, welches dann ausgeführt wird.
 
-        :param autoscroll: whether to scroll to the next item after executing the callback of a :py:class:`~gsgr.menu.MenuItem` automatically.
+        :param autoscroll: Ob nach dem erfolgreichen Ausführen eines Callbacks automatisch weitergeblättert werden soll.
         """
         while True:
             try:

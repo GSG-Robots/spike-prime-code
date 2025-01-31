@@ -1,6 +1,6 @@
 """Types to enable easier overview"""
 
-from typing import Iterator
+# from typing import Iterator
 
 Condition = object
 Corrector = object

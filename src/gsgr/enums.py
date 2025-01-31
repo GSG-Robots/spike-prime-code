@@ -1,9 +1,9 @@
-"""static enums for basic constants
+"""Statische Enums
 """
 
 
 class Color:
-    """SPIKE-Prime colors"""
+    """SPIKE-Prime Farben"""
 
     WHITE = "white"
     GREEN = "green"
@@ -13,7 +13,7 @@ class Color:
 
 
 class Attachment:
-    """Attachment numbers after position"""
+    """Zahnrad-Positionen zur Anseuerung der entsprechenden Ausgänge"""
 
     FRONT_RIGHT = 2
     FRONT_LEFT = 4

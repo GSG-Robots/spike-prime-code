@@ -9,9 +9,9 @@ from .configuration import hardware as hw
 
 
 def static(value: bool | int) -> Condition:
-    """Static condition. Either always fulfilled or always unfulfilled.
+    """Statische Bedingung. Dauerhaft entweder erfüllt oder nicht erfüllt.
 
-    :param value: The static value to stay at. :py:obj:`True` means 100%, :py:obj:`False` means 0%.
+    :param value: :py:obj:`True` bedeutet, dass die Bedingung dauerhaft erfüllt ist, :py:obj:`False` das Gegenteil.
     """
     yield 0
     while True:
@@ -19,7 +19,10 @@ def static(value: bool | int) -> Condition:
 
 
 def cm(distance: int) -> Condition:
-    """Drive/Turn until wheels turned for given distance (cm)."""
+    """... bis sich die Räder um eine Bestimmte Strecke bewegt haben.
+
+    :param distance: Die Strecke, die zurückgelegt werden soll, in cm.
+    """
     yield 0
     start_degrees = (
         hw.left_motor.get_degrees_counted(),
@@ -42,7 +45,10 @@ def cm(distance: int) -> Condition:
 
 
 def sec(duration: int) -> Condition:
-    """Drive/Turn for given duration (sec)."""
+    """... bis eine bestimmte Zeit vergangen ist.
+
+    :param duration: Die Dauer, die gewartet werden soll, in Sekunden.
+    """
     yield 0
     start_time = time.ticks_ms()
     while True:
@@ -50,7 +56,10 @@ def sec(duration: int) -> Condition:
 
 
 def deg(angle: int) -> Condition:
-    """Drive/Turn until certain angle is reached."""
+    """... bis der Roboter in eine bestimmte Richtung gedreht hat.
+    
+    :param angle: Der Winkel, in den der Roboter relativ zum Origin gedreht sein soll.
+"""
     yield 0
     while True:
         yield (
@@ -65,9 +74,12 @@ def deg(angle: int) -> Condition:
 
 
 def THEN(first: Condition, second: Condition) -> Condition:
-    """Helper to chain conditions.
-
-    The two conditions are executed after each other. :py:obj:`THEN(cm(3), cm(5))` will have the same result as :py:obj:`cm(8)`
+    """... bis eine Bedingung erfüllt ist, und dann noch eine andere.
+    
+    Dabei werden die beiden Bedingungen nacheinander ausgeführt. :py:obj:`THEN(cm(3), cm(5))` wird also das gleiche Ergebnis haben wie :py:obj:`cm(8)`
+    
+    :param first: Die erste Bedingung, die erfüllt werden soll.
+    :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
     yield 0
     while (a := next(first)) < 100:
@@ -80,9 +92,12 @@ def THEN(first: Condition, second: Condition) -> Condition:
 
 
 def OR(first: Condition, second: Condition) -> Condition:
-    """Helper to chain conditions.
-
-    The two conditions are executed simultaneously, until one is fulfilled. :py:obj:`OR(cm(3), cm(5))` will have the same result as :py:obj:`cm(3)`
+    """... bis eine von zwei Bedingungen erfüllt ist.
+    
+    Dabei werden die beiden Bedingungen gleichzeitig ausgeführt, bis mindestens eine erfüllt ist. :py:obj:`OR(cm(3), cm(5))` wird also das gleiche Ergebnis haben wie :py:obj:`cm(3)`.
+    
+    :param first: Die erste Bedingung, die erfüllt werden soll.
+    :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
     yield 0
     while True:
@@ -90,9 +105,12 @@ def OR(first: Condition, second: Condition) -> Condition:
 
 
 def AND(first: Condition, second: Condition) -> Condition:
-    """Helper to chain conditions.
-
-    The two conditions are executed simultaneously, until both are fulfilled. :py:obj:`AND(cm(3), cm(5))` will have the same result as :py:obj:`cm(5)`
+    """... bis beide von zwei Bedingungen erfüllt sind.
+    
+    Dabei werden die beiden Bedingungen gleichzeitig ausgeführt, bis beide erfüllt sind. :py:obj:`AND(cm(3), cm(5))` wird also das gleiche Ergebnis haben wie :py:obj:`cm(5)`.
+    
+    :param first: Die erste Bedingung, die erfüllt werden soll.
+    :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
     yield 0
     while True:
@@ -100,13 +118,17 @@ def AND(first: Condition, second: Condition) -> Condition:
 
 
 def NOT(cond: Condition) -> Condition:
-    """Helper to invert conditions."""
+    """... bis eine Bedingung nicht erfüllt ist.
+    
+    :param cond: Die Bedingung, die nicht erfüllt sein soll.
+    """
     yield 0
     while True:
         yield 100 - next(cond)
 
 
 def line():
+    """... bis der Roboter eine Linie erkennt."""
     return (
         100
         if (

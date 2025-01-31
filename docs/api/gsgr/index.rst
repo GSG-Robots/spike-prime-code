@@ -3,7 +3,7 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Inhalt:
 
    configuration
    conditions
@@ -13,6 +13,7 @@
    exceptions
    math
    menu
+   run
    movement
    types
    utils

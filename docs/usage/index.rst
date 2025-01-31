@@ -1,9 +1,9 @@
-Usage
-=====
+Nutzung
+=======
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Inhalt:
    
    getting-started
    knowledge/index

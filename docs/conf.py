@@ -46,4 +46,5 @@ autodoc_member_order = "bysource"
 autoclass_content = "both"
 
 
-locale_dirs = ['locale/']
+# locale_dirs = ['locale/']
+language = "de"

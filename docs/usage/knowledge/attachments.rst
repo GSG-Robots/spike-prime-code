@@ -1,26 +1,27 @@
-Controlling Attachments
-=======================
+Ausgänge (Attachments) steuern
+==============================
 
 .. note::
-    Even though you are probably be here to look up one specific thing,
-    you might profit of reading the hole page from the beginning,
-    as you will need the knowledge gained in the upper paragraphs
-    when reading the ones further down.
+    Obwohl du wahrscheinlich nur hier bist um eine bestimmte Sache nachzulesen,
+    könnte es Sinn ergeben, die ganze Seite von Beginn an zu lesen,
+    da die unteren Abschnitte das Wissen der vorangehenden voraussetzen.
 
     [TODO: Reference general tips (eg. function signature)]
 
 
-When speaking about the robot, we name the hole thing you can swap out on the robot "attachment".
-However, when coding, an "attachment" simply refers to one of the output gears of the gearbox.
+Die Ausgangsmotoren heißen in unserer Programmierung "Attachments".
+In dieser Anleitung wird der Begriff "Ausgang" verwendet, wenn es sich um einen Ausgangsmotor handelt. Wir nutzen weiterhin die Begriffe "Getriebewähler" und "Antriebsmotor", um die beiden Getriebemotoren zu bescheiben.
+Der Getriebewähler ist der Motor, der die Ausgänge auswählt, und der Antriebsmotor ist der Motor, der die Ausgänge bewegt.
 
-The two most important things when controlling attachments are the attachment functions in the :py:mod:`gsgr.movement` module and the :py:class:`~gsgr.enums.Attachment` enum.
+Die zwei wichtigsten Dinge beim Steuern von Ausgängen sind die Attachment-Funktionen im :py:mod:`gsgr.movement`-Modul und das :py:class:`~gsgr.enums.Attachment`-Enum.
+Wie genau Sie verwendet werden, wird im Folgenden erklärt.
 
 
-Holding an attachment in place
-------------------------------
+Einen Ausgang "festhalten"
+--------------------------
 
-We will begin with the :py:func:`~gsgr.movement.hold_attachment` function, as it is the easiest one to understand.
-Here is an example code block:
+Wir fangen mit der :py:func:`~gsgr.movement.hold_attachment`-Funktion an, da sie am einfachsten zu verstehen ist.
+Hier ist ein Verwendungsbeispiel:
 
 
 .. code-block:: python
@@ -32,18 +33,20 @@ Here is an example code block:
     def run():
         hold_attachment(Attachment.FRONT_LEFT)
 
-The :py:func:`~gsgr.movement.hold_attachment` functions is given the information which attachment to select using the gear selector.
-The enum :py:class:`~gsgr.enums.Attachment` serves as a place to store the arbitrary numbers which are asociated with the output
-gears in relation to names like :py:attr:`~gsgr.enums.Attachment.FRONT_LEFT` or :py:attr:`~gsgr.enums.Attachment.BACK_RIGHT`.
+Die :py:func:`~gsgr.movement.hold_attachment`-Funktion erhält die Information, welcher Ausgang über den Getriebewähler ausgewählt und dann festgehalten werden soll.
+Das :py:class:`~gsgr.enums.Attachment`-Enum ermöglicht es, verständliche Namen wie :py:attr:`~gsgr.enums.Attachment.FRONT_LEFT` oder :py:attr:`~gsgr.enums.Attachment.BACK_RIGHT` statt die normalerweise zufälligen Zahlenwerte zu verwenden, die mit den einzelnen Ausgängen assoziiert werden.
 
-The example code will simply select the front left gear, so it is no songer freely movable.
-This can be useful for arms that should not fall or other things that should be held in place.
+Der obenstehende Beispielcode würde den vorderen linken Ausgang auswählen, sodass er nicht mehr frei beweglich ist.
+Das liegt daran, dass der Getriebewähler in eine Position gebracht wird, die den vorderen linken Ausgang mit dem Antriebsmotor verbindet.
+Durch den Wiederstand des inaktiven Antriebsmotors wird der Ausgang festgehalten.
+Das kann nützlich sein, wenn Arme nicht herunterfallen sollen oder andere Dinge festgehalten werden sollen.
 
 
-Allowing an attachment to move freely
--------------------------------------
+Einem Ausgang freie Bewegung ermöglichen
+----------------------------------------
 
-This is a very similar thing, so most of it can be explained with a simple code example, altough there are a few special cases which are handled below the example:
+Dies ist eine Ähnliche Sache, auch wenn es eigentlich genau das Gegenteil ist.
+Es kann mit einem einfachen Codebeispiel erklärt werden, obwohl es ein paar spezielle Fälle gibt, die weiter unten behandelt werden:
 
 .. code-block:: python
 
@@ -54,33 +57,32 @@ This is a very similar thing, so most of it can be explained with a simple code 
     def run():
         free_attachment(Attachment.FRONT_LEFT)
 
-This code will allow the attachment in the front left to move freely. But you have to be cautionous!
-This code has a side effect that is not visible at first glance:
-It blocks one of the other attachments.
-This is because the gearbox only has 4 stable/safe states and we try to move out of the way as far as possible
-to ensure the front left attachment can really move freely.
+Dieser Code ermöglicht es dem Ausgang vorne links, sich frei zu bewegen. Aber Vorsicht!
+Dieser Code hat einen Nebeneffekt, der nicht auf den ersten Blick sichtbar ist:
+Er blockiert einen der anderen Ausgänge.
+Das liegt daran, dass das Getriebe nur 4 stabile bzw. sichere Zustände hat.
+Um zu erreichen, dass der vordere linke Ausgang wirklich frei bewegt werden kann, müssen wir also eines der anderen auswählen und damit auch festhalten.
 
-If you want to ensure multiple attachments are freed at the same time,
-you can simply select one of the left over attachments using :py:func:`~gsgr.movement.hold_attachment`.
+Wenn mehrere Ausgänge gleichzeitig freigegeben werden sollen, kannst du einfach einen der übrigen Motoren mit :py:func:`~gsgr.movement.hold_attachment` auswählen.
 
-If you, for some unknown reasons, want to "unselect" all attachments at the same time,
-you can use the (unsafe!) :py:func:`~gsgr.movement.free_attachments` function,
-which turns the gear selector at a 45° angle so none of the attachments is selected.
-This is possible, but because being just 5° off will already paritally block one of the attachments,
-this will not always work and is discouraged.
+Wenn es, aus welchem Grund auch immer, gewünscht ist, alle Ausgänge auf einmal "abzuwählen",
+kannst du die (unsichere!) :py:func:`~gsgr.movement.free_attachments`-Funktion verwenden,
+die den Getriebewähler um 45° dreht, sodass keiner der Ausgänge ausgewählt ist.
+Das ist möglich, aber da schon 5° Abweichung ausreichen, um einen der Ausgänge teilweise zu blockieren,
+wird dies nicht immer funktionieren und ist nicht empfohlen.
 
-Move an attachment
-------------------
+Einen Ausgang bewegen
+---------------------
 
-Finally, to move an attachment, you can use the :py:func:`~gsgr.movement.run_attachment` function.
+Zuletzt, um einen Ausgang zu bewegen, kannst du die :py:func:`~gsgr.movement.run_attachment`-Funktion verwenden.
 
-Parameters you have to supply are:
+Die Parameter, die du angeben musst, sind:
 
-- The attachment to move
-- The speed to move it at
-- The duration to move it for
+- Der Ausgang, der bewegt werden soll
+- Die Geschwindigkeit, mit der er bewegt werden soll
+- Die Dauer, für die er bewegt werden soll
 
-This can look like this:
+Das kann so aussehen:
 
 .. code-block:: python
 
@@ -91,25 +93,24 @@ This can look like this:
     def run():
         run_attachment(Attachment.FRONT_LEFT, 100, 5)
 
-This code will move the front left attachment at full speed for 5 seconds.
-:py:func:`~gsgr.movement.run_attachment` uses :py:func:`~gsgr.movement.hold_attachment` in the
-background to select the right attachment, and then runs the drive shaft with the given speed and for the given time.
+Dieser Code bewegt den vorderen linken Ausgang mit voller Geschwindigkeit für 5 Sekunden.
+:py:func:`~gsgr.movement.run_attachment` verwendet :py:func:`~gsgr.movement.hold_attachment` im Hintergrund, um den richtigen Ausgang auszuwählen, und startet dann die Antriebswelle mit der angegebenen Geschwindigkeit und für die angegebene Zeit.
 
-Additional options
-^^^^^^^^^^^^^^^^^^
+Zusätzliche Optionen
+^^^^^^^^^^^^^^^^^^^^
 
-All additional options are combinable, although they are explained in seperate paragraphs,
-so it is easier to understand and differenciate what each of them actually does.
+Alle der im Folgenden erklärten zusätzlichen Optionen sind kombinierbar, obwohl sie in separaten Absätzen erklärt werden,
+um zu verstehen und zu unterscheiden, was jede von ihnen tatsächlich tut.
 
-Only start attachment
-"""""""""""""""""""""
+Einen Ausgang nur starten
+"""""""""""""""""""""""""
 
-If no duration is given, the function will also run :py:func:`~gsgr.movement.hold_attachment` and then start the motor with the given speed,
-but will not wait for anything. This means that right after running :py:func:`~gsgr.movement.run_attachment`, the motor is started and
-the next line of the code will be executed without delay.
-If this was the last line of your program, almost nothing will happen, as the run will finish before the movement of the motor can really affect
-anything. To make use of this, you have to do some action afterwards.
-For example, you could use this to move an attachment while driving like this:
+Wenn keine Dauer angegeben ist, wird die :py:func:`~gsgr.movement.hold_attachment`-Funktion ebenfalls ausgeführt und dann der Motor mit der angegebenen Geschwindigkeit gestartet,
+jedoch wird nicht auf etwas bestimmtes gewartet. Das bedeutet, dass direkt nach dem Aufruf von :py:func:`~gsgr.movement.run_attachment` der Motor gestartet wird und
+die nächste Zeile des Codes ohne Verzögerung ausgeführt wird.
+Wenn dies die letzte Zeile deines Programms war, wird fast nichts passieren, da der Lauf endet, bevor die Bewegung des Motors wirklich etwas beeinflussen kann.
+Um dies zu nutzen, musst du danach eine Aktion ausführen.
+Zum Beispiel könntest du dies verwenden, um einen Ausgang zu bewegen, während du fährst, wie hier:
 
 .. code-block:: python
 
@@ -121,24 +122,22 @@ For example, you could use this to move an attachment while driving like this:
 
     def run():
         run_attachment(Attachment.FRONT_LEFT, 100)
-        drive(speed(75), cm(10)) # don't care about this line, the details are not important
+        drive(speed(75), cm(10)) # Die Details dieser Funktion sind hier nicht wichtig, der Roboter fährt 10 cm vorwärts.
         stop_attachment()
 
-In this code example, we move the front_left attachment at full speed, while driving forward for 10 cm.
-Also, as you can see, a new function is used here: :py:func:`~gsgr.movement.stop_attachment`.
-It is used to stop the attachment when called. Here, after we drove for 10cm. In this case, it is actually not required,
-as it is the last line of the run and all motors will be stopped anyways, but it is good practise
-to always include it, as this will be the case rarely and the process to stop all motors at
-the end of a run is not always successfull.
+In diesem Codebeispiel bewegen wir den vorderen linken Ausgang mit voller Geschwindigkeit, während wir 10 cm vorwärts fahren.
+Außerdem wird, wie du sehen kannst, eine neue Funktion verwendet: :py:func:`~gsgr.movement.stop_attachment`.
+Wird sie aufgerufen, stoppt der Antriebsmotor. Nachdem wir also 10cm gefahren sind, wird diese also aufgerufen, um die Motorbewegung wieder zu beenden.
 
 
-Release tension after movement
-""""""""""""""""""""""""""""""
+Spannung nach einer Bewegung lösen
+""""""""""""""""""""""""""""""""""
 
-After moving the attachment, it might be under stress, as it was turned against a blockade or some other part.
-To minimize the stress on the pieces and ensure to continue the run without pressing parts on the floor at full force,
-it may be applicable to loosen the attachment for a moment, before fastening it again.
-To do this, you can use the :py:obj:`untension` parameter like this:
+Nachdem ein Ausgang bewegt wurde, könnte es unter Spannung stehen, da es gegen eine Blockade oder ein anderes Teil gedreht wurde.
+Um die Spannung auf den Teilen zu minimieren und sicherzustellen,
+dass der Lauf ohne Teile, die mit voller Kraft auf den Boden drücken, fortgesetzt werden kann,
+kann es sinnvoll sein, diese Spannung zu lösen.
+Dazu kannst du den :py:obj:`untension`-Parameter verwenden, wie in diesem Beispiel gezeigt:
 
 
 .. code-block:: python
@@ -151,16 +150,14 @@ To do this, you can use the :py:obj:`untension` parameter like this:
         run_attachment(Attachment.FRONT_LEFT, 100, 5, untension=True)
 
 
-Stop automatically when stalled
-"""""""""""""""""""""""""""""""
+Bei Blockierung automatisch stoppen
+"""""""""""""""""""""""""""""""""""
 
-To enable LEGO's stall detection while moving the attachment,
-you can use the :py:obj:`stop_on_resistance` parameter.
-This will make the motor stop automatically when a resistance is
-felt and will exit early if the given duration has not passed yet.
-
-.. warning::
-    This has never worked yet.
+Um die Stall-Erkennung von LEGO zu aktivieren, während der Ausgang bewegt wird,
+kannst du den :py:obj:`stop_on_resistance`-Parameter verwenden.
+Das wird den Motor automatisch stoppen, wenn ein Widerstand gefühlt wird.
+Aufgrund eines Bugs in der Firmware von LEGO wird die Funktion trotzdem warten, bis die angegebene Zeit abgelaufen ist,
+auch wenn sich der Motor gar nicht mehr bewegt.
 
 
 .. code-block:: python
@@ -171,3 +168,25 @@ felt and will exit early if the given duration has not passed yet.
 
     def run():
         run_attachment(Attachment.FRONT_LEFT, 100, 5, stop_on_resistance=True)
+
+Wird gleichzeitig keine Dauer angegeben, kann dies dazu benutzt werden, um den Motor zu starten und auf eine Blockierung zu warten, während der Rest des Codes weiter ausgeführt wird.
+Man kann also z.B. eine Bewegung starten und dann weiterfahren, während die Bewegung durch eine Blockierung gestoppt wird.
+
+Beispiel:
+
+.. code-block:: python
+
+    from gsgr.enums import Attachment
+    from gsgr.movement import run_attachment, drive, stop_attachment
+    from gsgr.correctors import speed
+    from gsgr.conditions import cm
+
+
+    def run():
+        run_attachment(Attachment.FRONT_LEFT, 100, stop_on_resistance=True)
+        drive(speed(75), cm(10)) # Die Details dieser Funktion sind hier nicht wichtig, der Roboter fährt 10 cm vorwärts.
+        stop_attachment()
+
+In diesem Beispiel wird der vordere linke Ausgang mit voller Geschwindigkeit bewegt, während der Roboter 10 cm vorwärts fährt.
+Der Roboter wird weiterfahren, auch wenn der Ausgang blockiert wird, aber der Motor stoppt dann automatisch.
+Wir rufen :py:func:`~gsgr.movement.stop_attachment` am Ende nocheinmal auf, um sicherzugehen, dass der Motor wirklich stoppt, sollte er nicht schon durch die Blockierung gestoppt worden sein oder sie nicht erkannt haben.

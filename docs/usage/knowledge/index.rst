@@ -1,8 +1,8 @@
-Knowledgebase
-=============
+Wissensdatenbank
+================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Inhalt:
    
    attachments

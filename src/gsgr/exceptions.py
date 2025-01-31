@@ -1,38 +1,21 @@
-"""Custom exceptions
+"""Eignene Fehler
 """
 
-
-class WrongUnitError(ValueError):
-    """Invalid unit used.
-
-    .. deprecated:: unknown
-       We no longer use unit constants.
-    """
-
-
 class BatteryLowError(RuntimeError):
-    """Error raised when in debug mode and running motors while battery low.
+    """Wird geworfen, wenn der Akku zu schwach ist, während sich der Roboter im Debug-Mode befindet.
 
-    Read more :py:func:`here <gsgr.movement.check_battery>`
+    Mehr :py:func:`hier <gsgr.movement.check_battery>`
     """
-
-
-class EnterDebugMenu(SystemExit):
-    """Error raised when debug menu should be started.
-
-    .. deprecated:: unknown
-       There is no debug menu anymore."""
-
 
 class StopRun(KeyboardInterrupt):
-    """Raise to stop run immediately.
+    """Wird geworfen, um einen Run sofort zu stoppen.
 
-    Only meant for internal use.
+    Nur für interne Zwecke gedacht.
     """
 
 
 class ExitMenu(SystemExit):
-    """Raise to exit menu.
+    """Wird geworfen, um ein Menü zu verlassen.
 
-    Only meant for internal use.
+    Nur für interne Zwecke gedacht.
     """

@@ -1,9 +1,9 @@
-"""Motor control functions and presets
+"""Motorsteuerung und Bewegungsfunktionen.
 """
 
 import math
 import time
-from typing import Iterator
+# from typing import Iterator
 from .conditions import deg
 from . import correctors as corr
 from .math import clamp
@@ -45,9 +45,10 @@ def check_battery():
 
 
 def hold_attachment(target_gear: int):
-    """Select gear to apply torque, meant to hold attachment in place.
+    """Ausgang wählen um Reibung anzuwenden, gedacht um Anbaute zu halten.
+    Select gear to apply torque, meant to hold attachment in place.
 
-    :param target_gear: The number of the attachment gear. Preferably use the :py:class:`gsgr.enums.Attachment` enum. [TODO: Read more]
+    :param target_gear: Die Nummer des Ausgangs. Nutze am besten :py:class:`gsgr.enums.Attachment`. [TODO: Read more]
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
@@ -58,13 +59,13 @@ def hold_attachment(target_gear: int):
 
 
 def free_attachment(target_gear: int):
-    """Select any other gear to release torque, meant to enable the attachment of moving freely.
+    """Irgeneinen anderen Ausgang auswählen, um Reibung freizugeben, gedacht um Anbaute frei beweglich zu machen.
+ 
+    Wenn mehrerer Ausgänge zur gleichen Zeit frei beweglich sin sollen, nutze :py:func:`hold_attachment` um einen Ausgang auszuwählen, der nicht freigegeben werden soll.
+    
+    Wenn alle Ausgänge zur gleichen Zeit freigegeben werden sollen, nutze :py:func:`free_attachemnts`.
 
-    When multiple attachments need to be freed at the same time, use :py:func:`hold_attachment` to specifically select one attachment not to be freed.
-
-    When all attachments need to be freed at the same time, use :py:func:`free_attachemnts`.
-
-    :param target_gear: The number of the attachment gear. Preferably use the :py:class:`gsgr.enums.Attachment` enum. [TODO: Read more]
+    :param target_gear: Die Nummer des Ausgangs. Nutze am besten :py:class:`gsgr.enums.Attachment`. [TODO: Read more]
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
@@ -77,11 +78,11 @@ def free_attachment(target_gear: int):
 
 
 def free_attachments():
-    """Move gearshaft into a position between two attachments to release torque on all attachments at the same time, meant to enable all attachments of moving freely.
+    """Getriebewähler in eine Stellung bringen, in der in der Theorie Reibung an allen Ausgängen freigegeben wird.
 
     .. warning::
-        Use with care, this may still parially lock attachments in place from time to time.
-        Only use if really needed! Check :py:func:`free_attachment` whenever possible.
+        Mit Bedacht nutzen, dies kann Ausgänge in manchen Fällen immer noch teilweise blockieren.
+        Nur wenn nötig! Nutze :py:func:`free_attachment` wann immer möglich.
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
@@ -101,15 +102,15 @@ def run_attachment(
     stop_on_resistance: bool = False,
     untension: bool = False,
 ) -> None:
-    """Move attachment for given time or until stopped
+    """Bewege Ausgang zur angegebenen Zeit oder bis es gestoppt wird
 
-    If run with ``duration``, runs until duration passed. If run without ``duration``, only starts and call finished immideately after starting motor.
+    Wenn mit ``duration`` aufgerufen, wird die Funktion ausgeführt, bis die Zeit um ist. Ansonsten wird der Motor nur gestartet.
 
-    :param attachment: The number of the attachment gear. Preferably use the :py:class:`gsgr.enums.Attachment` enum. [TODO: Read more]
-    :param speed: Speed to move attachment at, in percent. Value from 0 to 100.
-    :param duration: Time in seconds to stop after. If not supplied, motor will be started without ending condition.
-    :param stop_on_resistance: Whether to stop the motion if the motor reports it is being blocked/stalled.
-    :param untension: Whether to shortly unselect the attachment gear after the motion. This can be used to release tension and stress on parts after moving against a blockade.
+    :param attachment: Die Nummer des Ausgangs. Nutze am besten :py:class:`gsgr.enums.Attachment`. [TODO: Read more]
+    :param speed:Geschwindigkeit, mit der die Anbaute bewegt werden soll. Wert von -100 bis 100.
+    :param duration: Zeit in Sekunden, für die der Ausgang bewegt werden soll. Falls nicht angegeben, wird der Motor nur gestartet.
+    :param stop_on_resistance: Ob der Motor vorzeitig stoppen soll, wenn er blockiert wird.
+    :param untension: Ob der Motor nach dem Stoppen kurz in die entgegengesetzte Richtung laufen soll, um die Spannung zu lösen.
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
@@ -166,17 +167,20 @@ def run_attachment(
 
 
 def stop_attachment():
-    """Stop attachment movement. Only needed if :py:func:`run_attachment` was called without duration."""
+    """Ausgangsbewegung stoppen.
+    
+    Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.
+    """
     # check_battery()
     # Stop the drive shaft
     hw.drive_shaft.stop()
 
 
 def drive(speed_generator: Condition, until_generator: Condition, use_power=True):
-    """General drive function, mostly only for internal use.
+    """Generelle Fahrfunktion. Nutzt die gegebenen Generatoren für Geschwindigkeit und Ziel. Hauptsächlich für interne Nutzung.
 
-    :param speed_generator: a generator supplying speeds at request. [TODO: Read more]
-    :param until_generator: a generator reporting whether the motion is finished. [TODO: Read more]
+    :param speed_generator: Ein Generator, der die Geschwindigkeit angibt, mit der gefahren werden soll. [TODO: Read more]
+    :param until_generator: Ein Generator, der angibt, wann die Bewegung beendet werden soll. [TODO: Read more]
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
@@ -234,19 +238,18 @@ def gyro_drive(
     decelerate_from: Condition | None = None,
     decelerate_for: Condition | None = None,
 ):
-    """Gyro Drive. Shortcut for :py:func:`drive` with :py:func:`~gsgr.correctors.gyro_drive_pid` as speed generator.
+    """Gyro Drive
 
-    :param degree: Direction to drive in/correct towards. Value from -180 to 180
-    :param speed: Speed to drive at, in percent. Value from 0 to 100.
-    :param do_for: Condition to end at. [TODO: Read more]
-    :param p_correction: P Correction Value for PID-Controller. Defaults to general config.
-    :param i_correction: I Correction Value for PID-Controller. Defaults to general config.
-    :param d_correction: D Correction Value for PID-Controller. Defaults to general config.
-    :param gyro_tolerance: D Correction Value for PID-Controller. Defaults to general config.
-    # :param accelerate_from: Condition to start accelerating at. (Don't know why anyone would ever want to do this...) Same values as for :py:obj:`do_for`
-    :param accelerate_for: Condition to determine how long to accelerate. Same values as for :py:obj:`do_for`
-    :param decelerate_from: Condition to start deccelerating at. Same values as for :py:obj:`do_for`
-    :param decelerate_for: Condition to determine how long to deccelerate. Same values as for :py:obj:`do_for`
+    :param degree: Richtung in die Gefahren bzw. Korrigiert werden soll. Wert von -180 bis 180
+    :param speed: Geschwindigkeit, mit der gefahren werden soll. Wert von 0 bis 100.
+    :param do_for: Zielbedingung [TODO: Read more]
+    :param p_correction: p correction value. Defaults to general config.
+    :param i_correction: i correction value. Defaults to general config.
+    :param d_correction: d correction value. Defaults to general config.
+    :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
+    :param accelerate_for: Bedingung, die angibt, bis wann Beschleunigt werden soll.
+    :param decelerate_from: Bedingung, die angibt, ab wann Entschleunigt werden soll.
+    :param decelerate_for: Bedingung, die angibt, wie lange Entschleunigt werden soll.
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
@@ -294,25 +297,22 @@ def gyro_turn(
     i_correction: int | None = None,
     d_correction: int | None = None,
     gyro_tolerance: int | None = None,
-    accelerate_from: Condition | None = None,
     accelerate_for: Condition | None = None,
     decelerate_from: Condition | None = None,
     decelerate_for: Condition | None = None,
 ):
-    """Gyro Drive. Shortcut for :py:func:`drive` with :py:func:`~gsgr.correctors.gyro_drive_pid` as speed generator.
+    """Gyro Turn
 
-    :param degree: Direction to turn towards. Value from -180 to 180
-    :param speed: Speed to turn at, in percent. Value from 0 to 100.
-    :param do_for: Condition to end at. Use none to end when target direction is reached. [TODO: Read more]
-    :param p_correction: P Correction Value for PID-Controller. Defaults to general config.
-    :param i_correction: I Correction Value for PID-Controller. Defaults to general config.
-    :param d_correction: D Correction Value for PID-Controller. Defaults to general config.
-    :param gyro_tolerance: D Correction Value for PID-Controller. Defaults to general config.
-    :param accelerate_from: Condition to start accelerating at. (Don't know why anyone would ever want to do this...) Same values as for :py:obj:`do_for`
-    :param accelerate_for: Condition to determine how long to accelerate. Same values as for :py:obj:`do_for`
-    :param decelerate_from: Condition to start deccelerating at. Same values as for :py:obj:`do_for`
-    :param decelerate_for: Condition to determine how long to deccelerate. Same values as for :py:obj:`do_for`
-
+    :param degree: Richtung in die Gedreht bzw. Korrigiert werden soll. Wert von -180 bis 180
+    :param speed: Geschwindigkeit, mit der gedreht werden soll. Wert von 0 bis 100.
+    :param do_for: Zielbedingung [TODO: Read more]
+    :param p_correction: p correction value. Defaults to general config.
+    :param i_correction: i correction value. Defaults to general config.
+    :param d_correction: d correction value. Defaults to general config.
+    :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
+    :param accelerate_for: Bedingung, die angibt, bis wann Beschleunigt werden soll.
+    :param decelerate_from: Bedingung, die angibt, ab wann Entschleunigt werden soll.
+    :param decelerate_for: Bedingung, die angibt, wie lange Entschleunigt werden soll.
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
 
@@ -358,5 +358,5 @@ def gyro_turn(
 
 
 def gyro_set_origin(set_to=0):
-    """Reset Gyro-Sensor Origin. Should be used at least once in the beginnign of each run."""
+    """Gyro-Sensor Origin zurücksetzen"""
     config.degree_o_meter.reset(set_to)

@@ -54,11 +54,11 @@ def show_image(
     border_left=True,
     bright=True,
 ):
-    """Show given symbol on light matrix.
+    """Zeigt das angegebene Symbol auf der LED-Matrix an.
 
-    :param border_right: Whether to display a border on the right, rather than the two dots.
-    :param border_left: Whether to display a border on the left, rather than the two dots.
-    :param bright: Whether to display at full brightness.
+    :param border_right: Ob ein Rand auf der rechten Seite angezeigt werden soll, anstatt der beiden Punkte.
+    :param border_left: Ob ein Rand auf der linken Seite angezeigt werden soll, anstatt der beiden Punkte.
+    :param bright: Ob das Bild in voller Helligkeit angezeigt werden soll.
     """
 
     light = 100 if bright else 70

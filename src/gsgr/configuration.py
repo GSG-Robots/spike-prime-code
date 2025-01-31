@@ -9,37 +9,39 @@ if typing.TYPE_CHECKING:
 
 
 class Config(ConfigBase):
-    "The configuration for the robot"
+    "Software-Konfiguration für den Roboter"
 
     debug_mode: bool
-    "Whether the debug mode should be enabled."
+    "Ob einige Debug-Funktionen aktiviert sein sollen"
     p_correction: float
     i_correction: float
     d_correction: float
     speed_multiplier: float
-    "The speed multiplier for the robot. This should be a float between -1 and 1. Negative values will make the robot drive backwards."
+    "Der Geschwindigkeitsmultiplikator für den Roboter. Dies sollte eine Fließkommazahl zwischen -1 und 1 sein. Negative Werte lassen den Roboter rückwärts fahren."
     gyro_tolerance: int
+    "Die Toleranz bei für den Gyrosensor in Grad, wenn die Gradzahl als Bedingung verwendet wird."
     _degree_o_meter: "DegreeOMeter"
     loop_throttle: float
+    "Die Zeit in Sekunden, die zwischen jedem Schleifendurchlauf gewartet werden soll, um den Roboter nicht zu überlasten"
 
 
 class HardwareConfig(ConfigBase):
-    "The hardware configuration for the robot"
+    "Hardware-Konfiguration für den Roboter"
 
     tire_radius: float
-    "The radius of the tire in centimeters"
+    "Der Radradius in cm"
     brick: "spike.PrimeHub"
-    "An instance of the hub API used in the robot"
+    "Ein Spike Prime Hub"
     gear_selector: "spike.Motor"
-    "The motor that selects the attachment gear"
+    "Der Motor, der die Getriebe des Roboters steuert"
     drive_shaft: "spike.Motor"
-    "The motor that drives the robots' attachment gears"
+    "Der Motor, der das Getriebe des Roboters antreibt"
     left_motor: "spike.Motor"
-    "The motor that drives the left tire"
+    "Der Motor, der das linke Rad antreibt"
     right_motor: "spike.Motor"
-    "The motor that drives the right tire"
+    "Der Motor, der das rechte Rad antreibt"
     driving_motors: "spike.MotorPair"
-    "The motor pair that drives the robot. This should be the same as the left and right motors combined."
+    "Das Motorenpaar, das den Roboter antreibt. Dies sollte das gleiche sein wie die linken und rechten Motoren zusammen."
 
 
 
