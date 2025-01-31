@@ -44,7 +44,6 @@ class HardwareConfig(ConfigBase):
     "Das Motorenpaar, das den Roboter antreibt. Dies sollte das gleiche sein wie die linken und rechten Motoren zusammen."
 
 
-
 config = Config()
 "The configuration for the robot"
 hardware = HardwareConfig()

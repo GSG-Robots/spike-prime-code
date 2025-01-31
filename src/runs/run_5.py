@@ -43,7 +43,7 @@ def run():
 
     gyro_turn(46, 50, OR(deg(44), sec(1.6)))
     gyro_drive(45, -50, cm(21))
-    
+
     # Wale aufdecken
     run_attachment(Attachment.FRONT_LEFT, -100, 5.5, True)
     run_attachment(Attachment.FRONT_LEFT, 100, 0.2, True)

@@ -92,11 +92,7 @@ class Menu:
     position: int
     """Position des aktuell ausgewählten :py:class:`~gsgr.menu.MenuItem` s"""
 
-    def __init__(
-        self,
-        items: list[MenuItem] | None = None,
-        swap_buttons=False
-    ):
+    def __init__(self, items: list[MenuItem] | None = None, swap_buttons=False):
         """
         :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
         :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:`False`.
@@ -141,7 +137,7 @@ class Menu:
                     )
                     hw.brick.status_light.on(self.items[self.position].color)
                     last_position = self.position
-                    
+
                 time.sleep(cnf.loop_throttle)
         except ExitMenu as e:
             raise e

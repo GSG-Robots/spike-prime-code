@@ -112,9 +112,7 @@ def gyro_turn_pid(
         yield (corrector * (left / 100), -corrector * (right / 100))
 
 
-def accelerate_linar(
-    parent: Corrector, for_: int
-) -> Corrector:
+def accelerate_linar(parent: Corrector, for_: int) -> Corrector:
     """Lineare Beschleunigung
 
     :param parent: Übergeordneter Corrector [TODO: Read more]
@@ -157,14 +155,14 @@ def accelerate_sigmoid(
         left, right = next(parent)
         speed_mutiplier = clamp(
             round(
-                (
-                    sigmoid((next(for_) / 100 * 2 * smooth) - smooth)
-                    - cutoff
-                )
+                (sigmoid((next(for_) / 100 * 2 * smooth) - smooth) - cutoff)
                 / (1 - cutoff),
                 2,
             ),
             0,
             1,
         )
-        yield (clamp(left * speed_mutiplier, 25, 100), clamp(right * speed_mutiplier, 25, 100))
+        yield (
+            clamp(left * speed_mutiplier, 25, 100),
+            clamp(right * speed_mutiplier, 25, 100),
+        )

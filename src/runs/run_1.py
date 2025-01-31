@@ -37,7 +37,7 @@ def run():
     run_attachment(Attachment.FRONT_RIGHT, -100, 3, untension=True)
     gyro_turn(-100, 50, sec(0.2))
     run_attachment(Attachment.FRONT_LEFT, 50, 1)
-    
+
     # Zurück zu base
     gyro_turn(0, 100)
     gyro_drive(0, -100, cm(50))

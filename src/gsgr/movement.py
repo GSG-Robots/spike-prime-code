@@ -3,6 +3,7 @@
 
 import math
 import time
+
 # from typing import Iterator
 from .conditions import deg
 from . import correctors as corr
@@ -60,9 +61,9 @@ def hold_attachment(target_gear: int):
 
 def free_attachment(target_gear: int):
     """Irgeneinen anderen Ausgang auswählen, um Reibung freizugeben, gedacht um Anbaute frei beweglich zu machen.
- 
+
     Wenn mehrerer Ausgänge zur gleichen Zeit frei beweglich sin sollen, nutze :py:func:`hold_attachment` um einen Ausgang auszuwählen, der nicht freigegeben werden soll.
-    
+
     Wenn alle Ausgänge zur gleichen Zeit freigegeben werden sollen, nutze :py:func:`free_attachemnts`.
 
     :param target_gear: Die Nummer des Ausgangs. Nutze am besten :py:class:`gsgr.enums.Attachment`. [TODO: Read more]
@@ -168,7 +169,7 @@ def run_attachment(
 
 def stop_attachment():
     """Ausgangsbewegung stoppen.
-    
+
     Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.
     """
     # check_battery()
@@ -210,7 +211,10 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
         ):
             if use_power:
                 hw.driving_motors.start_tank_at_power(
-                    round(left_speed * config.speed_multiplier + math.copysign(10, left_speed)),
+                    round(
+                        left_speed * config.speed_multiplier
+                        + math.copysign(10, left_speed)
+                    ),
                     round(right_speed * config.speed_multiplier),
                 )
             else:

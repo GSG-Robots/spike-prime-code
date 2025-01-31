@@ -1,4 +1,5 @@
 """Grundlegende Mathematische Funktionen und Hilfsfunktionen"""
+
 import math
 
 
@@ -12,11 +13,11 @@ def sigmoid(x: float) -> float:
 
 def clamp(value: float | int, minimum: float | int, maximum: float | int) -> float:
     """Hilfsfunktion, um sicherzustellen, dass sich eine Zahl in dem angegebenen Bereich befindet.
-    
+
     :param value: Zahl, die ge-min-max-t werden soll.
     :param minimum: Untergrenze für :py:obj:`value`.
     :param maximum: Obergrenze für :py:obj:`value`.
-    
+
     :returns: :py:obj:`minimum`, wenn :py:obj:`value` unter :py:obj:`minimum` liegt
     :returns: :py:obj:`maximum`, wenn :py:obj:`value` über :py:obj:`maximum` liegt
     :returns: :py:obj:`value`, wenn :py:obj:`value` zwischen :py:obj:`minimum` und :py:obj:`maximum` liegt

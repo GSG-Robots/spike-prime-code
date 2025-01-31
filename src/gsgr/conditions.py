@@ -57,9 +57,9 @@ def sec(duration: int) -> Condition:
 
 def deg(angle: int) -> Condition:
     """... bis der Roboter in eine bestimmte Richtung gedreht hat.
-    
+
     :param angle: Der Winkel, in den der Roboter relativ zum Origin gedreht sein soll.
-"""
+    """
     yield 0
     while True:
         yield (
@@ -75,9 +75,9 @@ def deg(angle: int) -> Condition:
 
 def THEN(first: Condition, second: Condition) -> Condition:
     """... bis eine Bedingung erfüllt ist, und dann noch eine andere.
-    
+
     Dabei werden die beiden Bedingungen nacheinander ausgeführt. :py:obj:`THEN(cm(3), cm(5))` wird also das gleiche Ergebnis haben wie :py:obj:`cm(8)`
-    
+
     :param first: Die erste Bedingung, die erfüllt werden soll.
     :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
@@ -93,9 +93,9 @@ def THEN(first: Condition, second: Condition) -> Condition:
 
 def OR(first: Condition, second: Condition) -> Condition:
     """... bis eine von zwei Bedingungen erfüllt ist.
-    
+
     Dabei werden die beiden Bedingungen gleichzeitig ausgeführt, bis mindestens eine erfüllt ist. :py:obj:`OR(cm(3), cm(5))` wird also das gleiche Ergebnis haben wie :py:obj:`cm(3)`.
-    
+
     :param first: Die erste Bedingung, die erfüllt werden soll.
     :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
@@ -106,9 +106,9 @@ def OR(first: Condition, second: Condition) -> Condition:
 
 def AND(first: Condition, second: Condition) -> Condition:
     """... bis beide von zwei Bedingungen erfüllt sind.
-    
+
     Dabei werden die beiden Bedingungen gleichzeitig ausgeführt, bis beide erfüllt sind. :py:obj:`AND(cm(3), cm(5))` wird also das gleiche Ergebnis haben wie :py:obj:`cm(5)`.
-    
+
     :param first: Die erste Bedingung, die erfüllt werden soll.
     :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
@@ -119,7 +119,7 @@ def AND(first: Condition, second: Condition) -> Condition:
 
 def NOT(cond: Condition) -> Condition:
     """... bis eine Bedingung nicht erfüllt ist.
-    
+
     :param cond: Die Bedingung, die nicht erfüllt sein soll.
     """
     yield 0
