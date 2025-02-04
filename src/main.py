@@ -1,7 +1,7 @@
 import gc
 import time
 
-from compyner.typehints import ComPYnerBuildTools
+from compyner.typehints import __glob_import__
 
 from gsgr.display import show_image
 from gsgr.movement import run_attachment, stop_attachment
@@ -23,7 +23,7 @@ hub.display.align(hub.RIGHT)
 # raise RuntimeError
 menu = ActionMenu(swap_buttons=True)
 
-runs = ComPYnerBuildTools.get_modules_path_glob("runs/*.py")
+runs = __glob_import__("runs/*.py")
 
 for run in runs:
     menu.add_item(
