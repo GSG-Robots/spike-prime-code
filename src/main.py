@@ -3,33 +3,14 @@ import time
 
 from compyner.typehints import __glob_import__
 
-from gsgr.display import show_image
-from gsgr.movement import run_attachment, stop_attachment
+import gsgr.display
+import gsgr.movement
 import hub
 from gsgr.configuration import config, hardware
 from gsgr.menu import ActionMenu, ActionMenuItem
 from gsgr.run import Run
 from gsgr.utils import DegreeOMeter
 from spike import Motor, MotorPair, PrimeHub
-
-# gc.enable()
-# gc.threshold(round((gc.mem_free() + gc.mem_alloc()) / 20))
-gc.collect()
-mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
-print("%s%% of memory used" % mem_perc)
-print("%s%% battery left" % hub.battery.capacity_left())
-
-hub.display.align(hub.RIGHT)
-# raise RuntimeError
-menu = ActionMenu(swap_buttons=True)
-
-runs = __glob_import__("runs/*.py")
-
-for run in runs:
-    menu.add_item(
-        Run(run.get("display_as"), run.get("color"), run.get("config"), run.get("run"))
-    )
-
 
 FRONT_RIGHT = 2
 FRONT_LEFT = 4
@@ -39,7 +20,6 @@ BACK_LEFT = 3
 
 def run_motorcontrol():
     """Motorcontrol"""
-    print("TEST")
     select = 1
     last_select = -1
     motor = FRONT_LEFT
@@ -97,95 +77,81 @@ def run_motorcontrol():
                     )
         except KeyboardInterrupt:
             try:
-                run_attachment(motor, speed)
+                gsgr.movement.run_attachment(motor, speed)
                 while True:
                     time.sleep(0.1)
             except KeyboardInterrupt:
-                stop_attachment()
+                gsgr.movement.stop_attachment()
                 time.sleep(1.0)
 
 
-menu.add_item(Run("C", "yellow", {}, run_motorcontrol))
+def main():
+    gc.collect()
+    mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
+    print("%s%% of memory used" % mem_perc)
+    print("%s%% battery left" % hub.battery.capacity_left())
+    print("Voltage:", hub.battery.voltage(), "mV")
 
-exit_item = ActionMenuItem(menu.exit, "x", "white")
+    hub.display.align(hub.RIGHT)
+    menu = ActionMenu(swap_buttons=True)
 
+    runs = __glob_import__("runs/*.py")
 
-menu.add_item(exit_item)
-
-with (
-    hardware(
-        drive_shaft=Motor("B"),
-        gear_selector=Motor("A"),
-        driving_motors=MotorPair("F", "E"),
-        left_motor=Motor("F"),
-        right_motor=Motor("E"),
-        brick=PrimeHub(),
-        tire_radius=3,
-    ),
-    config(
-        p_correction=1.2,
-        i_correction=0,
-        d_correction=-0.5,
-        speed_multiplier=1,
-        debug_mode=False,
-        gyro_tolerance=2,
-        degree_o_meter=DegreeOMeter(),
-        loop_throttle=0.025,
-    ),
-):
-    show_image(
-        (
-            (0, 0, 0),
-            (0, 0, 0),
-            (0, 1, 0),
-            (0, 0, 0),
-            (0, 0, 0),
+    for run in runs:
+        menu.add_item(
+            Run(
+                run.get("display_as"),
+                run.get("color"),
+                run.get("config"),
+                run.get("run"),
+            )
         )
-    )
 
-    while hub.battery.charger_detect() in [
-        hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
-        hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-    ]:
-        time.sleep(0.2)
+    menu.add_item(Run("C", "yellow", {}, run_motorcontrol))
 
-    menu.loop(autoscroll=True, exit_on_charge=config.debug_mode)
+    exit_item = ActionMenuItem(menu.exit, "x", "white")
+
+    menu.add_item(exit_item)
+
+    with (
+        hardware(
+            drive_shaft=Motor("B"),
+            gear_selector=Motor("A"),
+            driving_motors=MotorPair("F", "E"),
+            left_motor=Motor("F"),
+            right_motor=Motor("E"),
+            brick=PrimeHub(),
+            tire_radius=3,
+        ),
+        config(
+            p_correction=1.2,
+            i_correction=0,
+            d_correction=-0.5,
+            speed_multiplier=1,
+            debug_mode=False,
+            gyro_tolerance=2,
+            degree_o_meter=DegreeOMeter(),
+            loop_throttle=0.025,
+        ),
+    ):
+        gsgr.display.show_image(
+            (
+                (0, 0, 0),
+                (0, 0, 0),
+                (0, 1, 0),
+                (0, 0, 0),
+                (0, 0, 0),
+            )
+        )
+
+        while hub.battery.charger_detect() in [
+            hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
+            hub.battery.CHARGER_STATE_CHARGING_ONGOING,
+        ]:
+            time.sleep(0.2)
+
+        menu.loop(autoscroll=True, exit_on_charge=config.debug_mode)
 
 
-# debug_menu = MasterControlProgram(PrimeHub(), DEBUG_MODE)
-
-
-# @debug_menu.run(display_as="R")
-# def restart(run):  # pylint: disable=unused-argument
-#     """Restart the robot."""
-#     hub.power_off(True, True)
-
-
-# @debug_menu.run(display_as="D")
-# def enbug(run):  # pylint: disable=unused-argument
-#     """Disable debug menu."""
-#     mcp.defaults["debug_mode"] = False
-
-
-# while True:
-#     try:
-#         mcp.start()
-#     except BatteryLowError as e:
-#         mcp.brick.light_matrix.write("!")
-#         mcp.brick.speaker.beep(65, 1)
-#         raise e
-#     except EnterDebugMenu:
-#         try:
-#             debug_menu.start(no_debug_menu=True)
-#         except SystemExit:
-#             continue
-#     except Exception as e:
-#         mcp.brick.speaker.beep(65, 0.2)
-#         time.sleep(0.1)
-#         mcp.brick.speaker.beep(70, 0.2)
-#         time.sleep(0.1)
-#         mcp.brick.speaker.beep(75, 0.1)
-#         time.sleep(0.1)
-#         mcp.brick.speaker.beep(80, 0.2)
-#         mcp.brick.light_matrix.write(str(e))
-#         raise e
+if __name__ == "__main__":
+    main()
