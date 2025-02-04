@@ -16,7 +16,12 @@ from gsgr.configuration import config as cnf
 display_as = 3
 color = Color.BLUE
 
+# FEATURE FLAGS
+# 6 Sekunden
+FEATURE_TOWER = True
+# #############
 
+# Gesamt: 16 Sekunden
 def run():
     # Set Gyro Origin
     gyro_set_origin()
@@ -27,22 +32,17 @@ def run():
     # Boot nach vorne schieben
     gyro_drive(0, 70, cm(75), accelerate_for=cm(10))
 
-    drive(speed(0, -50), sec(1))
-    drive(speed(0, 50), sec(1))
+    # Plankton yeeten
+    run_attachment(Attachment.FRONT_RIGHT, 100, 1, True, True)
 
-    # Turm aufstellen
-    run_attachment(Attachment.FRONT_LEFT, 50, 0.5)
-    for _ in range(8):
+    if FEATURE_TOWER:
         run_attachment(Attachment.FRONT_LEFT, 50, 0.2)
-        gyro_drive(0, -25, cm(1))
+        # Turm aufstellen
+        for i in range(7):
+            run_attachment(Attachment.FRONT_LEFT, 50, 0.25)
+            gyro_drive(0, -20 - i * 1.5, cm(1))
 
-    time.sleep(0.5)
+            time.sleep(0.05 * i)
 
     # In die andere Base fahren
-    gyro_drive(0, -90, cm(21))
-    gyro_turn(-40, 70)
-    gyro_drive(-40, 70, cm(35))
-    gyro_turn(-12, 45)
-    gyro_drive(-12, 70, cm(40))
-    gyro_turn(5, 70)
-    gyro_drive(5, 100, cm(70))
+    gyro_drive(0, -90, cm(15))

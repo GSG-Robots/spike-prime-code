@@ -21,7 +21,7 @@ print("%s%% battery left" % hub.battery.capacity_left())
 
 hub.display.align(hub.RIGHT)
 # raise RuntimeError
-menu = ActionMenu(landscape=True)
+menu = ActionMenu(swap_buttons=True)
 
 runs = ComPYnerBuildTools.get_modules_path_glob("runs/*.py")
 
@@ -127,7 +127,7 @@ with (
         i_correction=0,
         d_correction=-0.5,
         speed_multiplier=1,
-        debug_mode=True,
+        debug_mode=False,
         gyro_tolerance=2,
         degree_o_meter=DegreeOMeter(),
         loop_throttle=0.025,

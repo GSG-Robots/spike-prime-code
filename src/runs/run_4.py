@@ -1,4 +1,3 @@
-import time
 from gsgr.conditions import sec, deg, cm, THEN
 from gsgr.enums import Color, Attachment
 from gsgr.movement import (
@@ -23,14 +22,14 @@ def run():
 
     # Plankton yeeten
     run_attachment(
-        Attachment.BACK_LEFT, -80, 1, stop_on_resistance=True, untension=True
+        Attachment.BACK_LEFT, -85, 1, stop_on_resistance=True, untension=True
     )
 
     # Arm homen
     run_attachment(Attachment.BACK_LEFT, 50, 1, stop_on_resistance=True, untension=True)
 
     # Zu Quadropus fahren
-    gyro_drive(0, -80, cm(40), decelerate_for=cm(5), decelerate_from=cm(36))
+    gyro_drive(1, -70, cm(38), decelerate_for=cm(12), decelerate_from=cm(30))
 
     # Sachen sammeln
     run_attachment(Attachment.BACK_LEFT, -30, 1.5)
