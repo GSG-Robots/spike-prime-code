@@ -8,7 +8,7 @@
             "name": "Upload",
             "type": "f5anything",
             "request": "launch",
-            "command": "poetry run python \"${workspaceFolder}/tools/upload.py\" \"${workspaceFolder}/src/main.py\" 0",
+            "command": "poetry run spike-prime-connect upload \"${workspaceFolder}/src/main.py\" --slot 0 --run --read",
         }
     ]
 }
