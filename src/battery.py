@@ -35,7 +35,7 @@ while True:
             height = total_capacity // 10
             hub.led(9)
         elif usable_capacity < 100:
-            hub.led(8)
+            hub.led(7)
         else:
             hub.led(6)
         is_charging = hub.battery.charger_detect()
