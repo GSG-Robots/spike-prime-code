@@ -115,14 +115,14 @@ dev = ["backports.zoneinfo", "freezegun (>=1.0,<2.0)", "jinja2 (>=3.0)", "pytest
 
 [[package]]
 name = "beautifulsoup4"
-version = "4.13.2"
+version = "4.13.3"
 description = "Screen-scraping library"
 optional = false
 python-versions = ">=3.7.0"
 groups = ["dev"]
 files = [
-    {file = "beautifulsoup4-4.13.2-py3-none-any.whl", hash = "sha256:b0ebbcecbfbed2f28e07fb8d004494dfb3030711874a034551ac52008b87a1d1"},
-    {file = "beautifulsoup4-4.13.2.tar.gz", hash = "sha256:da9184389e6848818cf31c970ba3cbe6f33c2b8fbabd70d5bd4a2bfa0c1c4272"},
+    {file = "beautifulsoup4-4.13.3-py3-none-any.whl", hash = "sha256:99045d7d3f08f91f0d656bc9b7efbae189426cd913d830294a15eefa0ea4df16"},
+    {file = "beautifulsoup4-4.13.3.tar.gz", hash = "sha256:1bd32405dacc920b42b83ba01644747ed77456a65760e285fbc47633ceddaf8b"},
 ]
 
 [package.dependencies]
@@ -313,14 +313,14 @@ files = [
 
 [[package]]
 name = "compyner"
-version = "0.2.4"
+version = "0.2.5"
 description = "A small tool to bundle a python file and all its imports into a single file."
 optional = false
 python-versions = "<4.0,>=3.13.1"
 groups = ["main"]
 files = [
-    {file = "compyner-0.2.4-py3-none-any.whl", hash = "sha256:2fb84324eb91ca6816194fd1bcace81347a1e99b5a3fe659e12706944792ed16"},
-    {file = "compyner-0.2.4.tar.gz", hash = "sha256:e0fc3e31e4f66635ca8b1c415bb0935346ef62303716a72a0c27170737806f3d"},
+    {file = "compyner-0.2.5-py3-none-any.whl", hash = "sha256:8cb10d226562bf9bc229c469cbbcd2cf2002eff8a9fa9fab5bc36c3c47f6619a"},
+    {file = "compyner-0.2.5.tar.gz", hash = "sha256:70e569c7d5ce1f4c35324842da6998151a81ddfe78f58e28eae2c2dc7a4f8891"},
 ]
 
 [package.dependencies]
@@ -1237,14 +1237,14 @@ test = ["pytest"]
 
 [[package]]
 name = "spike-prime-connect"
-version = "0.1.1"
+version = "0.1.4"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.13.1"
 groups = ["main"]
 files = [
-    {file = "spike_prime_connect-0.1.1-py3-none-any.whl", hash = "sha256:5d1a02aa281743e6e8a1528c9ed5dfab9208bf69b4fb00a85d1a71478cb78e8f"},
-    {file = "spike_prime_connect-0.1.1.tar.gz", hash = "sha256:547c775e1fa7bc7f621c3671da30a5333f4b1df7c0375e0a1d633191453c2f46"},
+    {file = "spike_prime_connect-0.1.4-py3-none-any.whl", hash = "sha256:5792544cdc187f287878ed3a7235603abb0daf4ec996c8e1e0bab3927c781c52"},
+    {file = "spike_prime_connect-0.1.4.tar.gz", hash = "sha256:c8f3dda2a2fb5e263a3606126807478c77f5936abb5b53971fe4ec1b767c78f3"},
 ]
 
 [package.dependencies]

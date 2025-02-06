@@ -25,6 +25,7 @@ images = (
 )
 
 hub.sound.volume(100)
+hub.display.align(hub.FRONT)
 
 while True:
     try:

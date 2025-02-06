@@ -6,7 +6,7 @@
         {
             "label": "Upload",
             "type": "shell",
-            "command": "poetry run spike-prime-connect upload \"${workspaceFolder}/src/main.py\" --slot 0 --run --read",
+            "command": "poetry run spike-prime-connect upload \"${workspaceFolder}/src/main.py\" --slot 0 --start --read",
             "group": {
                 "kind": "build",
                 "isDefault": true
