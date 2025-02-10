@@ -3,7 +3,6 @@
 
 import time
 import hub  # type: ignore # pylint: disable=import-error
-import spike
 
 LOW = 8000
 HIGH = 8350  # actually unreachable 8360
@@ -56,6 +55,9 @@ while True:
             time.sleep(0.5)
             hub.sound.beep(770, 875, WAVEFORM)
             time.sleep(0.75)
+
+        if hub.button.center.is_pressed():
+            break
 
     except SystemExit:
         break
