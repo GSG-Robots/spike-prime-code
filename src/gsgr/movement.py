@@ -177,7 +177,7 @@ def stop_attachment():
     hw.drive_shaft.stop()
 
 
-def drive(speed_generator: Condition, until_generator: Condition, use_power=True):
+def drive(speed_generator: Condition, until_generator: Condition, use_power=False):
     """Generelle Fahrfunktion. Nutzt die gegebenen Generatoren für Geschwindigkeit und Ziel. Hauptsächlich für interne Nutzung.
 
     :param speed_generator: Ein Generator, der die Geschwindigkeit angibt, mit der gefahren werden soll. [TODO: Read more]
@@ -212,15 +212,18 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
             if use_power:
                 hw.driving_motors.start_tank_at_power(
                     round(
-                        left_speed * config.speed_multiplier
-                        + math.copysign(10, left_speed)
+                        left_speed
+                        # + math.copysign(10, left_speed)
                     ),
-                    round(right_speed * config.speed_multiplier),
+                    round(
+                        right_speed
+                        # + math.copysign(10, right_speed)
+                    ),
                 )
             else:
                 hw.driving_motors.start_tank(
-                    round(left_speed * config.speed_multiplier),
-                    round(right_speed * config.speed_multiplier),
+                    round(left_speed),
+                    round(right_speed),
                 )
 
         last_left, last_right = left_speed, right_speed

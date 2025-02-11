@@ -120,11 +120,18 @@ class Menu:
                     self.position = self.position - (-1 if self.swap_buttons else 1)
                 if hw.brick.right_button.was_pressed():
                     self.position = self.position + (-1 if self.swap_buttons else 1)
-                if exit_on_charge and hub.battery.charger_detect() in [
-                    hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
-                    hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-                ]:
-                    self.exit()
+                if (
+                    exit_on_charge
+                    and hub.battery.charger_detect()
+                    in [
+                        hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
+                        hub.battery.CHARGER_STATE_CHARGING_ONGOING,
+                    ]
+                ):
+                    if hub.button.connect.is_pressed():
+                        exit_on_charge = False
+                    else:
+                        self.exit()
 
                 self.position = int(clamp(self.position, 0, len(self.items) - 1))
 

@@ -60,14 +60,15 @@ def deg(angle: int) -> Condition:
 
     :param angle: Der Winkel, in den der Roboter relativ zum Origin gedreht sein soll.
     """
+    gyro_tolerance = 2 # TODO
     yield 0
     while True:
         yield (
             100
             if (
-                angle - config.gyro_tolerance / 2
+                angle - gyro_tolerance / 2
                 <= config.degree_o_meter.oeioei
-                <= angle + config.gyro_tolerance / 2
+                <= angle + gyro_tolerance / 2
             )
             else 0
         )

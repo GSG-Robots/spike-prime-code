@@ -7,6 +7,11 @@ from ._config_base import ConfigBase
 if typing.TYPE_CHECKING:
     from .utils import DegreeOMeter
 
+from collections import namedtuple
+
+
+GyroPID = namedtuple("GyroPID", ("p", "i", "d", "tolerance"))
+
 
 class Config(ConfigBase):
     "Software-Konfiguration für den Roboter"
@@ -16,10 +21,10 @@ class Config(ConfigBase):
     p_correction: float
     i_correction: float
     d_correction: float
-    speed_multiplier: float
-    "Der Geschwindigkeitsmultiplikator für den Roboter. Dies sollte eine Fließkommazahl zwischen -1 und 1 sein. Negative Werte lassen den Roboter rückwärts fahren."
-    gyro_tolerance: int
-    "Die Toleranz bei für den Gyrosensor in Grad, wenn die Gradzahl als Bedingung verwendet wird."
+    gyro_drive_pid: GyroPID
+    "PID- und Toleranzwerte für gyro_drive"
+    gyro_turn_pid: GyroPID
+    "PID- und Toleranzwerte für gyro_turn"
     _degree_o_meter: "DegreeOMeter"
     loop_throttle: float
     "Die Zeit in Sekunden, die zwischen jedem Schleifendurchlauf gewartet werden soll, um den Roboter nicht zu überlasten"

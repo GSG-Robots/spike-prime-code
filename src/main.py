@@ -6,7 +6,7 @@ from compyner.typehints import __glob_import__
 import gsgr.display
 import gsgr.movement
 import hub
-from gsgr.configuration import config, hardware
+from gsgr.configuration import config, hardware, GyroPID
 from gsgr.menu import ActionMenu, ActionMenuItem
 from gsgr.run import Run
 from gsgr.utils import DegreeOMeter
@@ -124,12 +124,10 @@ def main():
             tire_radius=3,
         ),
         config(
-            p_correction=1.2,
-            i_correction=0,
-            d_correction=-0.5,
-            speed_multiplier=1,
+            # gyro_drive_pid=GyroPID(1.2, 0.002, -0.7, 2),
+            gyro_drive_pid=GyroPID(1.2, 0, -0.7, 2),
+            gyro_turn_pid=GyroPID(0.8, 0, -0.1, 2),
             debug_mode=True,
-            gyro_tolerance=2,
             degree_o_meter=DegreeOMeter(),
             loop_throttle=0.025,
         ),

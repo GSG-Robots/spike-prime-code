@@ -1,10 +1,11 @@
 """Basic correctors
 """
 
-from .types import Corrector
-from .utils import Timer
+import math
+
 from .configuration import config
 from .math import clamp, sigmoid
+from .types import Corrector
 
 
 def gyro_drive_pid(
@@ -31,10 +32,12 @@ def gyro_drive_pid(
         target -= 360
     last_error = 0
     error_sum = 0
-    p_correction = config.p_correction if p_correction is None else p_correction
-    i_correction = config.i_correction if i_correction is None else i_correction
-    d_correction = config.d_correction if d_correction is None else d_correction
-    gyro_tolerance = config.gyro_tolerance if gyro_tolerance is None else gyro_tolerance
+    p_correction = config.gyro_drive_pid.p if p_correction is None else p_correction
+    i_correction = config.gyro_drive_pid.i if i_correction is None else i_correction
+    d_correction = config.gyro_drive_pid.d if d_correction is None else d_correction
+    gyro_tolerance = (
+        config.gyro_drive_pid.tolerance if gyro_tolerance is None else gyro_tolerance
+    )
 
     while True:
         left, right = next(parent)
@@ -42,9 +45,11 @@ def gyro_drive_pid(
         error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
+        # math.copysign(1, error_value) != math.copysign(1, error_sum) or
         if abs(error_value) < gyro_tolerance:
             error_sum = 0
             differential = 0
+            # error_value *= 2
         corrector = (
             error_sum * i_correction
             + differential * d_correction
@@ -89,10 +94,12 @@ def gyro_turn_pid(
         target -= 360
     last_error = 0
     error_sum = 0
-    p_correction = config.p_correction if p_correction is None else p_correction
-    i_correction = config.i_correction if i_correction is None else i_correction
-    d_correction = config.d_correction if d_correction is None else d_correction
-    gyro_tolerance = config.gyro_tolerance if gyro_tolerance is None else gyro_tolerance
+    p_correction = config.gyro_turn_pid.p if p_correction is None else p_correction
+    i_correction = config.gyro_turn_pid.i if i_correction is None else i_correction
+    d_correction = config.gyro_turn_pid.d if d_correction is None else d_correction
+    gyro_tolerance = (
+        config.gyro_turn_pid.tolerance if gyro_tolerance is None else gyro_tolerance
+    )
 
     while True:
         left, right = next(parent)
@@ -100,7 +107,7 @@ def gyro_turn_pid(
         error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
-        if error_value < gyro_tolerance:
+        if abs(error_value) < gyro_tolerance:
             error_sum = 0
             differential = 0
         corrector = (
