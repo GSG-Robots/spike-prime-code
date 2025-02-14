@@ -168,6 +168,9 @@ class ActionMenu(Menu):
 
         :returns: Das gewählte Element
         """
+        hw.left_color_sensor.light_up_all(0)
+        hw.right_color_sensor.light_up_all(0)
+
         result = self.choose(exit_on_charge=exit_on_charge)
         show_image(result.display_as, True, True, False)
         result.prepare()
