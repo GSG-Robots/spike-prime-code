@@ -10,7 +10,7 @@ from gsgr.configuration import config, hardware, GyroPID
 from gsgr.menu import ActionMenu, ActionMenuItem
 from gsgr.run import Run
 from gsgr.utils import DegreeOMeter
-from spike import Motor, MotorPair, PrimeHub
+from spike import Motor, MotorPair, PrimeHub, ColorSensor
 
 FRONT_RIGHT = 2
 FRONT_LEFT = 4
@@ -122,6 +122,8 @@ def main():
             right_motor=Motor("E"),
             brick=PrimeHub(),
             tire_radius=3,
+            left_color_sensor=ColorSensor("D"),
+            right_color_sensor=ColorSensor("C")
         ),
         config(
             # gyro_drive_pid=GyroPID(1.2, 0.002, -0.7, 2),
@@ -145,7 +147,7 @@ def main():
         while hub.battery.charger_detect() in [
             hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
             hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-        ]:
+        ] and not hub.button.connect.is_pressed():
             time.sleep(0.2)
 
         menu.loop(autoscroll=True, exit_on_charge=config.debug_mode)
