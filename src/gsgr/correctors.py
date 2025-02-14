@@ -39,10 +39,15 @@ def gyro_drive_pid(
         config.gyro_drive_pid.tolerance if gyro_tolerance is None else gyro_tolerance
     )
 
+    yield next(parent)
+
+    cur = config.degree_o_meter.oeioei
+    last_error = error_value = min((target - cur, target - cur - 360, target - cur + 360), key=abs)
+
     while True:
         left, right = next(parent)
-        tar, cur = target, config.degree_o_meter.oeioei
-        error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
+        cur = config.degree_o_meter.oeioei
+        error_value = min((target - cur, target - cur - 360, target - cur + 360), key=abs)
         differential = error_value - last_error
         error_sum += error_value
         # math.copysign(1, error_value) != math.copysign(1, error_sum) or
@@ -55,8 +60,8 @@ def gyro_drive_pid(
             + differential * d_correction
             + error_value * p_correction
         )
-        last_error = error_value
         yield (left + corrector, right - corrector)
+        last_error = error_value
 
 
 def speed(left, right=None) -> Corrector:
@@ -127,7 +132,7 @@ def accelerate_linar(parent: Corrector, for_: int) -> Corrector:
     """
     while True:
         left, right = next(parent)
-        speed_mutiplier = clamp(next(for_) / 100, 0.5, 1)
+        speed_mutiplier = clamp(next(for_) / 100, 0.1, 1)
         yield (left * speed_mutiplier, right * speed_mutiplier)
 
 
@@ -143,7 +148,7 @@ def decelerate(parent: Corrector, from_: int, for_: int) -> Corrector:
         if next(from_) < 100:
             yield left, right
         else:
-            speed_mutiplier = 1 - clamp(next(for_) / 100, 0.5, 1)
+            speed_mutiplier = 1 - clamp(next(for_) / 100, 0.1, 1)
             yield (left * speed_mutiplier, right * speed_mutiplier)
 
 
@@ -170,6 +175,6 @@ def accelerate_sigmoid(
             1,
         )
         yield (
-            clamp(left * speed_mutiplier, 25, 100),
-            clamp(right * speed_mutiplier, 25, 100),
+            clamp(left * speed_mutiplier, 10, 100),
+            clamp(right * speed_mutiplier, 10, 100),
         )
