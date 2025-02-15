@@ -114,23 +114,19 @@ class Menu:
         :returns: Das gewählte Menü-Element
         """
         last_position = -1
-        
-        # Reset button presses        
+
+        # Reset button presses
         hub.button.center.was_pressed()
-        
+
         while not hub.button.center.was_pressed():
             if hw.brick.left_button.was_pressed():
                 self.position = self.position - (-1 if self.swap_buttons else 1)
             if hw.brick.right_button.was_pressed():
                 self.position = self.position + (-1 if self.swap_buttons else 1)
-            if (
-                exit_on_charge
-                and hub.battery.charger_detect()
-                in [
-                    hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
-                    hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-                ]
-            ):
+            if exit_on_charge and hub.battery.charger_detect() in [
+                hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
+                hub.battery.CHARGER_STATE_CHARGING_ONGOING,
+            ]:
                 if hub.button.connect.is_pressed():
                     exit_on_charge = False
                 else:
@@ -149,7 +145,7 @@ class Menu:
                 last_position = self.position
 
             time.sleep(cnf.loop_throttle)
-        
+
         return self.items[self.position]
 
     def exit(self):

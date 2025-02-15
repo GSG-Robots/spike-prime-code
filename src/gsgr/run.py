@@ -1,7 +1,8 @@
 from typing import Callable, ContextManager
+
 from gsgr.configuration import config as cnf
-from gsgr.movement import free_attachments
 from gsgr.menu import ActionMenuItem
+from gsgr.movement import free_attachments
 from spike import Motor
 
 

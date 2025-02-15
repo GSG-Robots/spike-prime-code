@@ -4,14 +4,14 @@ import time
 from compyner.typehints import __glob_import__
 
 import gsgr.display
-from gsgr.exceptions import StopRun
 import gsgr.movement
 import hub
-from gsgr.configuration import config, hardware, GyroPID
+from gsgr.configuration import GyroPID, config, hardware
+from gsgr.exceptions import StopRun
 from gsgr.menu import ActionMenu, ActionMenuItem
 from gsgr.run import Run
 from gsgr.utils import DegreeOMeter
-from spike import Motor, MotorPair, PrimeHub, ColorSensor
+from spike import ColorSensor, Motor, MotorPair, PrimeHub
 
 FRONT_RIGHT = 2
 FRONT_LEFT = 4
@@ -24,7 +24,7 @@ def run_motorcontrol():
     select = 1
     last_select = -1
     motor = FRONT_LEFT
-    
+
     while not hub.button.center.was_pressed():
         if hardware.brick.left_button.is_pressed():
             select -= 1
@@ -54,12 +54,12 @@ def run_motorcontrol():
             if select == 4:
                 hardware.brick.light_matrix.set_pixel(4, 4, 100)
                 motor = BACK_RIGHT
-                
+
     speed = 100
     is_inverted = motor in (FRONT_LEFT, BACK_LEFT, BACK_RIGHT)
     hardware.brick.light_matrix.off()
     hardware.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
-    
+
     while not hub.button.center.was_pressed():
         if (
             hardware.brick.left_button.is_pressed()
@@ -84,8 +84,20 @@ def run_motorcontrol():
 
     gsgr.movement.stop_attachment()
     time.sleep(1.0)
-    
+
     raise StopRun
+
+
+@compile
+def configuration(in_file):
+    from pathlib import Path  # pylint: disable=import-outside-toplevel
+
+    import yaml  # pylint: disable=import-outside-toplevel
+
+    file = Path(in_file).absolute().parent / "config.yaml"
+
+    with file.open("r", encoding="utf-8") as file:
+        return yaml.load(file, yaml.Loader)
 
 
 def main():
@@ -118,23 +130,34 @@ def main():
 
     with (
         hardware(
-            drive_shaft=Motor("B"),
-            gear_selector=Motor("A"),
-            driving_motors=MotorPair("F", "E"),
-            left_motor=Motor("F"),
-            right_motor=Motor("E"),
+            drive_shaft=Motor(configuration["gearbox"]["drive_shaft"]),
+            gear_selector=Motor(configuration["gearbox"]["gear_selector"]),
+            driving_motors=MotorPair(
+                configuration["drive_motors"]["left"],
+                configuration["drive_motors"]["right"],
+            ),
+            left_motor=Motor(configuration["drive_motors"]["left"]),
+            right_motor=Motor(configuration["drive_motors"]["right"]),
             brick=PrimeHub(),
-            tire_radius=3,
-            left_color_sensor=ColorSensor("D"),
-            right_color_sensor=ColorSensor("C")
+            tire_radius=configuration["tire_radius"],
+            left_color_sensor=ColorSensor(configuration["color_sensors"]["left"]),
+            right_color_sensor=ColorSensor(configuration["color_sensors"]["right"]),
         ),
         config(
-            # gyro_drive_pid=GyroPID(1.2, 0.002, -0.7, 2),
-            gyro_drive_pid=GyroPID(1.2, 0, -0.7, 2),
-            gyro_turn_pid=GyroPID(0.8, 0, -0.1, 2),
-            debug_mode=True,
+            gyro_tolerance=configuration["gyro_tolerance"],
+            gyro_drive_pid=GyroPID(
+                configuration["correctors"]["gyro_drive"]["p"],
+                configuration["correctors"]["gyro_drive"]["i"],
+                configuration["correctors"]["gyro_drive"]["d"],
+            ),
+            gyro_turn_pid=GyroPID(
+                configuration["correctors"]["gyro_turn"]["p"],
+                configuration["correctors"]["gyro_turn"]["i"],
+                configuration["correctors"]["gyro_turn"]["d"],
+            ),
+            debug_mode=configuration["debug_mode"],
             degree_o_meter=DegreeOMeter(),
-            loop_throttle=0.025,
+            loop_throttle=configuration["loop_throttle"],
         ),
     ):
         gsgr.display.show_image(
@@ -146,13 +169,13 @@ def main():
                 (0, 0, 0),
             )
         )
-        
+
         connect_mode = False
 
         # Reset
         hub.button.center.was_pressed()
         hub.button.connect.was_pressed()
-        
+
         while hub.battery.charger_detect() in [
             hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
             hub.battery.CHARGER_STATE_CHARGING_ONGOING,
@@ -164,7 +187,9 @@ def main():
                 connect_mode = True
                 break
 
-        menu.loop(autoscroll=True, exit_on_charge=config.debug_mode and not connect_mode)
+        menu.loop(
+            autoscroll=True, exit_on_charge=config.debug_mode and not connect_mode
+        )
 
 
 if __name__ == "__main__":
@@ -178,5 +203,5 @@ if __name__ == "__main__":
     finally:
         # Reactivate button callback
         hub.button.center.callback(callback)
-    
+
     raise SystemExit

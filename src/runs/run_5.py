@@ -1,15 +1,16 @@
 import time
-from gsgr.conditions import sec, deg, cm, THEN, OR
-from gsgr.enums import Color, Attachment
+
+from gsgr.conditions import OR, THEN, cm, deg, sec
+from gsgr.configuration import config as cnf
+from gsgr.enums import Attachment, Color
 from gsgr.movement import (
-    gyro_set_origin,
+    free_attachment,
     gyro_drive,
+    gyro_set_origin,
     gyro_turn,
     run_attachment,
     stop_attachment,
-    free_attachment,
 )
-from gsgr.configuration import config as cnf
 
 display_as = 5
 color = Color.RED
@@ -28,7 +29,7 @@ def run():
     gyro_turn(0, 50, p_correction=1.5)
     gyro_drive(0, 61, cm(22.5))
 
-    gyro_turn(41, 50, THEN(deg(41), sec(.5)))
+    gyro_turn(41, 50, THEN(deg(41), sec(0.5)))
     gyro_drive(
         41, 50, OR(cm(20), sec(3)), decelerate_from=cm(10), decelerate_for=cm(13)
     )

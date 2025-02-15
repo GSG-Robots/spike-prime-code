@@ -1,0 +1,27 @@
+debug_mode: true
+tire_radius: 3
+gyro_tolerance: 2
+loop_throttle: 0.025
+
+gearbox:
+    drive_shaft: B
+    gear_selector: A
+
+drive_motors:
+    left: F
+    right: E
+
+color_sensors:
+    left: D
+    right: C
+
+correctors:
+    gyro_turn:
+        p: 0.8
+        i: 0
+        d: -0.1
+
+    gyro_drive:
+        p: 1.2
+        i: 0
+        d: -0.7

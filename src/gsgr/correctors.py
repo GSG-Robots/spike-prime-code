@@ -35,19 +35,21 @@ def gyro_drive_pid(
     p_correction = config.gyro_drive_pid.p if p_correction is None else p_correction
     i_correction = config.gyro_drive_pid.i if i_correction is None else i_correction
     d_correction = config.gyro_drive_pid.d if d_correction is None else d_correction
-    gyro_tolerance = (
-        config.gyro_drive_pid.tolerance if gyro_tolerance is None else gyro_tolerance
-    )
+    gyro_tolerance = config.gyro_tolerance if gyro_tolerance is None else gyro_tolerance
 
     yield next(parent)
 
     cur = config.degree_o_meter.oeioei
-    last_error = error_value = min((target - cur, target - cur - 360, target - cur + 360), key=abs)
+    last_error = error_value = min(
+        (target - cur, target - cur - 360, target - cur + 360), key=abs
+    )
 
     while True:
         left, right = next(parent)
         cur = config.degree_o_meter.oeioei
-        error_value = min((target - cur, target - cur - 360, target - cur + 360), key=abs)
+        error_value = min(
+            (target - cur, target - cur - 360, target - cur + 360), key=abs
+        )
         differential = error_value - last_error
         error_sum += error_value
         # math.copysign(1, error_value) != math.copysign(1, error_sum) or
@@ -102,9 +104,7 @@ def gyro_turn_pid(
     p_correction = config.gyro_turn_pid.p if p_correction is None else p_correction
     i_correction = config.gyro_turn_pid.i if i_correction is None else i_correction
     d_correction = config.gyro_turn_pid.d if d_correction is None else d_correction
-    gyro_tolerance = (
-        config.gyro_turn_pid.tolerance if gyro_tolerance is None else gyro_tolerance
-    )
+    gyro_tolerance = config.gyro_tolerance if gyro_tolerance is None else gyro_tolerance
 
     while True:
         left, right = next(parent)

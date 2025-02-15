@@ -4,13 +4,12 @@
 import math
 import time
 
-# from typing import Iterator
-from .conditions import deg
-from . import correctors as corr
-from .math import clamp
 import hub
 
-from .types import Condition
+from . import correctors as corr
+
+# from typing import Iterator
+from .conditions import deg
 
 # from .conditions import Deg, Sec
 from .configuration import config
@@ -24,6 +23,8 @@ from .configuration import hardware as hw
 # GyroTurnPID,
 # )
 from .exceptions import BatteryLowError, StopRun
+from .math import clamp
+from .types import Condition
 from .utils import Timer
 
 
@@ -137,9 +138,7 @@ def run_attachment(
                 raise StopRun
     else:
         timer = Timer()
-        while (
-            timer.elapsed < duration
-        ):
+        while timer.elapsed < duration:
             time.sleep(config.loop_throttle)
             if hub.button.center.was_pressed():
                 raise StopRun
@@ -198,7 +197,7 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
     while next(until_generator) < 100:
         if hub.button.center.was_pressed():
             raise StopRun
-        
+
         left_speed, right_speed = next(speed_generator)
 
         if 0 < left_speed < 5:
@@ -222,8 +221,8 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
         ):
             if use_power:
                 hw.driving_motors.start_tank_at_power(
-                    round(left_speed / 100 * 70 + math.copysign(30, left_speed)),
-                    round(right_speed / 100 * 70 + math.copysign(30, right_speed)),
+                    round(left_speed),  #  / 100 * 70 + math.copysign(30, left_speed)
+                    round(right_speed),  #  / 100 * 70 + math.copysign(30, right_speed)
                 )
             else:
                 hw.driving_motors.start_tank(

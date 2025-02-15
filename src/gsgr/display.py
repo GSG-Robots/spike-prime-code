@@ -5,7 +5,6 @@ from micropython import const
 
 from .configuration import hardware as hw
 
-
 images: dict[
     str,
     tuple[

@@ -2,6 +2,8 @@
 """
 SPIKE Prime Python Classes
 """
+
+
 class App:
     def __init__(self):
         pass
@@ -101,7 +103,7 @@ class DistanceSensor:
         Default : 100 %
 
         Errors
-        ---------- 
+        ----------
         TypeError : brightness is not an integer.
 
         RuntimeError : The sensor has been disconnected from the Port.
@@ -210,7 +212,6 @@ class DistanceSensor:
         RuntimeError : The sensor has been disconnected from the Port.
         """
 
-    
     def get_distance_percentage(self, short_range=False):
         """
         Retrieves the measured distance in percent.
@@ -240,7 +241,7 @@ class DistanceSensor:
         RuntimeError : The sensor has been disconnected from the Port.
         """
 
-    def wait_for_distance_farther_than(self, distance, unit='cm', short_range=False):
+    def wait_for_distance_farther_than(self, distance, unit="cm", short_range=False):
         """
         Waits until the measured distance is greater than distance.
 
@@ -279,7 +280,7 @@ class DistanceSensor:
         RuntimeError : The sensor has been disconnected from the Port.
         """
 
-    def wait_for_distance_closer_than(self, distance, unit='cm', short_range=False):
+    def wait_for_distance_closer_than(self, distance, unit="cm", short_range=False):
         """
         Waits until the measured distance is less than distance.
 
@@ -405,7 +406,7 @@ class ForceSensor:
 class LightMatrix:
     def __init__(self):
         """
-          Controls the light matrix on the Spike Hub
+        Controls the light matrix on the Spike Hub
         """
 
     def show_image(self, image, brightness=100):
@@ -478,23 +479,22 @@ class LightMatrix:
         """
         Writes text on the Light Matrix, one letter at a time, scrolling from right to left.
         Your program will not continue until all of the letters have been shown.
-    
+
         Parameters
         ---------
         text : Text to write.
-    
+
         Type : string (text)
-    
+
         Values : any text
-    
+
         Default : no default value
         """
 
     def off(self):
         """
         Turns off all the pixels on the Light Matrix.
-        """ 
-
+        """
 
 
 class MotionSensor:
@@ -556,7 +556,7 @@ class MotionSensor:
         The roll angle, specified in degrees.
 
         Type : Integer (Positive or negative whole number, including 0)
-    
+
         Values : -180 to 180 BUG: currently returns -179 to 179
         """
 
@@ -594,7 +594,7 @@ class MotionSensor:
         ----------
         True if gesture has occurred since the last time was_gesture() was called, otherwise False.
 
-        Type : boolean 
+        Type : boolean
 
         Values : True or False
         """
@@ -621,7 +621,6 @@ class MotionSensor:
         """
 
 
-    
 class Motor:
     def __init__(self, port):
         """
@@ -634,10 +633,10 @@ class Motor:
 
         Values : 'A', 'B', 'C', 'D', and 'E'
 
-        Default : no default value       
+        Default : no default value
         """
 
-    def run_to_position(self, degrees, direction='shortest path', speed=None):
+    def run_to_position(self, degrees, direction="shortest path", speed=None):
         """
         Runs the motor to an absolute position.
         The sign of the speed will be ignored (absolute value) and the motor will always travel in the direction specified by direction parameter. If speed is greater than 100, it will be limited to 100.
@@ -768,29 +767,29 @@ class Motor:
     def run_for_seconds(self, seconds, speed=None):
         """
         Runs the motor for a specified number of seconds.
-    
+
         Parameters
         -----------
         seconds : The number of seconds for which the motor should run.
-    
+
         Type : float (decimal number)
-    
+
         Values : any number
-    
+
         Default : no default value
-    
+
         speed : The motor's speed.
-    
+
         Type : integer (positive or negative whole number, including 0)
-    
+
         Values : -100% to 100%
-    
+
         Default : if no value is specified, it will use the default speed set by set_default_speed().
-    
+
         Errors
         ----------
         TypeError : seconds is not a number or speed is not an integer.
-    
+
         RuntimeError : The motor has been disconnected from the Port.
         """
 
@@ -992,7 +991,6 @@ class Motor:
         TypeError : default_speed is not an integer.
         """
 
-
     def set_stop_action(self, action):
         """
         Sets the default behavior when a motor stops.
@@ -1039,7 +1037,7 @@ class Motor:
         RuntimeError : The motor has been disconnected from the Port.
         """
 
-    
+
 class MotorPair:
     def __init__(self, port1, port2):
         """
@@ -1052,7 +1050,7 @@ class MotorPair:
 
         Values : 'A', 'B', 'C', 'D', and 'E'
 
-        Default : no default value       
+        Default : no default value
 
         port2 :  Port of the second motor
 
@@ -1060,11 +1058,10 @@ class MotorPair:
 
         Values : 'A', 'B', 'C', 'D', and 'E'
 
-        Default : no default value       
+        Default : no default value
         """
 
-
-    def move(self, amount, unit='cm', steering=0, speed=None):
+    def move(self, amount, unit="cm", steering=0, speed=None):
         """
         Start the 2 motors simultaneously to move a Driving Base.
         steering=0 makes the Driving Base go straight. Negative numbers make the Driving Base turn left. Positive numbers make the Driving Base turn right.
@@ -1164,7 +1161,7 @@ class MotorPair:
         RuntimeError : One or both of the motors has been disconnected or the motors could not be paired.
         """
 
-    def move_tank(self, amount, unit='cm', left_speed=None, right_speed=None):
+    def move_tank(self, amount, unit="cm", left_speed=None, right_speed=None):
         """
         Moves the Driving Base using differential (tank) steering.
         The speed of each motor can be controlled independently for differential (tank) drive Driving Bases.
@@ -1251,7 +1248,6 @@ class MotorPair:
         RuntimeError : One or both of the Ports do not have a motor connected or the motors could not be paired.
         """
 
-
     def start_at_power(self, power, steering=0):
         """
         Starts moving the Driving Base without speed control.
@@ -1297,7 +1293,7 @@ class MotorPair:
         Parameters
         ===========
         left_power : The power of the left motor
-       
+
         Type : Integer
 
         Values : -100 to 100
@@ -1336,7 +1332,7 @@ class MotorPair:
         RuntimeError : One or both of the Ports do not have a motor connected or the motors could not be paired.
         """
 
-    def set_motor_rotation(self, amount, unit='cm'):
+    def set_motor_rotation(self, amount, unit="cm"):
         """
         Sets the ratio of one motor rotation to the distance traveled.
         If there are no gears used between the motors and the wheels of the Driving Base, then amount is the circumference of one wheel.
@@ -1419,13 +1415,12 @@ class MotorPair:
         RuntimeError : One or both of the Ports do not have a motor connected or the motors could not be paired.
         """
 
-    
+
 class Speaker:
     def __init__(self):
         """
         Controls this SpikeHub speaker
         """
-
 
     def beep(self, note=60, seconds=0.2):
         """
@@ -1524,7 +1519,7 @@ class StatusLight:
         Controls the Status light on the PrimeHub
         """
 
-    def on(self, color='white'):
+    def on(self, color="white"):
         """
         Sets the color of the light.
 
@@ -1609,7 +1604,7 @@ class ColorSensor:
         def get_color(self):
             """
             Retrieves the detected color of a surface.
-    
+
             Returns
             -----------
             Name of the color.
@@ -1617,7 +1612,7 @@ class ColorSensor:
             Type : string (text)
 
             Values : 'black','violet','blue','cyan','green','yellow','red','white',None
-    
+
             Errors
             -----------
             RuntimeError : The sensor has been disconnected from the Port.
@@ -1775,7 +1770,7 @@ class ColorSensor:
         Default : 100 %
 
         Errors
-        ---------- 
+        ----------
         TypeError : brightness is not an integer.
 
         RuntimeError : The sensor has been disconnected from the Port.
@@ -1827,12 +1822,12 @@ class PrimeHub:
     right_button = Buttons("right")
     light_matrix = LightMatrix()
     status_light = StatusLight()
-    PORT_A = 'A'
-    PORT_B = 'B'
-    PORT_C = 'C'
-    PORT_D = 'D'
-    PORT_E = 'E'
-    PORT_F = 'F'
+    PORT_A = "A"
+    PORT_B = "B"
+    PORT_C = "C"
+    PORT_D = "D"
+    PORT_E = "E"
+    PORT_F = "F"
 
     def __init__(self):
         """

@@ -2,6 +2,7 @@
 """Short run to show battery show"""
 
 import time
+
 import hub  # type: ignore # pylint: disable=import-error
 
 

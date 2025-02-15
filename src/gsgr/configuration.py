@@ -9,8 +9,7 @@ if typing.TYPE_CHECKING:
 
 from collections import namedtuple
 
-
-GyroPID = namedtuple("GyroPID", ("p", "i", "d", "tolerance"))
+GyroPID = namedtuple("GyroPID", ("p", "i", "d"))
 
 
 class Config(ConfigBase):
@@ -21,6 +20,7 @@ class Config(ConfigBase):
     p_correction: float
     i_correction: float
     d_correction: float
+    gyro_tolerance: int
     gyro_drive_pid: GyroPID
     "PID- und Toleranzwerte für gyro_drive"
     gyro_turn_pid: GyroPID

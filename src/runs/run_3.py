@@ -1,17 +1,18 @@
 import time
-from gsgr.conditions import sec, deg, cm, THEN, line
-from gsgr.correctors import speed
-from gsgr.enums import Color, Attachment
-from gsgr.movement import (
-    gyro_set_origin,
-    gyro_drive,
-    gyro_turn,
-    run_attachment,
-    hold_attachment,
-    free_attachment,
-    drive,
-)
+
+from gsgr.conditions import THEN, cm, deg, line, sec
 from gsgr.configuration import config as cnf
+from gsgr.correctors import speed
+from gsgr.enums import Attachment, Color
+from gsgr.movement import (
+    drive,
+    free_attachment,
+    gyro_drive,
+    gyro_set_origin,
+    gyro_turn,
+    hold_attachment,
+    run_attachment,
+)
 
 display_as = 3
 color = Color.BLUE
@@ -20,6 +21,7 @@ color = Color.BLUE
 # 6 Sekunden
 FEATURE_TOWER = True
 # #############
+
 
 # Gesamt: 16 Sekunden
 def run():

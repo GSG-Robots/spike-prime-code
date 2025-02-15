@@ -2,8 +2,9 @@
 LEGO provided functions and values.
 """
 
-from typing import Tuple, Union, Any, Dict, List, overload
-from . import battery, bluetooth, display, button
+from typing import Any, Dict, List, Tuple, Union, overload
+
+from . import battery, bluetooth, button, display
 
 TOP = 0
 "The top of the hub. This is the side with the matrix display."
