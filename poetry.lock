@@ -391,14 +391,14 @@ files = [
 
 [[package]]
 name = "domdf-python-tools"
-version = "3.9.0"
+version = "3.10.0"
 description = "Helpful functions for Python 🐍 🛠️"
 optional = false
 python-versions = ">=3.6"
 groups = ["dev"]
 files = [
-    {file = "domdf_python_tools-3.9.0-py3-none-any.whl", hash = "sha256:4e1ef365cbc24627d6d1e90cf7d46d8ab8df967e1237f4a26885f6986c78872e"},
-    {file = "domdf_python_tools-3.9.0.tar.gz", hash = "sha256:1f8a96971178333a55e083e35610d7688cd7620ad2b99790164e1fc1a3614c18"},
+    {file = "domdf_python_tools-3.10.0-py3-none-any.whl", hash = "sha256:5e71c1be71bbcc1f881d690c8984b60e64298ec256903b3147f068bc33090c36"},
+    {file = "domdf_python_tools-3.10.0.tar.gz", hash = "sha256:2ae308d2f4f1e9145f5f4ba57f840fbfd1c2983ee26e4824347789649d3ae298"},
 ]
 
 [package.dependencies]
@@ -1087,14 +1087,14 @@ testing = ["bs4", "coverage", "pygments", "pytest (>=7.1,<8)", "pytest-cov", "py
 
 [[package]]
 name = "sphinx-toolbox"
-version = "3.8.1"
+version = "3.8.2"
 description = "Box of handy tools for Sphinx 🧰 📔"
 optional = false
 python-versions = ">=3.7"
 groups = ["dev"]
 files = [
-    {file = "sphinx_toolbox-3.8.1-py3-none-any.whl", hash = "sha256:53d8e77dd79e807d9ef18590c4b2960a5aa3c147415054b04c31a91afed8b88b"},
-    {file = "sphinx_toolbox-3.8.1.tar.gz", hash = "sha256:a4b39a6ea24fc8f10e24f052199bda17837a0bf4c54163a56f521552395f5e1a"},
+    {file = "sphinx_toolbox-3.8.2-py3-none-any.whl", hash = "sha256:c65d03274f07a6bfb3f56123ae40e1e003a49709b7cda9b75d9e53e569d34581"},
+    {file = "sphinx_toolbox-3.8.2.tar.gz", hash = "sha256:2d65b9cee1d313c84cdb01317764791b1bdfbd6a1e6aa056e464137d18a6b9eb"},
 ]
 
 [package.dependencies]
