@@ -4,6 +4,7 @@ import time
 from compyner.typehints import __glob_import__
 
 import gsgr.display
+from gsgr.exceptions import StopRun
 import gsgr.movement
 import hub
 from gsgr.configuration import config, hardware, GyroPID
@@ -23,66 +24,68 @@ def run_motorcontrol():
     select = 1
     last_select = -1
     motor = FRONT_LEFT
-    try:
-        while True:
-            if hardware.brick.left_button.is_pressed():
-                select -= 1
-                hardware.brick.left_button.wait_until_released()
-                time.sleep(0.1)
-            if hardware.brick.right_button.is_pressed():
-                select += 1
-                hardware.brick.right_button.wait_until_released()
-                time.sleep(0.1)
-            if select < 1:
-                select = 4
-            if select > 4:
-                select = 1
-            if last_select != select:
-                last_select = select
-                # mcp.light_up_display(run.brick, motor, 4)
-                hardware.brick.light_matrix.off()
-                if select == 1:
-                    hardware.brick.light_matrix.set_pixel(0, 0, 100)
-                    motor = FRONT_LEFT
-                if select == 2:
-                    hardware.brick.light_matrix.set_pixel(4, 0, 100)
-                    motor = FRONT_RIGHT
-                if select == 3:
-                    hardware.brick.light_matrix.set_pixel(0, 4, 100)
-                    motor = BACK_LEFT
-                if select == 4:
-                    hardware.brick.light_matrix.set_pixel(4, 4, 100)
-                    motor = BACK_RIGHT
-    except KeyboardInterrupt:
-        speed = 100
-        is_inverted = motor in (FRONT_LEFT, BACK_LEFT, BACK_RIGHT)
-        hardware.brick.light_matrix.off()
-        hardware.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
-        try:
-            while True:
-                if (
-                    hardware.brick.left_button.is_pressed()
-                    and hardware.brick.right_button.is_pressed()
-                ):
-                    return
-                if hardware.brick.right_button.is_pressed():
-                    speed = 100
-                    hardware.brick.light_matrix.show_image(
-                        "GO_RIGHT" if is_inverted else "GO_LEFT"
-                    )
-                if hardware.brick.left_button.is_pressed():
-                    speed = -100
-                    hardware.brick.light_matrix.show_image(
-                        "GO_LEFT" if is_inverted else "GO_RIGHT"
-                    )
-        except KeyboardInterrupt:
-            try:
-                gsgr.movement.run_attachment(motor, speed)
-                while True:
-                    time.sleep(0.1)
-            except KeyboardInterrupt:
-                gsgr.movement.stop_attachment()
-                time.sleep(1.0)
+    
+    while not hub.button.center.was_pressed():
+        if hardware.brick.left_button.is_pressed():
+            select -= 1
+            hardware.brick.left_button.wait_until_released()
+            time.sleep(0.1)
+        if hardware.brick.right_button.is_pressed():
+            select += 1
+            hardware.brick.right_button.wait_until_released()
+            time.sleep(0.1)
+        if select < 1:
+            select = 4
+        if select > 4:
+            select = 1
+        if last_select != select:
+            last_select = select
+            # mcp.light_up_display(run.brick, motor, 4)
+            hardware.brick.light_matrix.off()
+            if select == 1:
+                hardware.brick.light_matrix.set_pixel(0, 0, 100)
+                motor = FRONT_LEFT
+            if select == 2:
+                hardware.brick.light_matrix.set_pixel(4, 0, 100)
+                motor = FRONT_RIGHT
+            if select == 3:
+                hardware.brick.light_matrix.set_pixel(0, 4, 100)
+                motor = BACK_LEFT
+            if select == 4:
+                hardware.brick.light_matrix.set_pixel(4, 4, 100)
+                motor = BACK_RIGHT
+                
+    speed = 100
+    is_inverted = motor in (FRONT_LEFT, BACK_LEFT, BACK_RIGHT)
+    hardware.brick.light_matrix.off()
+    hardware.brick.light_matrix.show_image("GO_RIGHT" if is_inverted else "GO_LEFT")
+    
+    while not hub.button.center.was_pressed():
+        if (
+            hardware.brick.left_button.is_pressed()
+            and hardware.brick.right_button.is_pressed()
+        ):
+            return
+        if hardware.brick.right_button.is_pressed():
+            speed = 100
+            hardware.brick.light_matrix.show_image(
+                "GO_RIGHT" if is_inverted else "GO_LEFT"
+            )
+        if hardware.brick.left_button.is_pressed():
+            speed = -100
+            hardware.brick.light_matrix.show_image(
+                "GO_LEFT" if is_inverted else "GO_RIGHT"
+            )
+
+    gsgr.movement.run_attachment(motor, speed)
+
+    while not hub.button.center.was_pressed():
+        time.sleep(0.1)
+
+    gsgr.movement.stop_attachment()
+    time.sleep(1.0)
+    
+    raise StopRun
 
 
 def main():
@@ -143,15 +146,37 @@ def main():
                 (0, 0, 0),
             )
         )
+        
+        connect_mode = False
 
+        # Reset
+        hub.button.center.was_pressed()
+        hub.button.connect.was_pressed()
+        
         while hub.battery.charger_detect() in [
             hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
             hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-        ] and not hub.button.connect.is_pressed():
+        ]:
             time.sleep(0.2)
+            if hub.button.center.was_pressed():
+                raise SystemExit
+            if hub.button.connect.was_pressed():
+                connect_mode = True
+                break
 
-        menu.loop(autoscroll=True, exit_on_charge=config.debug_mode)
+        menu.loop(autoscroll=True, exit_on_charge=config.debug_mode and not connect_mode)
 
 
 if __name__ == "__main__":
-    main()
+    # <DISABLE BUTTON FOR INTERRUPT>
+    callback = hub.button.center.callback()
+    hub.button.center.callback(lambda i: ...)
+    try:
+        main()
+    except Exception as e:
+        raise e
+    finally:
+        # Reactivate button callback
+        hub.button.center.callback(callback)
+    
+    raise SystemExit

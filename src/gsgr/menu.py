@@ -114,42 +114,43 @@ class Menu:
         :returns: Das gewählte Menü-Element
         """
         last_position = -1
-        try:
-            while True:
-                if hw.brick.left_button.was_pressed():
-                    self.position = self.position - (-1 if self.swap_buttons else 1)
-                if hw.brick.right_button.was_pressed():
-                    self.position = self.position + (-1 if self.swap_buttons else 1)
-                if (
-                    exit_on_charge
-                    and hub.battery.charger_detect()
-                    in [
-                        hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
-                        hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-                    ]
-                ):
-                    if hub.button.connect.is_pressed():
-                        exit_on_charge = False
-                    else:
-                        self.exit()
+        
+        # Reset button presses        
+        hub.button.center.was_pressed()
+        
+        while not hub.button.center.was_pressed():
+            if hw.brick.left_button.was_pressed():
+                self.position = self.position - (-1 if self.swap_buttons else 1)
+            if hw.brick.right_button.was_pressed():
+                self.position = self.position + (-1 if self.swap_buttons else 1)
+            if (
+                exit_on_charge
+                and hub.battery.charger_detect()
+                in [
+                    hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
+                    hub.battery.CHARGER_STATE_CHARGING_ONGOING,
+                ]
+            ):
+                if hub.button.connect.is_pressed():
+                    exit_on_charge = False
+                else:
+                    self.exit()
 
-                self.position = int(clamp(self.position, 0, len(self.items) - 1))
+            self.position = int(clamp(self.position, 0, len(self.items) - 1))
 
-                if last_position != self.position:
-                    show_image(
-                        self.items[self.position].display_as,
-                        self.position == 0,
-                        self.position == (len(self.items) - 1),
-                        True,
-                    )
-                    hw.brick.status_light.on(self.items[self.position].color)
-                    last_position = self.position
+            if last_position != self.position:
+                show_image(
+                    self.items[self.position].display_as,
+                    self.position == 0,
+                    self.position == (len(self.items) - 1),
+                    True,
+                )
+                hw.brick.status_light.on(self.items[self.position].color)
+                last_position = self.position
 
-                time.sleep(cnf.loop_throttle)
-        except ExitMenu as e:
-            raise e
-        except (KeyboardInterrupt, SystemExit):
-            return self.items[self.position]
+            time.sleep(cnf.loop_throttle)
+        
+        return self.items[self.position]
 
     def exit(self):
         """Funktion um :py:meth:`~gsgr.menu.Menu.choose` vorzeitig zu beenden.
@@ -176,6 +177,8 @@ class ActionMenu(Menu):
         result.prepare()
         try:
             result.action()
+        except StopRun as e:
+            raise e
         except Exception as e:
             if cnf.debug_mode:
                 hw.brick.light_matrix.write(type(e).__name__ + ":" + str(e))
@@ -191,10 +194,9 @@ class ActionMenu(Menu):
         while True:
             try:
                 self.choose_and_run(exit_on_charge=exit_on_charge)
-            except KeyboardInterrupt:
+            except StopRun:
                 continue
             except ExitMenu:
                 break
-
             if autoscroll:
                 self.position += 1
