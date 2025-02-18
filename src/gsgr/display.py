@@ -1,9 +1,8 @@
 """Display utils
 """
 
+import hub
 from micropython import const
-
-from .configuration import hardware as hw
 
 images: dict[
     str,
@@ -63,8 +62,10 @@ def show_image(
     :param bright: Ob das Bild in voller Helligkeit angezeigt werden soll.
     """
 
-    light = 100 if bright else 70
-    dark = 70 if bright else 30
+    img = hub.Image(5, 5)
+
+    light = 9 if bright else 7
+    dark = 7 if bright else 3
 
     if isinstance(image, int):
         image = str(image)
@@ -75,22 +76,24 @@ def show_image(
         image = images[image]
 
     if isinstance(image, tuple):
-        hw.brick.light_matrix.off()
         for y, row in enumerate(image):
             for x, pixel in enumerate(row, 1):
-                hw.brick.light_matrix.set_pixel(x, y, int(pixel * light))
+                img.set_pixel(x, y, round(pixel * light))
     else:
         raise TypeError("Image cannot be rendered, invalid type")
 
-    hw.brick.light_matrix.set_pixel(0, 1, brightness=dark)
-    hw.brick.light_matrix.set_pixel(0, 3, brightness=dark)
-    hw.brick.light_matrix.set_pixel(4, 1, brightness=dark)
-    hw.brick.light_matrix.set_pixel(4, 3, brightness=dark)
+    img.set_pixel(0, 1, dark)
+    img.set_pixel(0, 3, dark)
+    img.set_pixel(4, 1, dark)
+    img.set_pixel(4, 3, dark)
+
     if border_right:
-        hw.brick.light_matrix.set_pixel(0, 4, brightness=dark)
-        hw.brick.light_matrix.set_pixel(0, 0, brightness=dark)
-        hw.brick.light_matrix.set_pixel(0, 2, brightness=dark)
+        img.set_pixel(0, 4, dark)
+        img.set_pixel(0, 0, dark)
+        img.set_pixel(0, 2, dark)
     if border_left:
-        hw.brick.light_matrix.set_pixel(4, 0, brightness=dark)
-        hw.brick.light_matrix.set_pixel(4, 2, brightness=dark)
-        hw.brick.light_matrix.set_pixel(4, 4, brightness=dark)
+        img.set_pixel(4, 4, dark)
+        img.set_pixel(4, 0, dark)
+        img.set_pixel(4, 2, dark)
+
+    hub.display.show(img)

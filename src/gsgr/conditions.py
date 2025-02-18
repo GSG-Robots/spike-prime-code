@@ -4,8 +4,9 @@
 import math
 import time
 
-from .configuration import config
-from .configuration import hardware as hw
+import hub
+from gsgr.config import cfg
+
 from .types import Condition
 
 
@@ -25,20 +26,24 @@ def cm(distance: int) -> Condition:
     :param distance: Die Strecke, die zurückgelegt werden soll, in cm.
     """
     yield 0
+
+    cfg.LEFT_MOTOR.mode([(2, 0)])
+    cfg.RIGHT_MOTOR.mode([(2, 0)])
+
     start_degrees = (
-        hw.left_motor.get_degrees_counted(),
-        hw.right_motor.get_degrees_counted(),
+        cfg.LEFT_MOTOR.get()[0],
+        cfg.RIGHT_MOTOR.get()[0],
     )
+
     while True:
         yield math.floor(
             (
                 (
-                    abs(hw.right_motor.get_degrees_counted() - start_degrees[1])
-                    + abs(hw.left_motor.get_degrees_counted() - start_degrees[0])
+                    abs(cfg.RIGHT_MOTOR.get()[0] - start_degrees[1])
+                    + abs(cfg.LEFT_MOTOR.get()[0] - start_degrees[0])
                 )
-                / 360
-                * math.pi
-                * hw.tire_radius
+                / 720
+                * cfg.TIRE_CIRCUMFRENCE
             )
             / distance
             * 100
@@ -51,7 +56,9 @@ def sec(duration: int) -> Condition:
     :param duration: Die Dauer, die gewartet werden soll, in Sekunden.
     """
     yield 0
+
     start_time = time.ticks_ms()
+
     while True:
         yield math.floor((time.ticks_ms() - start_time) / (duration * 1000) * 100)
 
@@ -61,14 +68,16 @@ def deg(angle: int) -> Condition:
 
     :param angle: Der Winkel, in den der Roboter relativ zum Origin gedreht sein soll.
     """
+
     yield 0
+
     while True:
         yield (
             100
             if (
-                angle - config.gyro_tolerance / 2
-                <= config.degree_o_meter.oeioei
-                <= angle + config.gyro_tolerance / 2
+                angle - cfg.GYRO_TOLERANCE
+                <= hub.motion.yaw_pitch_roll()[0]
+                <= angle + cfg.GYRO_TOLERANCE
             )
             else 0
         )
@@ -101,6 +110,7 @@ def OR(first: Condition, second: Condition) -> Condition:
     :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
     yield 0
+
     while True:
         yield max(next(first), next(second))
 
@@ -114,6 +124,7 @@ def AND(first: Condition, second: Condition) -> Condition:
     :param second: Die zweite Bedingung, die erfüllt werden soll.
     """
     yield 0
+
     while True:
         yield min(next(first), next(second))
 
@@ -124,17 +135,21 @@ def NOT(cond: Condition) -> Condition:
     :param cond: Die Bedingung, die nicht erfüllt sein soll.
     """
     yield 0
+
     while True:
         yield 100 - next(cond)
 
 
-def line():
-    """... bis der Roboter eine Linie erkennt."""
-    return (
-        100
-        if (
-            hw.front_light_sensor.get_reflected_light() < config.light_black_value + 5
-            or hw.back_light_sensor.get_reflected_light() < config.light_black_value + 5
-        )
-        else 0
-    )
+# TODO
+# def line():
+#     """... bis der Roboter eine Linie erkennt."""
+#     return (
+#         100
+#         if (
+#             hw.front_light_sensor.get_reflected_light()
+#             < OLD_CONF_REPLACE.light_black_value + 5
+#             or hw.back_light_sensor.get_reflected_light()
+#             < OLD_CONF_REPLACE.light_black_value + 5
+#         )
+#         else 0
+#     )

@@ -1,9 +1,9 @@
 """Basic correctors
 """
 
-import math
+import hub
+from gsgr.config import cfg
 
-from .configuration import config
 from .math import clamp, sigmoid
 from .types import Corrector
 
@@ -26,27 +26,32 @@ def gyro_drive_pid(
     :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
     """
     target = degree_target
+
     while target < -180:
         target += 360
+
     while target > 180:
         target -= 360
+
     last_error = 0
     error_sum = 0
-    p_correction = config.gyro_drive_pid.p if p_correction is None else p_correction
-    i_correction = config.gyro_drive_pid.i if i_correction is None else i_correction
-    d_correction = config.gyro_drive_pid.d if d_correction is None else d_correction
-    gyro_tolerance = config.gyro_tolerance if gyro_tolerance is None else gyro_tolerance
+
+    p_correction = cfg.GYRO_DRIVE_PID.p if p_correction is None else p_correction
+    i_correction = cfg.GYRO_DRIVE_PID.i if i_correction is None else i_correction
+    d_correction = cfg.GYRO_DRIVE_PID.d if d_correction is None else d_correction
+    gyro_tolerance = cfg.GYRO_TOLERANCE if gyro_tolerance is None else gyro_tolerance
 
     yield next(parent)
 
-    cur = config.degree_o_meter.oeioei
+    cur = hub.motion.yaw_pitch_roll()[0]
     last_error = error_value = min(
         (target - cur, target - cur - 360, target - cur + 360), key=abs
     )
 
     while True:
         left, right = next(parent)
-        cur = config.degree_o_meter.oeioei
+        cur = hub.motion.yaw_pitch_roll()[0]
+
         error_value = min(
             (target - cur, target - cur - 360, target - cur + 360), key=abs
         )
@@ -62,6 +67,7 @@ def gyro_drive_pid(
             + differential * d_correction
             + error_value * p_correction
         )
+
         yield (left + corrector, right - corrector)
         last_error = error_value
 
@@ -73,6 +79,7 @@ def speed(left, right=None) -> Corrector:
     :param right: Geschwindigkeit für den rechten Motor. Entspricht :py:obj:`left`, falls nicht angegeben
     """
     right = right if right is not None else left
+
     while True:
         yield (left, right)
 
@@ -95,31 +102,40 @@ def gyro_turn_pid(
     :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
     """
     target = degree_target
+
     while target < -180:
         target += 360
+
     while target > 180:
         target -= 360
+
     last_error = 0
     error_sum = 0
-    p_correction = config.gyro_turn_pid.p if p_correction is None else p_correction
-    i_correction = config.gyro_turn_pid.i if i_correction is None else i_correction
-    d_correction = config.gyro_turn_pid.d if d_correction is None else d_correction
-    gyro_tolerance = config.gyro_tolerance if gyro_tolerance is None else gyro_tolerance
+
+    p_correction = cfg.GYRO_DRIVE_PID.p if p_correction is None else p_correction
+    i_correction = cfg.GYRO_DRIVE_PID.i if i_correction is None else i_correction
+    d_correction = cfg.GYRO_DRIVE_PID.d if d_correction is None else d_correction
+    gyro_tolerance = cfg.GYRO_TOLERANCE if gyro_tolerance is None else gyro_tolerance
 
     while True:
         left, right = next(parent)
-        tar, cur = target, config.degree_o_meter.oeioei
-        error_value = min((tar - cur, tar - cur - 360, tar - cur + 360), key=abs)
+        cur = hub.motion.yaw_pitch_roll()[0]
+        error_value = min(
+            (target - cur, target - cur - 360, target - cur + 360), key=abs
+        )
         differential = error_value - last_error
         error_sum += error_value
+
         if abs(error_value) < gyro_tolerance:
             error_sum = 0
             differential = 0
+
         corrector = (
             error_sum * i_correction
             + differential * d_correction
             + error_value * p_correction
         )
+
         last_error = error_value
         yield (corrector * (left / 100), -corrector * (right / 100))
 
@@ -130,6 +146,7 @@ def accelerate_linar(parent: Corrector, for_: int) -> Corrector:
     :param parent: Übergeordneter Corrector [TODO: Read more]
     :param for_: Dauer der Beschleunigung als Condition
     """
+
     while True:
         left, right = next(parent)
         speed_mutiplier = clamp(next(for_) / 100, 0.1, 1)
@@ -143,6 +160,7 @@ def decelerate(parent: Corrector, from_: int, for_: int) -> Corrector:
     :param start: Startzeitpunkt der Entschleunigung als Condition
     :param duration: Dauer der Entschleunigung als Condition
     """
+
     while True:
         left, right = next(parent)
         if next(from_) < 100:
@@ -163,6 +181,7 @@ def accelerate_sigmoid(
     :param stretch: Ob die Sigmoid-Funktion gestreckt werden soll
     """
     cutoff = sigmoid(-smooth) if stretch else 0
+
     while True:
         left, right = next(parent)
         speed_mutiplier = clamp(
@@ -174,6 +193,7 @@ def accelerate_sigmoid(
             0,
             1,
         )
+
         yield (
             clamp(left * speed_mutiplier, 10, 100),
             clamp(right * speed_mutiplier, 10, 100),

@@ -5,23 +5,12 @@ import math
 import time
 
 import hub
+from gsgr.config import cfg
 
 from . import correctors as corr
 
 # from typing import Iterator
 from .conditions import deg
-
-# from .conditions import Deg, Sec
-from .configuration import config
-from .configuration import hardware as hw
-
-# from .correctors import (
-# AccelerateSec,
-# Corrector,
-# DecelerateSec,
-# GyroDrivePID,
-# GyroTurnPID,
-# )
 from .exceptions import BatteryLowError, StopRun
 from .math import clamp
 from .types import Condition
@@ -39,7 +28,7 @@ def check_battery():
     """
 
     # Only in debug mode
-    if not config.debug_mode:
+    if not cfg.DEBUG_MODE:
         return
     # Check if the battery is low and raise an error if it is
     if hub.battery.voltage() < 8000:
@@ -57,7 +46,9 @@ def hold_attachment(target_gear: int):
 
     check_battery()
     # Move to the target gear position Gear 1 is at 0 degrees, Gear 2 is at 90 degrees, etc.
-    hw.gear_selector.run_to_position(90 * (target_gear - 1), "shortest path", 100)
+    cfg.GEAR_SELECTOR.run_to_position(
+        90 * (target_gear - 1), speed=100, stop=hub.STOP_HOLD
+    )
 
 
 def free_attachment(target_gear: int):
@@ -74,9 +65,8 @@ def free_attachment(target_gear: int):
 
     check_battery()
     # Move to some other position. Anything over 45 degrees will do, but 90 is the most reliable.
-    hw.gear_selector.run_to_position(
-        ((90 * (target_gear - 1)) + 90) % 360, "shortest path", 100
-    )
+    cfg.GEAR_SHAFT.float()
+    cfg.GEAR_SELECTOR.run_to_position(((90 * (target_gear - 1)) + 90) % 360, speed=100)
 
 
 def free_attachments():
@@ -90,11 +80,12 @@ def free_attachments():
     """
     check_battery()
     # Move to some position exactly between two gears. moves by 45 degrees.
-    hw.gear_selector.run_to_position(
-        ((hw.gear_selector.get_position() // 90) * 90 + 45) % 360,
-        "shortest path",
-        20,
-    )
+    # hw.gear_selector.run_to_position(
+    #     ((hw.gear_selector.get_position() // 90) * 90 + 45) % 360,
+    #     "shortest path",
+    #     20,
+    # )
+    cfg.GEAR_SHAFT.float()
 
 
 def run_attachment(
@@ -118,60 +109,37 @@ def run_attachment(
     """
     check_battery()
     # Stop the drive shaft if it is running
-    hw.drive_shaft.stop()
+    cfg.GEAR_SHAFT.brake()
     # Select the target gear, this is the same as holding the attachment
     hold_attachment(attachment)
     # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
-    hw.drive_shaft.set_stall_detection(stop_on_resistance)
-    hw.drive_shaft.start(speed)
+    # hw.drive_shaft.set_stall_detection(stop_on_resistance)
+    cfg.GEAR_SHAFT.run_at_speed(speed)
     if not duration:
         return
     if stop_on_resistance:
         timer = Timer()
         while (
-            timer.elapsed < duration
-            and not hw.drive_shaft.was_stalled()
-            and not hw.drive_shaft.was_interrupted()
+            timer.elapsed
+            < duration
+            # and not hw.drive_shaft.was_stalled()
+            # and not hw.drive_shaft.was_interrupted()
         ):
-            time.sleep(config.loop_throttle)
+            time.sleep(cfg.LOOP_THROTTLE)
             if hub.button.center.was_pressed():
                 raise StopRun
     else:
         timer = Timer()
         while timer.elapsed < duration:
-            time.sleep(config.loop_throttle)
+            time.sleep(cfg.LOOP_THROTTLE)
             if hub.button.center.was_pressed():
                 raise StopRun
-    hw.drive_shaft.stop()
+    cfg.GEAR_SHAFT.brake()
     # Cleanup
     if untension:
-        hw.drive_shaft.run_for_degrees(-80 * (speed // abs(speed)))
-
-
-# def run_attachment_degrees(
-#     attachment: int,
-#     speed: int,
-#     degrees: int = None,
-#     stop_on_resistance: bool = False,
-# ):
-#     check_battery()
-#     # Stop the drive shaft if it is running
-#     hw.drive_shaft.stop()
-#     start = hw.drive_shaft.get_position()
-#     # Select the target gear, this is the same as holding the attachment
-#     hold_attachment(attachment)
-#     # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
-#     if stop_on_resistance:
-#         hw.drive_shaft.set_stall_detection(True)
-#     hw.drive_shaft.start(speed)
-#     if not degrees:
-#         return
-#     while abs(hw.drive_shaft.get_position() - start) < degrees:
-#         if stop_on_resistance and hw.drive_shaft.was_stalled():
-#             break
-#     hw.drive_shaft.stop()
-#     # Cleanup
-#     hw.drive_shaft.set_stall_detection(False)
+        cfg.GEAR_SHAFT.run_for_degrees(
+            -math.copysign(80, speed)
+        )  # -80 * (speed // abs(speed))
 
 
 def stop_attachment():
@@ -181,7 +149,7 @@ def stop_attachment():
     """
     # check_battery()
     # Stop the drive shaft
-    hw.drive_shaft.stop()
+    cfg.GEAR_SHAFT.float()
 
 
 def drive(speed_generator: Condition, until_generator: Condition, use_power=True):
@@ -194,6 +162,7 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
     """
     check_battery()
     last_left, last_right = 0, 0
+    pair = hub.port.F.motor.pair(hub.port.E.motor)
     while next(until_generator) < 100:
         if hub.button.center.was_pressed():
             raise StopRun
@@ -209,7 +178,7 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
         if -5 < right_speed < 0:
             right_speed = -5
 
-        left_speed = clamp(-100, left_speed, 100)
+        left_speed = -clamp(-100, left_speed, 100)
         right_speed = clamp(-100, right_speed, 100)
 
         if (
@@ -219,21 +188,33 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
             last_left,
             last_right,
         ):
-            if use_power:
-                hw.driving_motors.start_tank_at_power(
-                    round(left_speed),  #  / 100 * 70 + math.copysign(30, left_speed)
-                    round(right_speed),  #  / 100 * 70 + math.copysign(30, right_speed)
-                )
-            else:
-                hw.driving_motors.start_tank(
-                    round(left_speed),
-                    round(right_speed),
-                )
+            pair.run_at_speed(left_speed, right_speed)
+            # TODO
+            # if use_power:
+
+            #     hw.driving_motors.start_tank_at_power(
+
+            #         round(left_speed),  #  / 100 * 70 + math.copysign(30, left_speed)
+
+            #         round(right_speed),  #  / 100 * 70 + math.copysign(30, right_speed)
+
+            #     )
+
+            # else:
+
+            #     hw.driving_motors.start_tank(
+
+            #         round(left_speed),
+
+            #         round(right_speed),
+
+            #     )
 
         last_left, last_right = left_speed, right_speed
 
-        time.sleep(config.loop_throttle)
-    hw.driving_motors.stop()
+        time.sleep(cfg.LOOP_THROTTLE)
+    # hw.driving_motors.stop()
+    pair.hold()
 
 
 def gyro_drive(
@@ -337,11 +318,6 @@ def gyro_turn(
             # accelerate_from,
             smooth=2,
         )
-        # corrector = corr.accelerate(
-        #     corrector,
-        #     accelerate_for,
-        #     accelerate_from,
-        # )
 
     if decelerate_for and decelerate_from:
         corrector = corr.decelerate(
@@ -370,4 +346,4 @@ def gyro_turn(
 
 def gyro_set_origin(set_to=0):
     """Gyro-Sensor Origin zurücksetzen"""
-    config.degree_o_meter.reset(set_to)
+    hub.motion.yaw_pitch_roll(0)

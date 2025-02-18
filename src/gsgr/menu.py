@@ -7,9 +7,8 @@ import time
 from typing import Callable
 
 import hub
+from gsgr.config import cfg
 
-from .configuration import config as cnf
-from .configuration import hardware as hw
 from .display import show_image
 from .exceptions import ExitMenu, StopRun
 from .math import clamp
@@ -119,9 +118,9 @@ class Menu:
         hub.button.center.was_pressed()
 
         while not hub.button.center.was_pressed():
-            if hw.brick.left_button.was_pressed():
+            if hub.button.left.was_pressed():
                 self.position = self.position - (-1 if self.swap_buttons else 1)
-            if hw.brick.right_button.was_pressed():
+            if hub.button.right.was_pressed():
                 self.position = self.position + (-1 if self.swap_buttons else 1)
             if exit_on_charge and hub.battery.charger_detect() in [
                 hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
@@ -141,10 +140,10 @@ class Menu:
                     self.position == (len(self.items) - 1),
                     True,
                 )
-                hw.brick.status_light.on(self.items[self.position].color)
+                hub.led(self.items[self.position].color)
                 last_position = self.position
 
-            time.sleep(cnf.loop_throttle)
+            time.sleep(cfg.LOOP_THROTTLE)
 
         return self.items[self.position]
 
@@ -165,8 +164,8 @@ class ActionMenu(Menu):
 
         :returns: Das gewählte Element
         """
-        hw.left_color_sensor.light_up_all(0)
-        hw.right_color_sensor.light_up_all(0)
+        # hw.left_color_sensor.light_up_all(0)
+        # hw.right_color_sensor.light_up_all(0)
 
         result = self.choose(exit_on_charge=exit_on_charge)
         show_image(result.display_as, True, True, False)
@@ -176,8 +175,8 @@ class ActionMenu(Menu):
         except StopRun as e:
             raise e
         except Exception as e:
-            if cnf.debug_mode:
-                hw.brick.light_matrix.write(type(e).__name__ + ":" + str(e))
+            if cfg.DEBUG_MODE:
+                hub.display.show(repr(e))
             raise e
         finally:
             result.cleanup()

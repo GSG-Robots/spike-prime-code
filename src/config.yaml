@@ -1,5 +1,5 @@
 debug_mode: true
-tire_radius: 3
+tire_diameter: 6.5
 gyro_tolerance: 2
 loop_throttle: 0.025
 
@@ -7,7 +7,7 @@ gearbox:
     drive_shaft: B
     gear_selector: A
 
-drive_motors:
+driving_motors:
     left: F
     right: E
 

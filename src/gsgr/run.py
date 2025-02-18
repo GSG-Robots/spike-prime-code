@@ -1,15 +1,14 @@
 from typing import Callable, ContextManager
 
-from gsgr.configuration import config as cnf
+from gsgr.config import cfg
 from gsgr.menu import ActionMenuItem
 from gsgr.movement import free_attachments
-from spike import Motor
 
 
 class Run(ActionMenuItem):
     context: ContextManager
     """A context manager in which the run is being executed.
-    
+
     This is implemented to support :py:class:`~gsgr.configuration.Config` changes for individual runs.
     """
 
@@ -17,7 +16,6 @@ class Run(ActionMenuItem):
         self,
         display_as: int | str,
         color: str,
-        config: ContextManager | None,
         run: Callable,
     ):
         """
@@ -27,18 +25,11 @@ class Run(ActionMenuItem):
         :param run: The run's main function / callback.
         """
         super().__init__(run, display_as, color)
-        self.context = config or cnf()
-
-    def prepare(self):
-        """Patched verison of :py:meth:`MenuItem.prepare` to enter the context manager / loading run specific config before returning the callback."""
-        self.context.__enter__()
 
     def cleanup(self):
-        """Patched verison of :py:meth:`MenuItem.cleanup` to stop all motors and exit the context manager. This means resetting the config."""
-        for port in ("A", "B", "C", "D", "E", "F"):
-            try:
-                Motor(port).stop()
-            except RuntimeError:
-                ...
+        """Patched verison of :py:meth:`MenuItem.cleanup` to stop all motors."""
+        cfg.DRIVING_MOTORS.brake()
+        cfg.GEAR_SHAFT.float()
+        cfg.GEAR_SELECTOR.hold()
+
         free_attachments()
-        self.context.__exit__(None, None, None)
