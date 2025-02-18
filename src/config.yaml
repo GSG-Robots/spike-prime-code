@@ -1,6 +1,6 @@
 debug_mode: true
 tire_diameter: 6.5
-gyro_tolerance: 2
+gyro_tolerance: 1
 loop_throttle: 0.025
 
 gearbox:
@@ -21,7 +21,20 @@ correctors:
         i: 0
         d: -0.1
 
+    gyro_speed_turn:
+        # In deg/s:
+        min_speed: 1
+        max_speed: 90
+        p: 1.4
+        i: 0.0003
+        d: -0.2
+
     gyro_drive:
         p: 1.2
         i: 0
         d: -0.7
+
+    gyro_drive2:
+        p: 1.3
+        i: 0.003
+        d: -0.2

@@ -85,7 +85,7 @@ def free_attachments():
     #     "shortest path",
     #     20,
     # )
-    cfg.GEAR_SHAFT.float()
+    cfg.GEAR_SHAFT.pwm(0)
 
 
 def run_attachment(
@@ -152,7 +152,7 @@ def stop_attachment():
     cfg.GEAR_SHAFT.float()
 
 
-def drive(speed_generator: Condition, until_generator: Condition, use_power=True):
+def drive(speed_generator: Condition, until_generator: Condition):
     """Generelle Fahrfunktion. Nutzt die gegebenen Generatoren für Geschwindigkeit und Ziel. Hauptsächlich für interne Nutzung.
 
     :param speed_generator: Ein Generator, der die Geschwindigkeit angibt, mit der gefahren werden soll. [TODO: Read more]
@@ -178,7 +178,7 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
         if -5 < right_speed < 0:
             right_speed = -5
 
-        left_speed = -clamp(-100, left_speed, 100)
+        left_speed = clamp(-100, left_speed, 100)
         right_speed = clamp(-100, right_speed, 100)
 
         if (
@@ -188,27 +188,7 @@ def drive(speed_generator: Condition, until_generator: Condition, use_power=True
             last_left,
             last_right,
         ):
-            pair.run_at_speed(left_speed, right_speed)
-            # TODO
-            # if use_power:
-
-            #     hw.driving_motors.start_tank_at_power(
-
-            #         round(left_speed),  #  / 100 * 70 + math.copysign(30, left_speed)
-
-            #         round(right_speed),  #  / 100 * 70 + math.copysign(30, right_speed)
-
-            #     )
-
-            # else:
-
-            #     hw.driving_motors.start_tank(
-
-            #         round(left_speed),
-
-            #         round(right_speed),
-
-            #     )
+            pair.run_at_speed(-left_speed, right_speed)
 
         last_left, last_right = left_speed, right_speed
 
@@ -340,10 +320,90 @@ def gyro_turn(
     drive(
         corrector,
         do_for or deg(degree),
-        use_power=False,
     )
 
 
 def gyro_set_origin(set_to=0):
     """Gyro-Sensor Origin zurücksetzen"""
     hub.motion.yaw_pitch_roll(0)
+
+
+class Pivot:
+    LEFT_WHEEL = -1
+    CENTER = 0
+    RIGHT_WHEEL = 1
+
+
+def gyro_speed_turn(
+    target_angle: int,
+    step_speed: int | float = 70,
+    pivot: Pivot | int = Pivot.CENTER,
+    min_speed: int | None = None,
+    max_speed: int | None = None,
+    pid: cfg.PID | None = None,
+    tolerance: int | None = None,
+):
+
+    pid = cfg.GYRO_DRIVE_PID if pid is None else pid
+    min_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[0] if max_speed is None else max_speed
+    max_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed
+    tolerance = cfg.GYRO_TOLERANCE if tolerance is None else tolerance
+
+    step_speed /= 100
+
+    speed_last_error = 0
+    speed_error_sum = 0
+
+    while True:
+        degree_error = target_angle - hub.motion.yaw_pitch_roll()[0]
+        target_speed = step_speed * degree_error
+        if -min_speed < target_speed < min_speed:
+            target_speed = math.copysign(min_speed, target_speed)
+        if abs(target_speed) > max_speed:
+            target_speed = math.copysign(max_speed, target_speed)
+        speed_error = target_speed - hub.motion.gyroscope()[0]
+        speed_error_sum += speed_error
+        speed_correction = round(
+            pid.p * speed_error
+            + pid.i * speed_error_sum
+            + pid.d * (speed_error - speed_last_error)
+        )
+
+        if -tolerance < degree_error < tolerance:
+            cfg.DRIVING_MOTORS.brake()
+            break
+        if pivot == Pivot.CENTER:
+            cfg.DRIVING_MOTORS.run_at_speed(
+                -speed_correction // 2, -speed_correction // 2
+            )
+        elif pivot == Pivot.LEFT_WHEEL:
+            cfg.DRIVING_MOTORS.run_at_speed(-speed_correction, 0)
+        elif pivot == Pivot.RIGHT_WHEEL:
+            cfg.DRIVING_MOTORS.run_at_speed(0, -speed_correction)
+
+        speed_last_error = speed_error
+
+
+def gyro_drive2(
+    target_angle: int,
+    speed: float,
+    ending_condition,
+    pid: cfg.PID | None = None,
+):
+    pid = cfg.GYRO_DRIVE2_PID if pid is None else pid
+    last_error = 0
+    error_sum = 0
+
+    while next(ending_condition) < 100:
+        error = target_angle - hub.motion.yaw_pitch_roll()[0]
+        error_sum += error
+        correction = round(
+            pid.p * error + pid.i * error_sum + pid.d * (error - last_error)
+        )
+
+        cfg.DRIVING_MOTORS.run_at_speed(
+            -speed - correction // 2, speed - correction // 2
+        )
+
+        last_error = error
+    cfg.DRIVING_MOTORS.brake()

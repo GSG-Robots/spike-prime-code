@@ -46,3 +46,17 @@ GYRO_TURN_PID = PID(
     _config_dict["correctors"]["gyro_turn"]["d"],
 )
 GYRO_TOLERANCE = _config_dict["gyro_tolerance"]
+GYRO_DRIVE2_PID = PID(
+    _config_dict["correctors"]["gyro_drive2"]["p"],
+    _config_dict["correctors"]["gyro_drive2"]["i"],
+    _config_dict["correctors"]["gyro_drive2"]["d"],
+)
+GYRO_SPEED_TURN_PID = PID(
+    _config_dict["correctors"]["gyro_speed_turn"]["p"],
+    _config_dict["correctors"]["gyro_speed_turn"]["i"],
+    _config_dict["correctors"]["gyro_speed_turn"]["d"],
+)
+GYRO_SPEED_TURN_MINMAX_SPEED = (
+    _config_dict["correctors"]["gyro_speed_turn"]["min_speed"],
+    _config_dict["correctors"]["gyro_speed_turn"]["max_speed"],
+)
