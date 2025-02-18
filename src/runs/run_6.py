@@ -1,7 +1,6 @@
 import time
 
 from gsgr.conditions import OR, THEN, cm, deg, sec
-from gsgr.configuration import config as cnf
 from gsgr.enums import Attachment, Color
 from gsgr.movement import (
     free_attachment,
@@ -13,7 +12,7 @@ from gsgr.movement import (
 )
 
 display_as = "N"
-color = "orange"
+color = Color.ORANGE
 
 
 def run():

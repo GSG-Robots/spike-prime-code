@@ -1,7 +1,6 @@
 import time
 
-from gsgr.conditions import THEN, cm, deg, line, sec
-from gsgr.configuration import config as cnf
+from gsgr.conditions import THEN, cm, deg, sec
 from gsgr.correctors import speed
 from gsgr.enums import Attachment, Color
 from gsgr.movement import (
