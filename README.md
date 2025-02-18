@@ -25,7 +25,7 @@ poetry install
 To upload the code to the robot, run the following command:
 
 ```bash
-poetry run python ./tools/upload.py ./src/main.py 0
+poetry run spike-prime-connect upload ./src/main.py --slot 0 --start --read
 ```
 
 This will upload the code to the slot 0 on the robot. If you want to upload the code to a different slot, change the `0` to the desired slot number.
@@ -34,6 +34,9 @@ This will upload the code to the slot 0 on the robot. If you want to upload the 
 > If you use VSCode, you can press `F5` to run this command automatically. If you are bothered by the Debug Menu opening every time, you can install the "F5 Anything" plugin and use `Crtl + F5` to run.
 
 ### Generating the code
+
+> [!WARNING]
+> Outdated
 
 If you don't want to upload the code automatically, you can run the following command to generate the code and save it to a file:
 
