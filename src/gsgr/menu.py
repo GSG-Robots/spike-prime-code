@@ -6,6 +6,7 @@ Also supplies run class, being a menu item.
 import time
 from typing import Callable
 
+from gsgr.enums import Color
 import hub
 from gsgr.config import cfg
 
@@ -17,10 +18,10 @@ from .math import clamp
 class MenuItem:
     display_as: int | str
     """Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist."""
-    color: str
+    color: int
     """Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist."""
 
-    def __init__(self, display_as: int | str, color: str = "white") -> None:
+    def __init__(self, display_as: int | str, color: Color | int = Color.WHITE) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
         :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
@@ -34,7 +35,7 @@ class ActionMenuItem(MenuItem):
     """Funktion, die ausgeführt werden soll, falls das Menüelement gewählt wird."""
 
     def __init__(
-        self, action: Callable | None, display_as: int | str, color: str = "white"
+        self, action: Callable | None, display_as: int | str, color: Color | int = Color.WHITE
     ):
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.

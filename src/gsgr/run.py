@@ -1,6 +1,7 @@
 from typing import Callable, ContextManager
 
 from gsgr.config import cfg
+from gsgr.enums import Color
 from gsgr.menu import ActionMenuItem
 from gsgr.movement import free_attachments
 
@@ -15,7 +16,7 @@ class Run(ActionMenuItem):
     def __init__(
         self,
         display_as: int | str,
-        color: str,
+        color: Color | int,
         run: Callable,
     ):
         """
@@ -31,5 +32,3 @@ class Run(ActionMenuItem):
         cfg.DRIVING_MOTORS.brake()
         cfg.GEAR_SHAFT.float()
         cfg.GEAR_SELECTOR.hold()
-
-        free_attachments()

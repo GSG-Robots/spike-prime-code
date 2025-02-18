@@ -4,6 +4,7 @@ import time
 from compyner.typehints import __glob_import__
 
 import gsgr.display
+from gsgr.enums import Color
 import gsgr.movement
 import hub
 from gsgr.config import cfg
@@ -96,9 +97,9 @@ def main():
             )
         )
 
-    menu.add_item(Run("C", "yellow", run_motorcontrol))
+    menu.add_item(Run("C", Color.YELLOW, run_motorcontrol))
 
-    exit_item = ActionMenuItem(menu.exit, "x", "white")
+    exit_item = ActionMenuItem(menu.exit, "x", Color.WHITE)
 
     menu.add_item(exit_item)
 
