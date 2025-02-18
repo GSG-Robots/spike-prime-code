@@ -21,7 +21,7 @@ def run():
     # Set Gyro Origin
     gyro_set_origin()
 
-    gyro_drive(0, 50, cm(50))
+    gyro_drive(0, 50, cm(54))
     time.sleep(1)
-    gyro_drive(0, -50, cm(60))
+    gyro_drive(0, -50, cm(65))
     drive(speed(0, 50), sec(1))
