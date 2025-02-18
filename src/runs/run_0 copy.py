@@ -1,5 +1,6 @@
 import time
 
+from gsgr.config import cfg
 import hub
 from gsgr.conditions import THEN, cm, deg, sec
 from gsgr.correctors import accelerate_linar, speed
@@ -9,6 +10,7 @@ from gsgr.movement import (
     drive,
     free_attachment,
     gyro_drive,
+    gyro_drive2,
     gyro_set_origin,
     gyro_speed_turn,
     gyro_turn,
@@ -17,8 +19,8 @@ from gsgr.movement import (
 )
 import hub
 
-display_as = 0
-color = Color.YELLOW
+display_as = 9
+color = Color.PINK
 
 
 def wait_for_press():
@@ -36,8 +38,4 @@ def run():
     wait_for_press()
     hub.led(9)
     
-    gyro_speed_turn(87, pivot=Pivot.LEFT_WHEEL)
-    hub.led(5)
-    wait_for_press()
-    hub.led(9)
-    gyro_speed_turn(0, pivot=Pivot.LEFT_WHEEL)
+    gyro_drive2(0, cm(100), 45, cfg.PID(1.3, 0.003, -0.2))
