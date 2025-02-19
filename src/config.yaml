@@ -22,12 +22,13 @@ correctors:
         d: -0.1
 
     gyro_speed_turn:
-        # In deg/s:
-        min_speed: 1
-        max_speed: 90
         p: 1.4
         i: 0.0003
         d: -0.2
+
+        # In deg/s:
+        min_speed: 1
+        max_speed: 90
 
     gyro_drive:
         p: 1.2
@@ -35,6 +36,6 @@ correctors:
         d: -0.7
 
     gyro_drive2:
-        p: 1.3
+        p: 1.15
         i: 0.003
-        d: -0.2
+        d: -0.3
