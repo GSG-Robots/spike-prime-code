@@ -116,6 +116,8 @@ class Menu:
         last_position = -1
 
         # Reset button presses
+        hub.button.left.was_pressed()
+        hub.button.right.was_pressed()
         hub.button.center.was_pressed()
 
         while not hub.button.center.was_pressed():

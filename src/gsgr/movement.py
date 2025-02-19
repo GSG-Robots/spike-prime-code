@@ -354,7 +354,8 @@ def gyro_speed_turn(
     speed_last_error = 0
     speed_error_sum = 0
 
-    while True:
+    hub.button.center.was_pressed()
+    while not hub.button.center.was_pressed():
         degree_error = target_angle - hub.motion.yaw_pitch_roll()[0]
         target_speed = step_speed * degree_error
         if -min_speed < target_speed < min_speed:
@@ -386,15 +387,16 @@ def gyro_speed_turn(
 
 def gyro_drive2(
     target_angle: int,
-    speed: float,
+    speed: int | float,
     ending_condition,
     pid: cfg.PID | None = None,
 ):
     pid = cfg.GYRO_DRIVE2_PID if pid is None else pid
     last_error = 0
     error_sum = 0
-
-    while next(ending_condition) < 100:
+    
+    hub.button.center.was_pressed()
+    while next(ending_condition) < 100 and not hub.button.center.was_pressed():
         error = target_angle - hub.motion.yaw_pitch_roll()[0]
         error_sum += error
         correction = round(
