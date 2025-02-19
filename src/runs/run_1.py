@@ -11,6 +11,7 @@ from gsgr.movement import (
     gyro_turn,
     hold_attachment,
     run_attachment,
+    gyro_drive2,
 )
 
 display_as = 1
@@ -21,7 +22,7 @@ def run():
     # Set Gyro Origin
     gyro_set_origin()
 
-    gyro_drive(0, 50, cm(54))
+    gyro_drive2(0, 50, cm(54))
     time.sleep(1)
-    gyro_drive(0, -50, cm(65))
+    gyro_drive2(0, -50, cm(65))
     drive(speed(0, 50), sec(1))
