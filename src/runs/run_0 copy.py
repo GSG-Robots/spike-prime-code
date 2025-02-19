@@ -38,4 +38,4 @@ def run():
     wait_for_press()
     hub.led(9)
     
-    gyro_drive2(0, cm(100), 45, cfg.PID(1.3, 0.003, -0.2))
+    gyro_drive2(0, 45, cm(100))
