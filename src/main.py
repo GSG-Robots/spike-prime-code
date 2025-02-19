@@ -26,12 +26,16 @@ def run_motorcontrol():
     while not hub.button.center.was_pressed():
         if hub.button.left.is_pressed():
             select -= 1
-            hub.button.left.wait_until_released()
-            time.sleep(0.1)
+            time.sleep(0.2)
+            while hub.button.left.is_pressed():
+                time.sleep(0.2)
+                select -= 1
         if hub.button.right.is_pressed():
             select += 1
-            hub.button.right.wait_until_released()
-            time.sleep(0.1)
+            time.sleep(0.2)
+            while hub.button.right.is_pressed():
+                time.sleep(0.2)
+                select += 1
         if select < 1:
             select = 4
         if select > 4:
@@ -57,16 +61,16 @@ def run_motorcontrol():
     hub.display.clear()
     RIGHT_ARROW = hub.Image("09000:09900:09990:09900:09000")
     LEFT_ARROW = hub.Image("00090:00990:09990:00990:00090")
-    hub.display.show_image(RIGHT_ARROW if is_inverted else LEFT_ARROW)
+    hub.display.show(RIGHT_ARROW if is_inverted else LEFT_ARROW)
     while not hub.button.center.was_pressed():
         if hub.button.left.is_pressed() and hub.button.right.is_pressed():
             return
         if hub.button.right.is_pressed():
             speed = 100
-            hub.display.show_image(RIGHT_ARROW if is_inverted else LEFT_ARROW)
+            hub.display.show(RIGHT_ARROW if is_inverted else LEFT_ARROW)
         if hub.button.left.is_pressed():
             speed = -100
-            hub.display.show_image(LEFT_ARROW if is_inverted else RIGHT_ARROW)
+            hub.display.show(LEFT_ARROW if is_inverted else RIGHT_ARROW)
     gsgr.movement.run_attachment(motor, speed)
     while not hub.button.center.was_pressed():
         time.sleep(0.1)
@@ -81,6 +85,9 @@ def main():
     print("%s%% of memory used" % mem_perc)
     print("%s%% battery left" % hub.battery.capacity_left())
     print("Voltage:", hub.battery.voltage(), "mV")
+
+    cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2])
+    cfg.GEAR_SELECTOR.run_to_position(0, speed=25)
 
     hub.display.align(hub.RIGHT)
     menu = ActionMenu(swap_buttons=True)

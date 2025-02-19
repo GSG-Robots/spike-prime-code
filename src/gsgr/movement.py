@@ -12,7 +12,7 @@ from . import correctors as corr
 # from typing import Iterator
 from .conditions import deg
 from .exceptions import BatteryLowError, StopRun
-from .math import clamp
+from .math import clamp, sigmoid
 from .types import Condition
 from .utils import Timer
 
@@ -31,7 +31,7 @@ def check_battery():
     if not cfg.DEBUG_MODE:
         return
     # Check if the battery is low and raise an error if it is
-    if hub.battery.voltage() < 8000:
+    if hub.battery.voltage() < 7850:
         raise BatteryLowError
 
 
@@ -45,10 +45,19 @@ def hold_attachment(target_gear: int):
     """
 
     check_battery()
+
+    pos = 90 * (target_gear - 1)
+
     # Move to the target gear position Gear 1 is at 0 degrees, Gear 2 is at 90 degrees, etc.
-    cfg.GEAR_SELECTOR.run_to_position(
-        90 * (target_gear - 1), speed=100, stop=hub.STOP_HOLD
-    )
+    cfg.GEAR_SELECTOR.run_to_position(pos, speed=100, stop=cfg.GEAR_SELECTOR.STOP_HOLD)
+
+    def wait():
+        while not (pos - 5 < cfg.GEAR_SELECTOR.get()[1] < pos + 5):
+            print(pos, cfg.GEAR_SELECTOR.get()[1])
+            if hub.button.center.was_pressed():
+                raise StopRun
+
+    return wait
 
 
 def free_attachment(target_gear: int):
@@ -111,7 +120,7 @@ def run_attachment(
     # Stop the drive shaft if it is running
     cfg.GEAR_SHAFT.brake()
     # Select the target gear, this is the same as holding the attachment
-    hold_attachment(attachment)
+    hold_attachment(attachment)()
     # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
     # hw.drive_shaft.set_stall_detection(stop_on_resistance)
     cfg.GEAR_SHAFT.run_at_speed(speed)
@@ -355,7 +364,9 @@ def gyro_speed_turn(
     speed_error_sum = 0
 
     hub.button.center.was_pressed()
-    while not hub.button.center.was_pressed():
+    while True:
+        if hub.button.center.was_pressed():
+            raise StopRun
         degree_error = target_angle - hub.motion.yaw_pitch_roll()[0]
         target_speed = step_speed * degree_error
         if -min_speed < target_speed < min_speed:
@@ -378,9 +389,9 @@ def gyro_speed_turn(
                 -speed_correction // 2, -speed_correction // 2
             )
         elif pivot == Pivot.LEFT_WHEEL:
-            cfg.DRIVING_MOTORS.run_at_speed(-speed_correction, 0)
-        elif pivot == Pivot.RIGHT_WHEEL:
             cfg.DRIVING_MOTORS.run_at_speed(0, -speed_correction)
+        elif pivot == Pivot.RIGHT_WHEEL:
+            cfg.DRIVING_MOTORS.run_at_speed(-speed_correction, 0)
 
         speed_last_error = speed_error
 
@@ -390,22 +401,68 @@ def gyro_drive2(
     speed: int | float,
     ending_condition,
     pid: cfg.PID | None = None,
+    accelerate: float = 0,
+    decelerate: float = 0,
+    sigmoid_conf: tuple[int, bool] = (6, True),
 ):
+    smooth, stretch = sigmoid_conf
+    cutoff = sigmoid(-smooth) if stretch else 0
+
     pid = cfg.GYRO_DRIVE2_PID if pid is None else pid
     last_error = 0
     error_sum = 0
-    
+
     hub.button.center.was_pressed()
-    while next(ending_condition) < 100 and not hub.button.center.was_pressed():
+    while (pct := next(ending_condition)) < 100:
+        if hub.button.center.was_pressed():
+            raise StopRun
         error = target_angle - hub.motion.yaw_pitch_roll()[0]
         error_sum += error
         correction = round(
             pid.p * error + pid.i * error_sum + pid.d * (error - last_error)
         )
 
-        cfg.DRIVING_MOTORS.run_at_speed(
-            -speed - correction // 2, speed - correction // 2
-        )
+        left_speed, right_speed = speed + correction // 2, speed - correction // 2
+
+        if pct < accelerate:
+            speed_mutiplier = clamp(
+                round(
+                    (sigmoid((pct / accelerate * 2 * smooth) - smooth) - cutoff)
+                    / (1 - cutoff),
+                    2,
+                ),
+                0,
+                1,
+            )
+            left_speed, right_speed = (
+                left_speed * speed_mutiplier,
+                right_speed * speed_mutiplier,
+            )
+        if 100 - pct < decelerate:
+            speed_mutiplier = clamp(
+                round(
+                    (
+                        sigmoid(((decelerate - pct) / decelerate * 2 * smooth) - smooth)
+                        - cutoff
+                    )
+                    / (1 - cutoff),
+                    2,
+                ),
+                0,
+                1,
+            )
+            left_speed, right_speed = (
+                left_speed * speed_mutiplier,
+                right_speed * speed_mutiplier,
+            )
+
+        if -5 < left_speed < 5:
+            left_speed = math.copysign(5, left_speed)
+
+        if -5 < right_speed < 5:
+            right_speed = math.copysign(5, right_speed)
+
+        cfg.DRIVING_MOTORS.run_at_speed(-left_speed, right_speed)
 
         last_error = error
     cfg.DRIVING_MOTORS.brake()
