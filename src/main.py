@@ -26,10 +26,16 @@ def run_motorcontrol():
     while not hub.button.center.was_pressed():
         if hub.button.left.was_pressed():
             select -= 1
-            time.sleep(0.1)
-        if hub.button.right.was_pressed():
+            time.sleep(0.2)
+            while hub.button.left.is_pressed():
+                time.sleep(0.2)
+                select -= 1
+        if hub.button.right.is_pressed():
             select += 1
-            time.sleep(0.1)
+            time.sleep(0.2)
+            while hub.button.right.is_pressed():
+                time.sleep(0.2)
+                select += 1
         if select < 1:
             select = 4
         if select > 4:
@@ -79,6 +85,9 @@ def main():
     print("%s%% of memory used" % mem_perc)
     print("%s%% battery left" % hub.battery.capacity_left())
     print("Voltage:", hub.battery.voltage(), "mV")
+
+    cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2])
+    cfg.GEAR_SELECTOR.run_to_position(0, speed=25)
 
     hub.display.align(hub.RIGHT)
     menu = ActionMenu(swap_buttons=True)

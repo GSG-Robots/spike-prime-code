@@ -36,8 +36,8 @@ def run():
     wait_for_press()
     hub.led(9)
     
-    gyro_speed_turn(87, pivot=Pivot.LEFT_WHEEL)
+    gyro_speed_turn(87, 80, pivot=Pivot.CENTER)
     hub.led(5)
     wait_for_press()
     hub.led(9)
-    gyro_speed_turn(0, pivot=Pivot.LEFT_WHEEL)
+    gyro_speed_turn(0, 80, pivot=Pivot.CENTER)
