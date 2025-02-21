@@ -46,9 +46,25 @@ def hold_attachment(target_gear: int):
 
     check_battery()
     # Move to the target gear position Gear 1 is at 0 degrees, Gear 2 is at 90 degrees, etc.
+    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
+        ...
+
+    speed = 100
     cfg.GEAR_SELECTOR.run_to_position(
-        90 * (target_gear - 1), speed=100, stop=hub.STOP_HOLD
+        target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD
     )
+    
+    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
+        ...
+
+    while cfg.I_SELECTOR_STATE == cfg.GEAR_SELECTOR.EVENT_STALLED:
+        speed *= -1
+        cfg.GEAR_SELECTOR.run_to_position(
+            target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD
+        )
+        cfg.I_SELECTOR_STATE = -1
+        while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
+            ...
 
 
 def free_attachment(target_gear: int):
@@ -65,8 +81,14 @@ def free_attachment(target_gear: int):
 
     check_battery()
     # Move to some other position. Anything over 45 degrees will do, but 90 is the most reliable.
+
+    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
+        ...
     cfg.GEAR_SHAFT.float()
     cfg.GEAR_SELECTOR.run_to_position(((90 * (target_gear - 1)) + 90) % 360, speed=100)
+
+    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
+        ...
 
 
 def free_attachments():
@@ -85,6 +107,8 @@ def free_attachments():
     #     "shortest path",
     #     20,
     # )
+    while cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
+        ...
     cfg.GEAR_SHAFT.pwm(0)
 
 
@@ -100,7 +124,7 @@ def run_attachment(
     Wenn mit ``duration`` aufgerufen, wird die Funktion ausgeführt, bis die Zeit um ist. Ansonsten wird der Motor nur gestartet.
 
     :param attachment: Die Nummer des Ausgangs. Nutze am besten :py:class:`gsgr.enums.Attachment`. [TODO: Read more]
-    :param speed:Geschwindigkeit, mit der die Anbaute bewegt werden soll. Wert von -100 bis 100.
+    :param speed: Geschwindigkeit, mit der die Anbaute bewegt werden soll. Wert von -100 bis 100.
     :param duration: Zeit in Sekunden, für die der Ausgang bewegt werden soll. Falls nicht angegeben, wird der Motor nur gestartet.
     :param stop_on_resistance: Ob der Motor vorzeitig stoppen soll, wenn er blockiert wird.
     :param untension: Ob der Motor nach dem Stoppen kurz in die entgegengesetzte Richtung laufen soll, um die Spannung zu lösen.
@@ -115,6 +139,7 @@ def run_attachment(
     # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
     # hw.drive_shaft.set_stall_detection(stop_on_resistance)
     cfg.GEAR_SHAFT.run_at_speed(speed)
+    cfg.I_LAST_SHAFT_SPEED = speed
     if not duration:
         return
     if stop_on_resistance:
@@ -136,10 +161,12 @@ def run_attachment(
                 raise StopRun
     cfg.GEAR_SHAFT.brake()
     # Cleanup
-    if untension:
+    if untension or True:
         cfg.GEAR_SHAFT.run_for_degrees(
-            -math.copysign(80, speed)
+            -math.copysign(45, speed)
         )  # -80 * (speed // abs(speed))
+        time.sleep(1)
+        cfg.GEAR_SHAFT.float()
 
 
 def stop_attachment():
@@ -149,6 +176,10 @@ def stop_attachment():
     """
     # check_battery()
     # Stop the drive shaft
+    cfg.GEAR_SHAFT.run_for_degrees(
+        -math.copysign(45, cfg.I_LAST_SHAFT_SPEED)
+    )  # -80 * (speed // abs(speed))
+    time.sleep(1)
     cfg.GEAR_SHAFT.float()
 
 
@@ -394,7 +425,7 @@ def gyro_drive2(
     pid = cfg.GYRO_DRIVE2_PID if pid is None else pid
     last_error = 0
     error_sum = 0
-    
+
     hub.button.center.was_pressed()
     while next(ending_condition) < 100 and not hub.button.center.was_pressed():
         error = target_angle - hub.motion.yaw_pitch_roll()[0]

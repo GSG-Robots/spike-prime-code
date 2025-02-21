@@ -21,7 +21,7 @@ class Color:
 class Attachment:
     """Zahnrad-Positionen zur Anseuerung der entsprechenden Ausgänge"""
 
-    FRONT_RIGHT = 2
-    FRONT_LEFT = 4
-    BACK_RIGHT = 1
-    BACK_LEFT = 3
+    FRONT_RIGHT = 90
+    FRONT_LEFT = -90
+    BACK_RIGHT = 0
+    BACK_LEFT = 180

@@ -60,3 +60,10 @@ GYRO_SPEED_TURN_MINMAX_SPEED = (
     _config_dict["correctors"]["gyro_speed_turn"]["min_speed"],
     _config_dict["correctors"]["gyro_speed_turn"]["max_speed"],
 )
+I_LAST_SHAFT_SPEED = 0
+I_SELECTOR_STATE = 0
+
+
+def _cb(stat):
+    global I_SELECTOR_STATE
+    I_SELECTOR_STATE = stat
