@@ -30,6 +30,8 @@ def _config_dict(in_file):
 LEFT_MOTOR: hub.Motor = PORTS[_config_dict["driving_motors"]["left"]].motor
 RIGHT_MOTOR: hub.Motor = PORTS[_config_dict["driving_motors"]["right"]].motor
 DRIVING_MOTORS: hub.MotorPair = LEFT_MOTOR.pair(RIGHT_MOTOR)
+if not DRIVING_MOTORS:
+    raise ValueError("Motors cannot be paired")
 GEAR_SHAFT: hub.Motor = PORTS[_config_dict["gearbox"]["drive_shaft"]].motor
 GEAR_SELECTOR: hub.Motor = PORTS[_config_dict["gearbox"]["gear_selector"]].motor
 TIRE_CIRCUMFRENCE: float = _config_dict["tire_diameter"] * math.pi
@@ -63,7 +65,8 @@ GYRO_SPEED_TURN_MINMAX_SPEED = (
 I_LAST_SHAFT_SPEED = 0
 I_SELECTOR_STATE = 0
 
-
+@GEAR_SELECTOR.callback
 def _cb(stat):
     global I_SELECTOR_STATE
     I_SELECTOR_STATE = stat
+    print("newstat", stat)

@@ -71,7 +71,7 @@ def run_motorcontrol():
         if hub.button.left.is_pressed():
             speed = -100
             hub.display.show(LEFT_ARROW if is_inverted else RIGHT_ARROW)
-    gsgr.movement.run_attachment(motor, speed)
+    gsgr.movement.run_attachment((motor- 2) * 90, speed)
     while not hub.button.center.was_pressed():
         time.sleep(0.1)
     gsgr.movement.stop_attachment()

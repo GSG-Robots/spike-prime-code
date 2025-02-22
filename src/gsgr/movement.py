@@ -35,7 +35,7 @@ def check_battery():
         raise BatteryLowError
 
 
-def hold_attachment(target_gear: int):
+def hold_attachment(target_gear: int, wait: bool = True):
     """Ausgang wählen um Reibung anzuwenden, gedacht um Anbaute zu halten.
     Select gear to apply torque, meant to hold attachment in place.
 
@@ -46,28 +46,32 @@ def hold_attachment(target_gear: int):
 
     check_battery()
 
-    pos = 90 * (target_gear - 1)
-
-    # Move to the target gear position Gear 1 is at 0 degrees, Gear 2 is at 90 degrees, etc.
     while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
         ...
 
     speed = 100
     cfg.GEAR_SELECTOR.run_to_position(
-        target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD
+        target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
     )
-    
-    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
-        ...
 
-    while cfg.I_SELECTOR_STATE == cfg.GEAR_SELECTOR.EVENT_STALLED:
+    if not wait:
+        return
+
+    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
+        pass
+
+    rep = 0
+    
+    while cfg.I_SELECTOR_STATE == 2 and rep <= 3:  # Motor.EVENT_STALLED = 2
+        rep += 1
         speed *= -1
+        cfg.GEAR_SHAFT.run_for_degrees(-180, speed=math.copysign(100, cfg.I_LAST_SHAFT_SPEED))
         cfg.GEAR_SELECTOR.run_to_position(
-            target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD
+            target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
         )
         cfg.I_SELECTOR_STATE = -1
         while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
-            ...
+            pass
 
 
 def free_attachment(target_gear: int):
@@ -120,7 +124,7 @@ def run_attachment(
     speed: int,
     duration: int | None = None,
     stop_on_resistance: bool = False,
-    untension: bool = False,
+    untension: int | False = False,
 ) -> None:
     """Bewege Ausgang zur angegebenen Zeit oder bis es gestoppt wird
 
@@ -136,9 +140,9 @@ def run_attachment(
     """
     check_battery()
     # Stop the drive shaft if it is running
-    cfg.GEAR_SHAFT.brake()
+    cfg.GEAR_SHAFT.float()
     # Select the target gear, this is the same as holding the attachment
-    hold_attachment(attachment)()
+    hold_attachment(attachment)
     # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
     # hw.drive_shaft.set_stall_detection(stop_on_resistance)
     cfg.GEAR_SHAFT.run_at_speed(speed)
@@ -164,11 +168,13 @@ def run_attachment(
                 raise StopRun
     cfg.GEAR_SHAFT.brake()
     # Cleanup
-    if untension or True:
+    if untension:
         cfg.GEAR_SHAFT.run_for_degrees(
-            -math.copysign(45, speed)
-        )  # -80 * (speed // abs(speed))
-        time.sleep(1)
+            -math.copysign(untension, speed),
+            speed=100,
+        )
+        while cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
+            ...
         cfg.GEAR_SHAFT.float()
 
 
@@ -363,9 +369,11 @@ def gyro_set_origin(set_to=0):
 
 
 class Pivot:
+    # LEFT_WHEEL_REVERSE = -2
     LEFT_WHEEL = -1
     CENTER = 0
     RIGHT_WHEEL = 1
+    # RIGHT_WHEEL_REVERSE = 2
 
 
 def gyro_speed_turn(
@@ -382,6 +390,12 @@ def gyro_speed_turn(
     min_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[0] if max_speed is None else max_speed
     max_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed
     tolerance = cfg.GYRO_TOLERANCE if tolerance is None else tolerance
+
+    
+    if pivot == Pivot.LEFT_WHEEL:
+        cfg.LEFT_MOTOR.brake()
+    elif pivot == Pivot.RIGHT_WHEEL:
+        cfg.RIGHT_MOTOR.brake()
 
     step_speed /= 100
 
@@ -414,9 +428,11 @@ def gyro_speed_turn(
                 -speed_correction // 2, -speed_correction // 2
             )
         elif pivot == Pivot.LEFT_WHEEL:
-            cfg.DRIVING_MOTORS.run_at_speed(0, -speed_correction)
+            cfg.RIGHT_MOTOR.run_at_speed(-speed_correction)
+            # cfg.DRIVING_MOTORS.run_at_speed(0, -speed_correction)
         elif pivot == Pivot.RIGHT_WHEEL:
-            cfg.DRIVING_MOTORS.run_at_speed(-speed_correction, 0)
+            # cfg.DRIVING_MOTORS.run_at_speed(-speed_correction, 0)
+            cfg.LEFT_MOTOR.run_at_speed(-speed_correction)
 
         speed_last_error = speed_error
 
@@ -429,6 +445,7 @@ def gyro_drive2(
     accelerate: float = 0,
     decelerate: float = 0,
     sigmoid_conf: tuple[int, bool] = (6, True),
+    brake: bool = True,
 ):
     smooth, stretch = sigmoid_conf
     cutoff = sigmoid(-smooth) if stretch else 0
@@ -456,7 +473,7 @@ def gyro_drive2(
                     / (1 - cutoff),
                     2,
                 ),
-                0,
+                0.2,
                 1,
             )
             left_speed, right_speed = (
@@ -473,7 +490,7 @@ def gyro_drive2(
                     / (1 - cutoff),
                     2,
                 ),
-                0,
+                .2,
                 1,
             )
             left_speed, right_speed = (
@@ -490,4 +507,5 @@ def gyro_drive2(
         cfg.DRIVING_MOTORS.run_at_speed(-left_speed, right_speed)
 
         last_error = error
-    cfg.DRIVING_MOTORS.brake()
+    if brake:
+        cfg.DRIVING_MOTORS.brake()
