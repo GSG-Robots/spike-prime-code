@@ -24,30 +24,34 @@ FEATURE_KORALLEN = False
 
 # Gesamt: 26 Sekunden
 def run():
-    # Set Gyro Origin
-    gyro_set_origin()
 
     # Anbaute homen
     if FEATURE_KORALLEN:
         run_attachment(Attachment.FRONT_RIGHT, 100, 1.3, untension=False)
         run_attachment(Attachment.FRONT_RIGHT, -100, 1, False, True)
     run_attachment(
-        Attachment.FRONT_LEFT, 75, 1, stop_on_resistance=True, untension=True
+        Attachment.FRONT_LEFT, 75, 1, stop_on_resistance=True, untension=0
     )
+    
+    # Set Gyro Origin
+    gyro_drive2(0, -30, sec(.5))
+    gyro_set_origin()
 
     # Fahre zu Schiff
-    gyro_drive2(0, -30, sec(.25))
-    gyro_set_origin()
-    gyro_drive2(0, 75, cm(10))
-    gyro_speed_turn(45, 120, Pivot.RIGHT_WHEEL, min_speed=4)
-    gyro_drive2(45, 75, cm(20))#, decelerate_from=cm(15), decelerate_for=cm(7))
-    gyro_speed_turn(0, 100, Pivot.LEFT_WHEEL, min_speed=2)
+    gyro_drive2(0, 65, cm(12), brake=True)
+    gyro_speed_turn(45, 110, Pivot.RIGHT_WHEEL, min_speed=4)
+    gyro_drive2(45, 65, cm(20))#, decelerate_from=cm(15), decelerate_for=cm(7))
+    gyro_speed_turn(0, 90, Pivot.LEFT_WHEEL, min_speed=2)
+    gyro_drive2(0, 65, cm(7))#, decelerate_from=cm(15), decelerate_for=cm(7))
+
+    # Sachen einsammeln
+    run_attachment(Attachment.FRONT_LEFT, -95, 1.5, True, untension=90)
     hold_attachment(Attachment.BACK_RIGHT)
-    gyro_drive2(0, 75, cm(9))#, decelerate_from=cm(15), decelerate_for=cm(7))
+    gyro_drive2(0, 20, cm(5.5))
 
     # Mast stellen
     run_attachment(
-        Attachment.BACK_RIGHT, 100, 3.7, stop_on_resistance=True, untension=True
+        Attachment.BACK_RIGHT, 100, 3.7, stop_on_resistance=True, untension=0
     )
 
     if FEATURE_KORALLEN:
@@ -62,13 +66,4 @@ def run():
 
         gyro_drive2(0, -50, cm(3))
 
-    # Sachen einsammeln
-    hold_attachment(Attachment.FRONT_LEFT)
-    gyro_drive2(0, 90, cm(4))
-    run_attachment(Attachment.FRONT_LEFT, -95, 1, True, False)
-
-    # Zurück zu base
-    # gyro_drive(0, -75, cm(5))
-    # gyro_turn(35, 50, OR(deg(35), sec(2)))
-    # gyro_drive(45, -100, cm(70))
     gyro_drive2(45, -100, sec(3))
