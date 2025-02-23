@@ -56,7 +56,6 @@ The file should look like this:
 
 ```python
 from gsgr.enums import Color
-from gsgr.run import run
 
 display_as = 1
 color = Color.RED
@@ -74,7 +73,7 @@ To add special config values to a run, you can additionally use the `config` var
 from gsgr.enums import Color
 from gsgr.configuration import config
 
-config_override = config(p_correction=1000)  # Make the robot dance
+config = config(p_correction=1000)  # Make the robot dance
 display_as = 1
 color = Color.RED
 
@@ -89,5 +88,5 @@ To build docs:
 
 ```bash
 poetry install --with dev
-poetry run make html
+poetry run "docs/make" html
 ```
