@@ -21,7 +21,7 @@ def run():
     # Set Gyro Origin
     gyro_set_origin()
 
-    run_attachment(1, 100, 0.5)
-    run_attachment(2, 100, 0.5)
-    run_attachment(3, 100, 0.5)
-    run_attachment(4, 100, 0.5)
+    run_attachment(-90, 100, 0.5)
+    run_attachment(0, 100, 0.5)
+    run_attachment(90, 100, 0.5)
+    run_attachment(180, 100, 0.5)

@@ -3,6 +3,7 @@
 
 import math
 import time
+from typing import Literal
 
 import hub
 from gsgr.config import cfg
@@ -35,46 +36,71 @@ def check_battery():
         raise BatteryLowError
 
 
-def hold_attachment(target_gear: int, wait: bool = True):
+def _wait_until_not_busy(motor):
+    while motor.busy(motor.BUSY_MOTOR):
+        if hub.button.center.was_pressed():
+            raise StopRun
+
+
+_LAST_SHAFT_SPEED = 0
+_GS_STATE = 0
+_GS_COMPLETED = True
+_GS_SPEED = 100
+_GS_TARGET = 0
+
+
+@cfg.GEAR_SELECTOR.callback
+def _gs_callback(state: int):
+    global _GS_STATE, _GS_COMPLETED, _GS_SPEED
+    _GS_STATE = state
+    if state == 0:
+        _GS_COMPLETED = True
+    elif state == 2:
+        _GS_SPEED *= -1
+        if cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
+            return
+        cfg.GEAR_SHAFT.run_for_degrees(
+            180, speed=-math.copysign(100, _LAST_SHAFT_SPEED)
+        )
+        _wait_until_not_busy(cfg.GEAR_SHAFT)
+        cfg.GEAR_SELECTOR.run_to_position(
+            _GS_TARGET, speed=_GS_SPEED, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
+        )
+
+
+def _gs_await_completion(timeout: int = 10000):
+    start = time.time()
+    while not _GS_COMPLETED:
+        if timeout and (time.time() - start) > timeout:
+            return
+        if hub.button.center.was_pressed():
+            raise StopRun
+
+
+def hold_attachment(target_gear: int, await_completion: bool = True):
     """Ausgang wählen um Reibung anzuwenden, gedacht um Anbaute zu halten.
     Select gear to apply torque, meant to hold attachment in place.
 
     :param target_gear: Die Nummer des Ausgangs. Nutze am besten :py:class:`gsgr.enums.Attachment`. [TODO: Read more]
+    :param prepare: Wenn :py:`True` angegeben wird, wird der umschaltprozess nur gestartet, ohne auf fertigstellung zu warten.
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
+    global _GS_TARGET,_GS_COMPLETED
 
     check_battery()
 
-    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
-        ...
-
-    speed = 100
+    _GS_TARGET = target_gear
+    _GS_COMPLETED = False
     cfg.GEAR_SELECTOR.run_to_position(
-        target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
+        target_gear, speed=_GS_SPEED, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
     )
 
-    if not wait:
-        return
-
-    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
-        pass
-
-    rep = 0
-    
-    while cfg.I_SELECTOR_STATE == 2 and rep <= 3:  # Motor.EVENT_STALLED = 2
-        rep += 1
-        speed *= -1
-        cfg.GEAR_SHAFT.run_for_degrees(-180, speed=math.copysign(100, cfg.I_LAST_SHAFT_SPEED))
-        cfg.GEAR_SELECTOR.run_to_position(
-            target_gear, speed=speed, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
-        )
-        cfg.I_SELECTOR_STATE = -1
-        while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
-            pass
+    if await_completion:
+        _gs_await_completion()
 
 
-def free_attachment(target_gear: int):
+def free_attachment(target_gear: int, await_completion: bool = True):
     """Irgeneinen anderen Ausgang auswählen, um Reibung freizugeben, gedacht um Anbaute frei beweglich zu machen.
 
     Wenn mehrerer Ausgänge zur gleichen Zeit frei beweglich sin sollen, nutze :py:func:`hold_attachment` um einen Ausgang auszuwählen, der nicht freigegeben werden soll.
@@ -85,17 +111,18 @@ def free_attachment(target_gear: int):
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
+    global _GS_COMPLETED
 
     check_battery()
-    # Move to some other position. Anything over 45 degrees will do, but 90 is the most reliable.
 
-    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
-        ...
-    cfg.GEAR_SHAFT.float()
-    cfg.GEAR_SELECTOR.run_to_position(((90 * (target_gear - 1)) + 90) % 360, speed=100)
-
-    while cfg.GEAR_SELECTOR.busy(cfg.GEAR_SELECTOR.BUSY_MOTOR):
-        ...
+    _wait_until_not_busy(cfg.GEAR_SELECTOR)
+    target_gear += 90
+    if target_gear > 180:
+        target_gear -= 360
+    _GS_COMPLETED = False
+    cfg.GEAR_SELECTOR.run_to_position(target_gear, speed=100)
+    if await_completion:
+        _gs_await_completion()
 
 
 def free_attachments():
@@ -114,17 +141,19 @@ def free_attachments():
     #     "shortest path",
     #     20,
     # )
-    while cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
-        ...
-    cfg.GEAR_SHAFT.pwm(0)
+    # while cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
+    #     ...
+    # cfg.GEAR_SHAFT.pwm(0)
+    raise NotImplementedError
 
 
 def run_attachment(
     attachment: int,
     speed: int,
     duration: int | None = None,
-    stop_on_resistance: bool = False,
-    untension: int | False = False,
+    stall: bool = False,
+    untension: int | Literal[False] = False,
+    await_completion: bool = True,
 ) -> None:
     """Bewege Ausgang zur angegebenen Zeit oder bis es gestoppt wird
 
@@ -138,58 +167,51 @@ def run_attachment(
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
+    global _LAST_SHAFT_SPEED
     check_battery()
-    # Stop the drive shaft if it is running
-    cfg.GEAR_SHAFT.float()
-    # Select the target gear, this is the same as holding the attachment
-    hold_attachment(attachment)
-    # Move at the specified speed for the specified duration or until resistance is detected (if stop_on_resistance is True)
-    # hw.drive_shaft.set_stall_detection(stop_on_resistance)
-    cfg.GEAR_SHAFT.run_at_speed(speed)
-    cfg.I_LAST_SHAFT_SPEED = speed
+
+    _wait_until_not_busy(cfg.GEAR_SHAFT)
+
+    if _GS_TARGET != attachment:
+        hold_attachment(attachment)
+    elif not _GS_COMPLETED:
+        _gs_await_completion()
+
+    _LAST_SHAFT_SPEED = speed
     if not duration:
+        cfg.GEAR_SHAFT.run_at_speed(speed, stall=stall)
         return
-    if stop_on_resistance:
-        timer = Timer()
-        while (
-            timer.elapsed
-            < duration
-            # and not hw.drive_shaft.was_stalled()
-            # and not hw.drive_shaft.was_interrupted()
-        ):
-            time.sleep(cfg.LOOP_THROTTLE)
-            if hub.button.center.was_pressed():
-                raise StopRun
-    else:
-        timer = Timer()
-        while timer.elapsed < duration:
-            time.sleep(cfg.LOOP_THROTTLE)
-            if hub.button.center.was_pressed():
-                raise StopRun
-    cfg.GEAR_SHAFT.brake()
-    # Cleanup
+
+    cfg.GEAR_SHAFT.run_for_time(
+        duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
+    )
+
+    if await_completion:
+        _wait_until_not_busy(cfg.GEAR_SHAFT)
+
     if untension:
         cfg.GEAR_SHAFT.run_for_degrees(
             -math.copysign(untension, speed),
             speed=100,
+            stop=cfg.GEAR_SHAFT.STOP_FLOAT,
         )
-        while cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
-            ...
-        cfg.GEAR_SHAFT.float()
+        _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
-def stop_attachment():
+def stop_attachment(untension: int | False = False, await_completion: bool = True):
     """Ausgangsbewegung stoppen.
 
     Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.
     """
-    # check_battery()
-    # Stop the drive shaft
-    cfg.GEAR_SHAFT.run_for_degrees(
-        -math.copysign(45, cfg.I_LAST_SHAFT_SPEED)
-    )  # -80 * (speed // abs(speed))
-    time.sleep(1)
-    cfg.GEAR_SHAFT.float()
+    if await_completion:
+        _wait_until_not_busy(cfg.GEAR_SHAFT)
+    if untension:
+        cfg.GEAR_SHAFT.run_for_degrees(
+            -math.copysign(untension, _LAST_SHAFT_SPEED),
+            speed=100,
+            stop=cfg.GEAR_SHAFT.STOP_FLOAT,
+        )
+        _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
 def drive(speed_generator: Condition, until_generator: Condition):
@@ -391,7 +413,6 @@ def gyro_speed_turn(
     max_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed
     tolerance = cfg.GYRO_TOLERANCE if tolerance is None else tolerance
 
-    
     if pivot == Pivot.LEFT_WHEEL:
         cfg.LEFT_MOTOR.brake()
     elif pivot == Pivot.RIGHT_WHEEL:
@@ -490,7 +511,7 @@ def gyro_drive2(
                     / (1 - cutoff),
                     2,
                 ),
-                .2,
+                0.2,
                 1,
             )
             left_speed, right_speed = (

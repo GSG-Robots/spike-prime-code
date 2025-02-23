@@ -43,7 +43,7 @@ def run():
     run_attachment(Attachment.FRONT_LEFT, -100, 5.5, True)
     run_attachment(Attachment.FRONT_LEFT, 100, 0.2, True)
     gyro_drive(45, -70, cm(20))
-    run_attachment(Attachment.FRONT_LEFT, 100, stop_on_resistance=True, untension=True)
+    run_attachment(Attachment.FRONT_LEFT, 100, stall=True, untension=True)
 
     # Zum U-Boot
     gyro_turn(85, 25)

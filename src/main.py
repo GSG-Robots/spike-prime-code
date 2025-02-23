@@ -4,7 +4,7 @@ import time
 from compyner.typehints import __glob_import__
 
 import gsgr.display
-from gsgr.enums import Color
+from gsgr.enums import Color, Attachment
 import gsgr.movement
 import hub
 from gsgr.config import cfg
@@ -12,17 +12,12 @@ from gsgr.exceptions import StopRun
 from gsgr.menu import ActionMenu, ActionMenuItem
 from gsgr.run import Run
 
-FRONT_RIGHT = 2
-FRONT_LEFT = 4
-BACK_RIGHT = 1
-BACK_LEFT = 3
-
 
 def run_motorcontrol():
     """Motorcontrol"""
     select = 1
     last_select = -1
-    motor = FRONT_LEFT
+    motor = Attachment.FRONT_LEFT
     while not hub.button.center.was_pressed():
         if hub.button.left.was_pressed():
             select -= 1
@@ -46,18 +41,18 @@ def run_motorcontrol():
             hub.display.clear()
             if select == 1:
                 hub.display.pixel(0, 0, 9)
-                motor = FRONT_LEFT
+                motor = Attachment.FRONT_LEFT
             if select == 2:
                 hub.display.pixel(4, 0, 9)
-                motor = FRONT_RIGHT
+                motor = Attachment.FRONT_RIGHT
             if select == 3:
                 hub.display.pixel(0, 4, 9)
-                motor = BACK_LEFT
+                motor = Attachment.BACK_LEFT
             if select == 4:
                 hub.display.pixel(4, 4, 9)
-                motor = BACK_RIGHT
+                motor = Attachment.BACK_RIGHT
     speed = 100
-    is_inverted = motor in (FRONT_LEFT, BACK_LEFT, BACK_RIGHT)
+    is_inverted = motor != 90
     hub.display.clear()
     RIGHT_ARROW = hub.Image("09000:09900:09990:09900:09000")
     LEFT_ARROW = hub.Image("00090:00990:09990:00990:00090")
@@ -71,7 +66,7 @@ def run_motorcontrol():
         if hub.button.left.is_pressed():
             speed = -100
             hub.display.show(LEFT_ARROW if is_inverted else RIGHT_ARROW)
-    gsgr.movement.run_attachment((motor- 2) * 90, speed)
+    gsgr.movement.run_attachment(motor, speed)
     while not hub.button.center.was_pressed():
         time.sleep(0.1)
     gsgr.movement.stop_attachment()

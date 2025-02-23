@@ -9,6 +9,7 @@ Any = object
 Text = str
 NoReturn = None
 ClassVar = object
+Literal = _SubSingleton
 Union = _SubSingleton
 Optional = _SubSingleton
 Generic = _SubSingleton

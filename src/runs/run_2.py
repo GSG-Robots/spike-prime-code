@@ -30,7 +30,7 @@ def run():
         run_attachment(Attachment.FRONT_RIGHT, 100, 1.3, untension=False)
         run_attachment(Attachment.FRONT_RIGHT, -100, 1, False, True)
     run_attachment(
-        Attachment.FRONT_LEFT, 75, 1, stop_on_resistance=True, untension=0
+        Attachment.FRONT_LEFT, 75, 1, stall=True, untension=0
     )
     
     # Set Gyro Origin
@@ -38,7 +38,7 @@ def run():
     gyro_set_origin()
 
     # Fahre zu Schiff
-    gyro_drive2(0, 65, cm(12), brake=True)
+    gyro_drive2(0, 65, cm(12))
     gyro_speed_turn(45, 110, Pivot.RIGHT_WHEEL, min_speed=4)
     gyro_drive2(45, 65, cm(20))#, decelerate_from=cm(15), decelerate_for=cm(7))
     gyro_speed_turn(0, 90, Pivot.LEFT_WHEEL, min_speed=2)
@@ -46,12 +46,12 @@ def run():
 
     # Sachen einsammeln
     run_attachment(Attachment.FRONT_LEFT, -95, 1.5, True, untension=90)
-    hold_attachment(Attachment.BACK_RIGHT)
+    hold_attachment(Attachment.BACK_RIGHT, await_competion=True)
     gyro_drive2(0, 20, cm(5.5))
 
     # Mast stellen
     run_attachment(
-        Attachment.BACK_RIGHT, 100, 3.7, stop_on_resistance=True, untension=0
+        Attachment.BACK_RIGHT, 100, 3.7, stall=True, untension=0
     )
 
     if FEATURE_KORALLEN:
@@ -61,7 +61,7 @@ def run():
         gyro_drive2(0, 70, cm(6))
 
         # Korallenbank
-        run_attachment(Attachment.FRONT_RIGHT, 100, 1.8, stop_on_resistance=True)
+        run_attachment(Attachment.FRONT_RIGHT, 100, 1.8, stall=True)
         run_attachment(Attachment.FRONT_RIGHT, -100, 1.2, True, True)
 
         gyro_drive2(0, -50, cm(3))

@@ -35,13 +35,13 @@ def run():
     # Plankton yeeten
     run_attachment(
 
-        Attachment.BACK_LEFT, -85, 1, stop_on_resistance=True, untension=True
+        Attachment.BACK_LEFT, -85, 1, stall=True, untension=True
     )
 
 
     # Arm homen
 
-    run_attachment(Attachment.BACK_LEFT, 50, 1, stop_on_resistance=True, untension=True)
+    run_attachment(Attachment.BACK_LEFT, 50, 1, stall=True, untension=True)
 
 
     # Zu Quadropus fahren

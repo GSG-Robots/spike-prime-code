@@ -35,7 +35,10 @@ class ActionMenuItem(MenuItem):
     """Funktion, die ausgeführt werden soll, falls das Menüelement gewählt wird."""
 
     def __init__(
-        self, action: Callable | None, display_as: int | str, color: Color | int = Color.WHITE
+        self,
+        action: Callable | None,
+        display_as: int | str,
+        color: Color | int = Color.WHITE,
     ):
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
@@ -121,6 +124,10 @@ class Menu:
         hub.button.center.was_pressed()
 
         while not hub.button.center.was_pressed():
+            # if hub.motion.gesture() == 1:
+            #     hub.display.show(hub.Image("90909:09090:90909:09090:90909"))
+            #     hub.sound.beep(500, 50, 1)
+            #     cfg.GEAR_SELECTOR.run_to_position(0)
             if hub.button.left.was_pressed():
                 self.position = self.position - (-1 if self.swap_buttons else 1)
             if hub.button.right.was_pressed():
