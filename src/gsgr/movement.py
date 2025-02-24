@@ -180,11 +180,10 @@ def run_attachment(
     _LAST_SHAFT_SPEED = speed
     if not duration:
         cfg.GEAR_SHAFT.run_at_speed(speed, stall=stall)
-        return
-
-    cfg.GEAR_SHAFT.run_for_time(
-        duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
-    )
+    else:
+        cfg.GEAR_SHAFT.run_for_time(
+            duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
+        )
 
     if await_completion:
         _wait_until_not_busy(cfg.GEAR_SHAFT)
