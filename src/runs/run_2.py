@@ -46,7 +46,7 @@ def run():
 
     # Sachen einsammeln
     run_attachment(Attachment.FRONT_LEFT, -95, 1.5, True, untension=90)
-    hold_attachment(Attachment.BACK_RIGHT, await_competion=True)
+    hold_attachment(Attachment.BACK_RIGHT, await_completion=False)
     gyro_drive2(0, 20, cm(5.5))
 
     # Mast stellen
