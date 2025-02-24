@@ -5,5 +5,7 @@ Wissensdatenbank
    :maxdepth: 2
    :caption: Inhalt:
    
+   getting-started
    attachments
-   driving_issues
+   known-issues
+   debug-mode

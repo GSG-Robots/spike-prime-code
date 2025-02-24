@@ -10,5 +10,5 @@ GSGR Dokumentation
    :maxdepth: 3
    :caption: Inhalt:
    
-   usage/index
+   knowledge/index
    api/index

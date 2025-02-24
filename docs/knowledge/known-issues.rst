@@ -1,5 +1,5 @@
-Fahrprobleme
-============
+Hinweise zu bekannten Problemen
+===============================
 
 Der Roboter verzieht beim Losfahren
 -----------------------------------
@@ -31,7 +31,7 @@ Siehe auch: :ref:`gyro`.
 Der Roboter dreht sich im Kreis
 -------------------------------
 
-Siehe: :ref:`gyro`.
+Siehe: :ref:`gyro`
 
 Der Roboter fährt nicht (und macht Summgeräusche)
 -------------------------------------------------
@@ -57,17 +57,27 @@ Es wird die auch die Datei und die Zeile angezeigt, in der der Fehler aufgetrete
 
 Mit diesen Information solltest du die Probleme lösen können.
 
-Einige Fehler, die evtl. häufiger auftreten:
-
 [WIP]
 
 .. _gyro:
 Der Gyrosensor gibt falsche Werte an oder ändert die Gradzahl nicht mehr
 ------------------------------------------------------------------------
 
-Der Grund ist vermutlich der Gyrosensor. Versuche, den Roboter komplett auszuschalten und die Batterie für einige Sekunden zu entnehmen.
+Versuche, den Roboter komplett auszuschalten und die Batterie für einige Sekunden zu entnehmen.
 Setze die Batterie wieder ein, lege den Hub auf eine ebene Fläche und starte ihn. Fasse ihn nicht an und vermeide Erschütterungen, bis er vollständig hochgefahren ist.
 
 Sollte das Problem bestehen bleiben, wechsle den Hub.
 
 Beachte: Es kann auch am Code liegen! Wenn der Roboter sich zum Beispiel bis zum Erreichen einer unerreichbaren Bedingung drehen soll, wird er sich auch endlos im Kreis drehen.
+
+Beim Starten des Menüs blinkt das Statuslicht rot und es chließt sich direkt wieder
+-----------------------------------------------------------------------------------
+
+Das kann eine Vielzahl von Gründen haben.
+
+* Überprüfe, ob der Hub richtig herum im Roboter sitzt.
+* Überprüfe, ob alle Kabel korrekt angeschlossen sind.
+* Überprüfe, ob die Kabel intakt und vollständig eingesteckt sind.
+* Versuche, das Programm erneut herunteruladen.
+* Lade das Programm erneut hoch und trenne die Kabelverbindung nicht.
+  Lese die Lognachrichten, um die Ursache des Fehler zu ermitteln.
