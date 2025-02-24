@@ -4,7 +4,7 @@ LEGO provided functions and values.
 
 from typing import Any, Dict, List, Tuple, Union, overload
 
-from . import battery, bluetooth, button, display
+from . import battery, bluetooth, button, display, port
 
 TOP = 0
 "The top of the hub. This is the side with the matrix display."
