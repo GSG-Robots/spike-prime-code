@@ -5,7 +5,8 @@ Wissensdatenbank
    :maxdepth: 2
    :caption: Inhalt:
    
-   getting-started
+   creating-a-run
+   config
    attachments
    known-issues
    debug-mode

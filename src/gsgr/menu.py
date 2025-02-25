@@ -98,7 +98,7 @@ class Menu:
     def __init__(self, items: list[MenuItem] | None = None, swap_buttons=False):
         """
         :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
-        :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:`False`.
+        :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:const:`False`.
         """
         self.items = items or []
         self.swap_buttons = swap_buttons
