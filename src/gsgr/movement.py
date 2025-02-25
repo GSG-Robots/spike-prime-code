@@ -3,7 +3,7 @@
 
 import math
 import time
-from typing import Literal
+from typing import Generator, Literal, Optional
 
 import hub
 from gsgr.config import cfg
@@ -15,7 +15,7 @@ from .conditions import deg
 from .exceptions import BatteryLowError, StopRun
 from .math import clamp, sigmoid
 from .types import Condition
-from .utils import Timer
+from .enums import Pivot
 
 
 def check_battery():
@@ -213,199 +213,33 @@ def stop_attachment(untension: int | Literal[False] = False, await_completion: b
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
-def drive(speed_generator: Condition, until_generator: Condition):
-    """Generelle Fahrfunktion. Nutzt die gegebenen Generatoren für Geschwindigkeit und Ziel. Hauptsächlich für interne Nutzung.
-
-    :param speed_generator: Ein Generator, der die Geschwindigkeit angibt, mit der gefahren werden soll. [TODO: Read more]
-    :param until_generator: Ein Generator, der angibt, wann die Bewegung beendet werden soll. [TODO: Read more]
-
-    :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
-    """
-    check_battery()
-    last_left, last_right = 0, 0
-    pair = hub.port.F.motor.pair(hub.port.E.motor)
-    while next(until_generator) < 100:
-        if hub.button.center.was_pressed():
-            raise StopRun
-
-        left_speed, right_speed = next(speed_generator)
-
-        if 0 < left_speed < 5:
-            left_speed = 5
-        if 0 < right_speed < 5:
-            right_speed = 5
-        if -5 < left_speed < 0:
-            left_speed = -5
-        if -5 < right_speed < 0:
-            right_speed = -5
-
-        left_speed = clamp(-100, left_speed, 100)
-        right_speed = clamp(-100, right_speed, 100)
-
-        if (
-            left_speed,
-            right_speed,
-        ) != (
-            last_left,
-            last_right,
-        ):
-            pair.run_at_speed(-left_speed, right_speed)
-
-        last_left, last_right = left_speed, right_speed
-
-        time.sleep(cfg.LOOP_THROTTLE)
-    # hw.driving_motors.stop()
-    pair.hold()
-
-
-def gyro_drive(
-    degree: int,
-    speed: int,
-    do_for: Condition,
-    p_correction: int | None = None,
-    i_correction: int | None = None,
-    d_correction: int | None = None,
-    gyro_tolerance: int | None = None,
-    # accelerate_from: Condition | None = None,
-    accelerate_for: Condition | None = None,
-    decelerate_from: Condition | None = None,
-    decelerate_for: Condition | None = None,
-):
-    """Gyro Drive
-
-    :param degree: Richtung in die Gefahren bzw. Korrigiert werden soll. Wert von -180 bis 180
-    :param speed: Geschwindigkeit, mit der gefahren werden soll. Wert von 0 bis 100.
-    :param do_for: Zielbedingung [TODO: Read more]
-    :param p_correction: p correction value. Defaults to general config.
-    :param i_correction: i correction value. Defaults to general config.
-    :param d_correction: d correction value. Defaults to general config.
-    :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
-    :param accelerate_for: Bedingung, die angibt, bis wann Beschleunigt werden soll.
-    :param decelerate_from: Bedingung, die angibt, ab wann Entschleunigt werden soll.
-    :param decelerate_for: Bedingung, die angibt, wie lange Entschleunigt werden soll.
-
-    :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
-    """
-
-    corrector = corr.speed(speed)
-
-    # Auto-setup acceleration and deceleration
-    if accelerate_for:
-        corrector = corr.accelerate_sigmoid(
-            corrector,
-            accelerate_for,
-            # accelerate_from,
-            smooth=2,
-        )
-
-    if decelerate_for:
-        corrector = corr.decelerate(
-            corrector,
-            decelerate_from,
-            decelerate_for,
-        )
-
-    # Auto-setup PID
-    corrector = corr.gyro_drive_pid(
-        corrector,
-        degree,
-        p_correction,
-        i_correction,
-        d_correction,
-        gyro_tolerance,
-    )
-
-    # Delegate to normal drive function
-    drive(
-        corrector,
-        do_for,
-    )
-
-
-def gyro_turn(
-    degree: int,
-    speed: int = 80,
-    do_for: Condition | None = None,
-    p_correction: int | None = None,
-    i_correction: int | None = None,
-    d_correction: int | None = None,
-    gyro_tolerance: int | None = None,
-    accelerate_for: Condition | None = None,
-    decelerate_from: Condition | None = None,
-    decelerate_for: Condition | None = None,
-):
-    """Gyro Turn
-
-    :param degree: Richtung in die Gedreht bzw. Korrigiert werden soll. Wert von -180 bis 180
-    :param speed: Geschwindigkeit, mit der gedreht werden soll. Wert von 0 bis 100.
-    :param do_for: Zielbedingung [TODO: Read more]
-    :param p_correction: p correction value. Defaults to general config.
-    :param i_correction: i correction value. Defaults to general config.
-    :param d_correction: d correction value. Defaults to general config.
-    :param gyro_tolerance: Toleranz für Zielgradzahl. Nutzt globale Konfiguration, falls nicht angegeben.
-    :param accelerate_for: Bedingung, die angibt, bis wann Beschleunigt werden soll.
-    :param decelerate_from: Bedingung, die angibt, ab wann Entschleunigt werden soll.
-    :param decelerate_for: Bedingung, die angibt, wie lange Entschleunigt werden soll.
-    :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
-    """
-
-    corrector = corr.speed(speed)
-
-    # Auto-setup acceleration and deceleration
-    if accelerate_for:
-        corrector = corr.accelerate_sigmoid(
-            corrector,
-            accelerate_for,
-            # accelerate_from,
-            smooth=2,
-        )
-
-    if decelerate_for and decelerate_from:
-        corrector = corr.decelerate(
-            corrector,
-            decelerate_from,
-            decelerate_for,
-        )
-
-    # Auto-setup PID
-    corrector = corr.gyro_turn_pid(
-        corrector,
-        degree,
-        p_correction,
-        i_correction,
-        d_correction,
-        gyro_tolerance,
-    )
-
-    # Delegate to normal drive function
-    drive(
-        corrector,
-        do_for or deg(degree),
-    )
-
-
-def gyro_set_origin(set_to=0):
+def gyro_set_origin():
     """Gyro-Sensor Origin zurücksetzen"""
     hub.motion.yaw_pitch_roll(0)
 
 
-class Pivot:
-    # LEFT_WHEEL_REVERSE = -2
-    LEFT_WHEEL = -1
-    CENTER = 0
-    RIGHT_WHEEL = 1
-    # RIGHT_WHEEL_REVERSE = 2
-
-
-def gyro_speed_turn(
+def gyro_turn(
     target_angle: int,
     step_speed: int | float = 70,
     pivot: Pivot | int = Pivot.CENTER,
-    min_speed: int | None = None,
-    max_speed: int | None = None,
-    pid: cfg.PID | None = None,
-    tolerance: int | None = None,
+    min_speed: Optional[int] = None,
+    max_speed: Optional[int] = None,
+    pid: Optional[cfg.PID] = None,
+    tolerance: Optional[int] = None,
 ):
+    """Drehe mithilfe des Gyrosensors in eine bestimmte Richtung
+    
+    :param target_angle: Zielgradzahl, auf die gedreht werden soll
+    :param step_speed: Drehgeschwindigkeit im Verhältnis zum fehlenden 
+                       Drehwinkel; wird multiplikativ angewandt
+    :param pivot: Drehpunkt, um den der Roboter dreht; entweder
+                  die Mitte des Roboters oder einer seiner Räder
+    :param min_speed: Mindestgeschwindigkeit, damit der Roboter beim Drehen nicht stehen bleibt
+    :param max_speed: Maximalgeschwindigkeit, damit der Roboter nicht zu langsam entschleunigt
+    :param pid: Die PID-Werte für die Bewegung; siehe :py:class:`~gsgr._config.PID`
+    :param tolerance: Toleranz beim Auslesen des Gyrosensors
+                      (Ziel erreicht wenn Gyro-Wert = Ziel-Wert +- Toleranz)
+    """
 
     pid = cfg.GYRO_DRIVE_PID if pid is None else pid
     min_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[0] if max_speed is None else max_speed
@@ -457,16 +291,30 @@ def gyro_speed_turn(
         speed_last_error = speed_error
 
 
-def gyro_drive2(
+def gyro_drive(
     target_angle: int,
     speed: int | float,
-    ending_condition,
-    pid: cfg.PID | None = None,
+    ending_condition: Generator,
+    pid: Optional[cfg.PID] = None,
     accelerate: float = 0,
     decelerate: float = 0,
     sigmoid_conf: tuple[int, bool] = (6, True),
     brake: bool = True,
 ):
+    """Fahre mithilfe des Gyrosensors in eine bestimmte Richtung
+    
+    :param target_angle: Zielgradzahl; die Richtung in die gefahren werden soll
+    :param speed: Fahrgeschwindigkeit; bei negativen Werten fährt der Roboter rückwärts;
+                  zwischen -100 und 100
+    :param ending_conditon: Zielbedingung;
+                            Bis wann/für wie lange die Bewegung ausgeführt werden soll
+    :param pid: Die PID-Werte für die Bewegung; siehe :py:class:`~gsgr._config.PID`
+    :param accelerate: Über welche Stecke der Roboter beschleunigen soll;
+                       in Prozent von der :code:`ending_condition`
+    :param decelerate: Über welche Stecke der Roboter entschleunigen soll;
+                       in Prozent von der :code:`ending_condition`
+    :param brake: Ob der Roboter nach der bewegung bremsen soll
+    """
     smooth, stretch = sigmoid_conf
     cutoff = sigmoid(-smooth) if stretch else 0
 

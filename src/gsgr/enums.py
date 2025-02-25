@@ -25,3 +25,13 @@ class Attachment:
     FRONT_LEFT = -90
     BACK_RIGHT = 0
     BACK_LEFT = 180
+
+
+class Pivot:
+    """Drehpunkt für GyroTurn"""
+    
+    # LEFT_WHEEL_REVERSE = -2
+    LEFT_WHEEL = -1
+    CENTER = 0
+    RIGHT_WHEEL = 1
+    # RIGHT_WHEEL_REVERSE = 2

@@ -1,14 +1,8 @@
-import time
-
-from gsgr.conditions import OR, THEN, cm, deg, sec
-from gsgr.enums import Attachment, Color
+from gsgr.conditions import cm
+from gsgr.enums import Color
 from gsgr.movement import (
-    free_attachment,
     gyro_drive,
     gyro_set_origin,
-    gyro_turn,
-    hold_attachment,
-    run_attachment,
 )
 
 display_as = "N"
