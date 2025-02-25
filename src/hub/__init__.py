@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Tuple, Union, overload
 
 from . import battery, bluetooth, button, display, port
 
+from .port import Motor, MotorPair
+
 TOP = 0
 "The top of the hub. This is the side with the matrix display."
 

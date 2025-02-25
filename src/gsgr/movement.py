@@ -82,7 +82,7 @@ def hold_attachment(target_gear: int, await_completion: bool = True):
     Select gear to apply torque, meant to hold attachment in place.
 
     :param target_gear: Die Nummer des Ausgangs. Nutze am besten :py:class:`gsgr.enums.Attachment`. [TODO: Read more]
-    :param prepare: Wenn :py:`True` angegeben wird, wird der umschaltprozess nur gestartet, ohne auf fertigstellung zu warten.
+    :param prepare: Wenn :py:const:`True` angegeben wird, wird der umschaltprozess nur gestartet, ohne auf fertigstellung zu warten.
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
@@ -197,7 +197,7 @@ def run_attachment(
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
-def stop_attachment(untension: int | False = False, await_completion: bool = True):
+def stop_attachment(untension: int | Literal[False] = False, await_completion: bool = True):
     """Ausgangsbewegung stoppen.
 
     Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.

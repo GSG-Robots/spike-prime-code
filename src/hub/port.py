@@ -1,11 +1,18 @@
 from typing import Callable
 
 
-class _Motor: ...
+class MotorPair: ...
+
+class Motor:
+    def pair(self, other: "Motor") -> MotorPair:
+        return MotorPair()
+    
+    def callback(self, function):
+        ...
 
 
 class _Port:
-    motor: _Motor
+    motor: Motor = Motor()
 
     def pwm(self, value: int) -> None:
         """

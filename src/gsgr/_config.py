@@ -13,6 +13,9 @@ PORTS = {
     "F": hub.port.F,
 }
 
+def compile(f):
+    return f(__file__)
+
 
 @compile
 def _config_dict(in_file):

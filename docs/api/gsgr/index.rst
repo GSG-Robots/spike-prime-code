@@ -5,7 +5,7 @@
    :maxdepth: 2
    :caption: Inhalt:
 
-   configuration
+   config
    conditions
    correctors
    display
