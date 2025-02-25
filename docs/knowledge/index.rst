@@ -2,11 +2,12 @@ Wissensdatenbank
 ================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Inhalt:
    
    creating-a-run
-   config
+   driving-and-turning
    attachments
    known-issues
    debug-mode
+   config

@@ -1,6 +1,8 @@
 Typische Probleme und Fehler
 ============================
 
+.. _driving-problems:
+
 Fahrprobleme
 ------------
 
@@ -72,8 +74,8 @@ Andere Fehler
 
 .. _gyro:
 
-Der Gyrosensor gibt falsche Werte
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Der Gyrosensor gibt falsche Werte an
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Versuche, den Roboter komplett auszuschalten und die Batterie für einige Sekunden zu entnehmen.
 Setze die Batterie wieder ein, lege den Hub auf eine ebene Fläche und starte ihn. Fasse ihn nicht an und vermeide Erschütterungen, bis er vollständig hochgefahren ist.
