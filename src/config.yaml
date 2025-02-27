@@ -27,7 +27,7 @@ correctors:
         d: -0.2
 
         # In deg/s:
-        min_speed: 1
+        min_speed: 2
         max_speed: 90
 
     gyro_drive:
