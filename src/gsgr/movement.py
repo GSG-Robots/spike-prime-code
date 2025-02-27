@@ -226,6 +226,7 @@ def gyro_turn(
     max_speed: Optional[int] = None,
     pid: Optional[cfg.PID] = None,
     tolerance: Optional[int] = None,
+    timeout: int = 0,
 ):
     """Drehe mithilfe des Gyrosensors in eine bestimmte Richtung
     
@@ -245,6 +246,8 @@ def gyro_turn(
     min_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[0] if max_speed is None else max_speed
     max_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed
     tolerance = cfg.GYRO_TOLERANCE if tolerance is None else tolerance
+
+    start_time = time.time()
 
     if pivot == Pivot.LEFT_WHEEL:
         cfg.LEFT_MOTOR.brake()
@@ -275,7 +278,8 @@ def gyro_turn(
         )
 
         if -tolerance < degree_error < tolerance:
-            cfg.DRIVING_MOTORS.brake()
+            break
+        if timeout and time.time() - start_time > timeout:
             break
         if pivot == Pivot.CENTER:
             cfg.DRIVING_MOTORS.run_at_speed(
@@ -289,6 +293,7 @@ def gyro_turn(
             cfg.LEFT_MOTOR.run_at_speed(-speed_correction)
 
         speed_last_error = speed_error
+    cfg.DRIVING_MOTORS.brake()
 
 
 def gyro_drive(
