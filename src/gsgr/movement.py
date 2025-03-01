@@ -197,7 +197,7 @@ def run_attachment(
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
-def stop_attachment(untension: int | Literal[False] = False, await_completion: bool = True):
+def stop_attachment(untension: int | Literal[False] = False, await_completion: bool = False):
     """Ausgangsbewegung stoppen.
 
     Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.
