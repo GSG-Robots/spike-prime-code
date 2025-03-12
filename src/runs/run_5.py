@@ -30,7 +30,7 @@ def run():
     gyro_set_origin()
 
     # vom Wal wegfahren
-    gyro_drive(0, -70, cm(6.5))
+    gyro_drive(0, -70, cm(10))
     gyro_turn(45, 110, Pivot.LEFT_WHEEL)
 
     # zum Sonar fahren
