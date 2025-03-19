@@ -227,6 +227,7 @@ def gyro_turn(
     pid: Optional[cfg.PID] = None,
     tolerance: Optional[int] = None,
     timeout: int = 0,
+    brake: bool=True
 ):
     """Drehe mithilfe des Gyrosensors in eine bestimmte Richtung
     
@@ -240,6 +241,7 @@ def gyro_turn(
     :param pid: Die PID-Werte für die Bewegung; siehe :py:class:`~gsgr._config.PID`
     :param tolerance: Toleranz beim Auslesen des Gyrosensors
                       (Ziel erreicht wenn Gyro-Wert = Ziel-Wert +- Toleranz)
+    :param brake: Ob der Roboter nach der Bewegung bremsen soll
     """
 
     pid = cfg.GYRO_DRIVE_PID if pid is None else pid
@@ -293,7 +295,8 @@ def gyro_turn(
             cfg.LEFT_MOTOR.run_at_speed(-speed_correction)
 
         speed_last_error = speed_error
-    cfg.DRIVING_MOTORS.brake()
+    if brake:
+        cfg.DRIVING_MOTORS.brake()
 
 
 def gyro_drive(
@@ -318,7 +321,7 @@ def gyro_drive(
                        in Prozent von der :code:`ending_condition`
     :param decelerate: Über welche Stecke der Roboter entschleunigen soll;
                        in Prozent von der :code:`ending_condition`
-    :param brake: Ob der Roboter nach der bewegung bremsen soll
+    :param brake: Ob der Roboter nach der Bewegung bremsen soll
     """
     smooth, stretch = sigmoid_conf
     cutoff = sigmoid(-smooth) if stretch else 0
