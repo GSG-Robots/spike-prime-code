@@ -33,6 +33,9 @@ def run():
 
     gyro_drive(0, -25, cm(1.5))
 
+    run_attachment(Attachment.FRONT_RIGHT, 100, 2, stall=False)
+    run_attachment(Attachment.FRONT_RIGHT, -100, 2, stall=False)
+
     if FEATURE_TOWER:
         # Turm aufstellen
         run_attachment(Attachment.FRONT_LEFT, 100, stall=False, await_completion=False)
