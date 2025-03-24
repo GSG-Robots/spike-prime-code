@@ -1,4 +1,4 @@
-from gsgr.conditions import cm, sec, THEN
+from gsgr.conditions import cm, impact, sec, THEN
 from gsgr.enums import Attachment, Color
 from gsgr.movement import (
     gyro_drive,
@@ -20,13 +20,10 @@ def run():
 
     # zum Wal fahren
     hold_attachment(Attachment.FRONT_RIGHT, await_completion=False)
-    gyro_drive(0, 70, cm(68), accelerate=3, decelerate=3)
+    gyro_drive(0, 80, cm(67.5), accelerate=5, decelerate=5)
     gyro_turn(45, 95, Pivot.RIGHT_WHEEL)
-    gyro_drive(45, 70, THEN(cm(13), sec(1)), decelerate=20)
-    run_attachment(Attachment.FRONT_RIGHT, -50, 2, await_completion=False)
-    gyro_drive(45, 30, sec(1))
-    stop_attachment(untension=180, await_completion=True)
-    hold_attachment(Attachment.FRONT_LEFT, await_completion=False)
+    gyro_drive(45, 70, impact(cm(13)), accelerate=5, decelerate=10)
+    run_attachment(Attachment.FRONT_RIGHT, -50, 2, untension=180)
     gyro_set_origin()
 
     # vom Wal wegfahren
@@ -34,7 +31,8 @@ def run():
     gyro_turn(45, 110, Pivot.LEFT_WHEEL)
 
     # zum Sonar fahren
-    gyro_drive(45, -60, cm(36), accelerate=10, decelerate=10)
+    hold_attachment(Attachment.FRONT_LEFT, await_completion=False)
+    gyro_drive(45, -60, cm(35), accelerate=10, decelerate=10)
     run_attachment(Attachment.FRONT_LEFT, 70, 3, stall=True)
     gyro_drive(45, -70, cm(9), accelerate=10, brake=False)
     run_attachment(Attachment.FRONT_LEFT, -100, 2.5, await_completion=False, stall=True)
