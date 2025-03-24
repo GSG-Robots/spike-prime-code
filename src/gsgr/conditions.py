@@ -1,5 +1,4 @@
-"""Basic conditions
-"""
+"""Basic conditions"""
 
 import math
 import time
@@ -61,6 +60,55 @@ def sec(duration: int) -> Condition:
 
     while True:
         yield math.floor((time.ticks_ms() - start_time) / (duration * 1000) * 100)
+
+def impact(during: Condition, threshold: int | float = 500, min: int = 50) -> Condition:
+    yield 0
+
+    signs = []
+
+    while True:
+        parent = next(during)
+        if parent >= min:
+            break
+        signs.append(math.copysign(1, hub.motion.accelerometer(filtered=False)[0]))
+        yield parent
+
+    threshold = math.copysign(threshold, sum(signs)/len(signs))
+
+    while True:
+        v = hub.motion.accelerometer(filtered=False)[0]
+        if (v > threshold) if threshold > 0 else (v < threshold):
+            break
+        yield next(during)
+
+    start_time = time.ticks_ms()
+
+    while True:
+        yield 90 + math.floor((time.ticks_ms() - start_time) / 50)
+
+def pickup(during: Condition, threshold: int | float = 500, min: int = 50) -> Condition:
+    yield 0
+
+    gs = [981]
+
+    while True:
+        parent = next(during)
+        if parent >= min:
+            break
+        gs.append(hub.motion.accelerometer(filtered=False)[2])
+        yield parent
+
+    threshold = sum(gs)/len(gs) + threshold
+
+    while True:
+        v = hub.motion.accelerometer(filtered=False)[2]
+        print(v, threshold)
+        if v > threshold:
+            break
+        yield next(during)
+
+    while True:
+        yield 100
 
 
 def deg(angle: int) -> Condition:
