@@ -1,5 +1,5 @@
 import time
-from gsgr.conditions import cm, sec
+from gsgr.conditions import cm, sec, pickup, OR
 from gsgr.enums import Attachment, Color
 from gsgr.movement import (
     gyro_drive,
@@ -24,6 +24,7 @@ FEATURE_KORALLEN = False
 def run():
     # Set Gyro Origin
     gyro_set_origin()
+    hold_attachment(Attachment.BACK_RIGHT)
     # gyro_drive(0, 70, cm(36), accelerate=5, decelerate=5, brake=False)
     # gyro_turn(-35, 90, Pivot.LEFT_WHEEL)
     # gyro_drive(-35, 70, cm(10), accelerate=5, brake=False)
@@ -38,11 +39,12 @@ def run():
     # gyro_drive(-20, -70, cm(40))
     gyro_drive(0, 70, cm(38), accelerate=5, decelerate=5)
     gyro_turn(-35, 90, Pivot.LEFT_WHEEL)
-    gyro_drive(-35, 60, cm(20), accelerate=5, decelerate=5)
-    run_attachment(Attachment.FRONT_LEFT, -100, 1.5, stall=True, untension=180)
-    gyro_drive(-35, 30, cm(3), accelerate=5, decelerate=5)
+    gyro_drive(-35, 60, cm(23), accelerate=5, decelerate=5)
+    # run_attachment(Attachment.FRONT_LEFT, -100, 1.5, stall=True, untension=180)
+    # gyro_drive(-35, 30, cm(3), accelerate=5, decelerate=5)
     run_attachment(Attachment.BACK_RIGHT, -100, 4)
-    run_attachment(Attachment.BACK_RIGHT, 100, 4)
+    run_attachment(Attachment.BACK_RIGHT, 100, 4, stall= True, untension= True)
     run_attachment(Attachment.FRONT_RIGHT, -20, 4.5, stall=True)
     gyro_drive(-35, -40, cm(3), accelerate=5, decelerate=5)
     gyro_drive(0, -50, cm(10), accelerate=5, decelerate=5)
+    gyro_drive(0, -50, pickup(cm(70)), accelerate=5, decelerate=5)
