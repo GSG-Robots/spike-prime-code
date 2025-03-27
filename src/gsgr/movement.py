@@ -8,7 +8,6 @@ from typing import Generator, Literal, Optional
 import hub
 from gsgr.config import cfg
 
-from . import correctors as corr
 
 # from typing import Iterator
 from .conditions import deg
@@ -244,9 +243,9 @@ def gyro_turn(
     :param brake: Ob der Roboter nach der Bewegung bremsen soll
     """
 
-    pid = cfg.GYRO_DRIVE_PID if pid is None else pid
-    min_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[0] if max_speed is None else max_speed
-    max_speed = cfg.GYRO_SPEED_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed
+    pid = cfg.GYRO_TURN_PID if pid is None else pid
+    min_speed = cfg.GYRO_TURN_MINMAX_SPEED[0] if max_speed is None else max_speed
+    max_speed = cfg.GYRO_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed
     tolerance = cfg.GYRO_TOLERANCE if tolerance is None else tolerance
 
     start_time = time.time()
@@ -326,7 +325,7 @@ def gyro_drive(
     smooth, stretch = sigmoid_conf
     cutoff = sigmoid(-smooth) if stretch else 0
 
-    pid = cfg.GYRO_DRIVE2_PID if pid is None else pid
+    pid = cfg.GYRO_DRIVE_PID if pid is None else pid
     last_error = 0
     error_sum = 0
 

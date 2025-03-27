@@ -17,25 +17,21 @@ color_sensors:
 
 correctors:
     gyro_turn:
+        # p: 1.4
+        # i: 0.0003
+        # d: -0.2
+        # p: 0.8
+        # i: 0.0003
+        # d: -0.2
         p: 0.8
         i: 0
         d: -0.1
-
-    gyro_speed_turn:
-        p: 1.4
-        i: 0.0003
-        d: -0.2
 
         # In deg/s:
         min_speed: 2
         max_speed: 90
 
     gyro_drive:
-        p: 1.2
-        i: 0
-        d: -0.7
-
-    gyro_drive2:
         p: 1.25 #1.15
         i: 0 #.003
         d: -0.5

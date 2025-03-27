@@ -39,6 +39,7 @@ GEAR_SELECTOR: hub.Motor = PORTS[_config_dict["gearbox"]["gear_selector"]].motor
 TIRE_CIRCUMFRENCE: float = _config_dict["tire_diameter"] * math.pi
 DEBUG_MODE: bool = _config_dict["debug_mode"]
 LOOP_THROTTLE: float = _config_dict["loop_throttle"]
+GYRO_TOLERANCE = _config_dict["gyro_tolerance"]
 GYRO_DRIVE_PID = PID(
     _config_dict["correctors"]["gyro_drive"]["p"],
     _config_dict["correctors"]["gyro_drive"]["i"],
@@ -49,18 +50,7 @@ GYRO_TURN_PID = PID(
     _config_dict["correctors"]["gyro_turn"]["i"],
     _config_dict["correctors"]["gyro_turn"]["d"],
 )
-GYRO_TOLERANCE = _config_dict["gyro_tolerance"]
-GYRO_DRIVE2_PID = PID(
-    _config_dict["correctors"]["gyro_drive2"]["p"],
-    _config_dict["correctors"]["gyro_drive2"]["i"],
-    _config_dict["correctors"]["gyro_drive2"]["d"],
-)
-GYRO_SPEED_TURN_PID = PID(
-    _config_dict["correctors"]["gyro_speed_turn"]["p"],
-    _config_dict["correctors"]["gyro_speed_turn"]["i"],
-    _config_dict["correctors"]["gyro_speed_turn"]["d"],
-)
-GYRO_SPEED_TURN_MINMAX_SPEED = (
-    _config_dict["correctors"]["gyro_speed_turn"]["min_speed"],
-    _config_dict["correctors"]["gyro_speed_turn"]["max_speed"],
+GYRO_TURN_MINMAX_SPEED = (
+    _config_dict["correctors"]["gyro_turn"]["min_speed"],
+    _config_dict["correctors"]["gyro_turn"]["max_speed"],
 )
