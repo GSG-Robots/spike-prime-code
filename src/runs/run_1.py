@@ -2,7 +2,7 @@ import time
 
 from gsgr.conditions import cm, impact, pickup, sec
 from gsgr.enums import Color, Pivot
-from gsgr.movement import gyro_drive, gyro_set_origin, gyro_drive, gyro_turn
+from gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn
 
 display_as = 1
 color = Color.YELLOW
