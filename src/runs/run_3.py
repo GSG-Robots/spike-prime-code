@@ -31,7 +31,7 @@ def run():
     # Plankton yeeten
     run_attachment(Attachment.BACK_RIGHT, -100, 2, stall=True, untension=90)
 
-    gyro_drive(0, -25, cm(1.5))
+    gyro_drive(0, -25, cm(3))
 
     run_attachment(Attachment.FRONT_RIGHT, 100, 2, stall=False)
     run_attachment(Attachment.FRONT_RIGHT, -100, 2, stall=False)
@@ -39,7 +39,8 @@ def run():
     if FEATURE_TOWER:
         # Turm aufstellen
         run_attachment(Attachment.FRONT_LEFT, 100, stall=False, await_completion=False)
-        gyro_drive(0, -8, cm(7))
+        time.sleep(.5)
+        gyro_drive(0, -8, cm(10))
         time.sleep(1)
         stop_attachment(await_completion=False)
 
