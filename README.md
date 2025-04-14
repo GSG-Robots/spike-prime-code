@@ -2,7 +2,7 @@
 [![documentation built using sphinx](https://img.shields.io/badge/documentation-built%20using%20sphinx-blue
 )](https://docs.gsg-robots.de)
 
-The code OTTwo runs on in competitions.
+This is the code we use in competitions for our Spike Prime robot.
 
 Contributors:
 
@@ -14,11 +14,6 @@ Contributors:
 
 ## Getting started
 
-To get started with our codebase, see API docs and further details, please reference [our documentation (german)](https://com-prog-doc-prev.pages.dev)
+To get started with our codebase, see API docs and further details, please reference [our documentation (german)](https://docs.gsg-robots.de)
 
-## Building docs
-
-```bash
-poetry install --with dev
-poetry run "docs/make" html
-```
+To setup the development environment, please follow the instructions in the [setup guide](https://docs.gsg-robots.de/knowledge/setup-devenv).
