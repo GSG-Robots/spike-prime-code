@@ -23,14 +23,15 @@ extensions = [
     "notfound.extension",
 ]
 
+notfound_urls_prefix = "/"
 notfound_context = {
     "title": "Seite nicht gefunden",
     "body": "<h1>404 - Seite nicht gefunden</h1>\n\n"
     "<p>Die angefrage Ressource konnte leider nicht gefunden werden."
     "<br/><br/>Überprüfen sie die URL auf Tippfehler "
-    "oder kehren Sie zur <a href=\"/\">Startseite</a> zurück."
+    'oder kehren Sie zur <a href="/">Startseite</a> zurück.'
     "<br/>Wenn Sie glauben, dass es sich hierbei um einen Fehler handelt, "
-    "<a href=\"mailto:info@gsg-robots.de\">kontaktieren Sie uns</a>.</p>",
+    '<a href="mailto:info@gsg-robots.de">kontaktieren Sie uns</a>.</p>',
 }
 
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
@@ -48,7 +49,7 @@ sys.path.insert(0, str(Path("..", "src").resolve()))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-html_static_path = ["_static"]
+html_static_path = []  #  ["_static"]
 html_theme_options = {
     "navigation_depth": 5,
 }
