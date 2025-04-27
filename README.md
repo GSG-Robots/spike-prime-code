@@ -14,6 +14,6 @@ Contributors:
 
 ## Getting started
 
-To get started with our codebase, see API docs and further details, please reference [our documentation (german)](https://docs.gsg-robots.de)
+To get started with our codebase, see API docs and further details, please reference [our documentation (german)](https://docs.gsg-robots.de). A (rather bad) automated translation to English can be found [here](https://docs-gsg--robots-de.translate.goog/?_x_tr_sl=de&_x_tr_tl=en).
 
 To setup the development environment, please follow the instructions in the [setup guide](https://docs.gsg-robots.de/knowledge/setup-devenv).
