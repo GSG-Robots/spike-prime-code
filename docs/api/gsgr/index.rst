@@ -3,11 +3,10 @@
 
 .. toctree::
    :maxdepth: 1
-   :caption: Inhalt:
+   :caption: Submodules:
 
    config
    conditions
-   correctors
    display
    enums
    exceptions
