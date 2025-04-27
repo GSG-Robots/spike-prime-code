@@ -6,14 +6,12 @@ import time
 from typing import Generator, Literal, Optional
 
 import hub
-from gsgr.config import cfg
+from gsgr.config import cfg, PID
 
 
 # from typing import Iterator
-from .conditions import deg
 from .exceptions import BatteryLowError, StopRun
 from .math import clamp, sigmoid
-from .types import Condition
 from .enums import Pivot
 
 
@@ -223,7 +221,7 @@ def gyro_turn(
     pivot: Pivot | int = Pivot.CENTER,
     min_speed: Optional[int] = None,
     max_speed: Optional[int] = None,
-    pid: Optional[cfg.PID] = None,
+    pid: Optional[PID] = None,
     tolerance: Optional[int] = None,
     timeout: int = 0,
     brake: bool=True
@@ -302,7 +300,7 @@ def gyro_drive(
     target_angle: int,
     speed: int | float,
     ending_condition: Generator,
-    pid: Optional[cfg.PID] = None,
+    pid: Optional[PID] = None,
     accelerate: float = 0,
     decelerate: float = 0,
     sigmoid_conf: tuple[int, bool] = (6, True),
