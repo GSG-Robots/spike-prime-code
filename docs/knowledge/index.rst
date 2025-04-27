@@ -11,3 +11,4 @@ Wissensdatenbank
    known-issues
    debug-mode
    config
+   setup-devenv

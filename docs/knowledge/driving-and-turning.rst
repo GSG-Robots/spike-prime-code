@@ -24,7 +24,7 @@ Geschwindigkeit
 ^^^^^^^^^^^^^^^
 
 Um Ungleichheiten der Motoren und Probleme mit schwächerer Batterieladung zu umgehen,
-sollte die Geschwindigkeit nicht zu niedrich gewählt werden. Unter 20-25 zu gehen, sollte vermieden werden.
+sollte die Geschwindigkeit nicht zu niedrig gewählt werden. Unter 20-25 zu gehen, sollte vermieden werden.
 
 Wichtig ist auch, die Geschwindigkeit nicht zu hoch einzustellen: Wenn der Roboter z.B. mit 100%iger Geschwindigkeit fährt,
 können die Korrekturwerte nur noch auf einem Rad effektiv angewandt werden; die Korrektur wird praktisch halbiert.
@@ -127,4 +127,49 @@ Für weitere Details zum wählen der richtigen Korrekturwerte, siehe auch :ref:`
 Endingconditions
 ^^^^^^^^^^^^^^^^
 
-.. note:: WIP
+Die Endingconditions sind die Bedingungen, unter denen der Roboter anhalten soll.
+Sie sind in der Regel die Distanz, die der Roboter fahren soll, oder die Zeit, die er fahren soll.
+
+Die folgenden Endingconditions sind verfügbar:
+
+- :code:`cm(x)` - Der Roboter fährt :code:`x` cm.
+- :code:`sec(x)` - Der Roboter fährt :code:`x` Sekunden.
+- :code:`deg(x)` - Der Roboter dreht sich :code:`x`, bis er die Gradzahl im Verhältnis zum Startpunkt erreicht hat.
+
+Diese Endingconditions können auch kombiniert werden, z.B. mit:
+
+- :code:`AND(a, b)` - Der Roboter fährt, bis die Bedingung :code:`a` und :code:`b` erfüllt sind.
+- :code:`OR(a, b)` - Der Roboter fährt, bis die Bedingung :code:`a` oder :code:`b` erfüllt ist.
+- :code:`NOT(a)` - Der Roboter fährt, bis die Bedingung :code:`a` nicht mehr erfüllt ist.
+- :code:`THEN(a, b)` - Der Roboter fährt, bis die Bedingung :code:`a` erfüllt ist und dann die Bedingung :code:`b` erfüllt ist.
+
+Es gibt weiterhin noch die folgenden Endingconditions:
+
+- :code:`impact(a)` - Der Roboter fährt, bis die Bedingung :code:`a` erfüllt ist. Wenn er währenddessen auf eine Kollision erkennt, wird die Bewegung vorzeitig abgebrochen.
+- :code:`pickup(a)` - Der Roboter fährt, bis die Bedingung :code:`a` erfüllt ist. Wenn er währenddessenerkennt, dass er hochgehoben wird, wird die Bewegung vorzeitig abgebrochen.
+
+Drehen
+------
+
+Zum Drehen wird die Funktion :py:func:`~gsgr.movement.gyro_turn` verwendet.
+
+.. autofunction:: gsgr.movement.gyro_turn
+
+Die einfachste Verwendung sieht so aus:
+
+.. code::
+
+    #          Zielgradzahl
+    #          .   Geschwindigkeit in %
+    #          .   .   Ziel (Endingcondition)
+    #          .   .   .
+    gyro_turn(90, 75, Pivot.LEFT_WHEEL)
+
+Hierbei dreht der Roboter um 90° mit der Geschwindigkeit 75. Dabei dreht er sich um das linke Rad.
+Das linke Rad bleibt also stehen, während das rechte Rad sich bewegt, bis die gewünschte Gradzahl erreicht ist.
+
+Geschwindigkeit
+^^^^^^^^^^^^^^^
+
+Die Geschwindigkeit gibt hier an, wie schnell der Roboter sich drehen soll.
+Die Geschwindigkeit wird hier nicht in Prozent angegeben, sondern in :math:`\frac{100 * \Delta_{yaw}}{s * E_{yaw}}`.
