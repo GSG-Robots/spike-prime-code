@@ -1,13 +1,13 @@
-from gsgr.conditions import cm, impact, sec, THEN
+from gsgr.conditions import THEN, cm, impact, sec
 from gsgr.enums import Attachment, Color
 from gsgr.movement import (
+    Pivot,
     gyro_drive,
     gyro_set_origin,
     gyro_turn,
-    run_attachment,
     hold_attachment,
+    run_attachment,
     stop_attachment,
-    Pivot,
 )
 
 display_as = 5

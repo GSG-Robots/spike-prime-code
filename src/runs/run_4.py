@@ -1,8 +1,6 @@
-import time
-
-from gsgr.conditions import OR, cm, impact, pickup, sec, impact
-from gsgr.enums import Attachment, Color, Pivot
-from gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn, run_attachment
+from gsgr.conditions import cm, impact, pickup
+from gsgr.enums import Color
+from gsgr.movement import gyro_drive, gyro_set_origin
 
 display_as = 4
 color = Color.RED

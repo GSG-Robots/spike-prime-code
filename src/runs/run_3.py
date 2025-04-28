@@ -1,11 +1,12 @@
 import time
+
 from gsgr.conditions import cm
 from gsgr.enums import Attachment, Color
 from gsgr.movement import (
     gyro_drive,
     gyro_set_origin,
-    stop_attachment,
     run_attachment,
+    stop_attachment,
 )
 
 display_as = 3
@@ -39,7 +40,7 @@ def run():
     if FEATURE_TOWER:
         # Turm aufstellen
         run_attachment(Attachment.FRONT_LEFT, 100, stall=False, await_completion=False)
-        time.sleep(.5)
+        time.sleep(0.5)
         gyro_drive(0, -8, cm(10))
         time.sleep(1)
         stop_attachment(await_completion=False)
