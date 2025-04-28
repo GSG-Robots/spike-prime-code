@@ -64,16 +64,16 @@ def sec(duration: int) -> Condition:
 def impact(during: Condition, threshold: int | float = 500, min: int = 50) -> Condition:
     yield 0
 
-    signs = []
+    sign = 0
 
     while True:
         parent = next(during)
         if parent >= min:
             break
-        signs.append(math.copysign(1, hub.motion.accelerometer(filtered=False)[0]))
+        sign += math.copysign(1, hub.motion.accelerometer(filtered=False)[0])
         yield parent
 
-    threshold = math.copysign(threshold, sum(signs)/len(signs))
+    threshold = math.copysign(threshold, sign)
 
     while True:
         v = hub.motion.accelerometer(filtered=False)[0]
@@ -89,16 +89,18 @@ def impact(during: Condition, threshold: int | float = 500, min: int = 50) -> Co
 def pickup(during: Condition, threshold: int | float = 500, min: int = 50) -> Condition:
     yield 0
 
-    gs = [981]
+    gs_avg = 981
+    gs_cnt = 1
 
     while True:
         parent = next(during)
         if parent >= min:
             break
-        gs.append(hub.motion.accelerometer(filtered=False)[2])
+        gs_cnt += 1
+        gs_avg = (gs_avg * (gs_cnt-1) + hub.motion.accelerometer(filtered=False)[2]) / gs_cnt
         yield parent
 
-    threshold = sum(gs)/len(gs) + threshold
+    threshold += gs_avg
 
     while True:
         v = hub.motion.accelerometer(filtered=False)[2]
