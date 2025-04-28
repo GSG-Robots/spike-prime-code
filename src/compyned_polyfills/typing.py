@@ -7,6 +7,7 @@ def TypeVar(new_type, *types):
 TYPE_CHECKING = False
 Any = object
 Text = str
+Self = object
 NoReturn = None
 ClassVar = object
 Literal = _SubSingleton
