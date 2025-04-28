@@ -1,5 +1,6 @@
 import math
 from collections import namedtuple
+from typing import Self
 import hub
 
 PID = namedtuple("PID", ("p", "i", "d"))
@@ -29,6 +30,40 @@ def _config_dict(in_file):
 
     with file.open("r", encoding="utf-8") as file:
         return yaml.load(file, yaml.Loader)
+
+
+class configure:
+    def __init__(self, **kwargs):
+        self.changes = kwargs
+        self.old = {}
+
+    def gyro_drive(self, pid: PID) -> Self:
+        self.changes["GYRO_DRIVE_PID"] = pid
+        return self
+
+    def gyro_turn(self, pid: PID = None, minmax_speed: tuple[int, int] = None) -> Self:
+        if pid is not None:
+            self.changes["GYRO_TURN_PID"] = pid
+        if minmax_speed is not None:
+            self.changes["GYRO_TURN_MINMAX_SPEED"] = minmax_speed
+        return self
+
+    def debug_mode(self, enabled: bool) -> Self:
+        self.changes["DEBUG_MODE"] = enabled
+        return self
+
+    def gyro_tolerance(self, tolernce: int) -> Self:
+        self.changes["GYRO_TOLERANCE"] = tolernce
+        return self
+
+    def __enter__(self):
+        for key, value in self.changes:
+            self.old[key] = getattr(cfg, key)
+            setattr(cfg, key, value)
+
+    def __exit__(self):
+        for key, value in self.old:
+            setattr(cfg, key, value)
 
 
 class Config:
@@ -72,7 +107,8 @@ class Config:
             _config_dict["correctors"]["gyro_turn"]["max_speed"],
         )
 
+
 cfg = Config()
 
 
-__all__ = ["cfg", "PID"]
+__all__ = ["cfg", "PID", "configure"]
