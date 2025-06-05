@@ -1,3 +1,5 @@
+# LEGO type:standard slot:9 autostart
+
 import hub
 
 SMILE = hub.Image("00000:09090:00000:90009:09990")
@@ -14,3 +16,4 @@ while True:
         hub.display.show(SAD)
     if hub.button.right.was_pressed():
         hub.display.show(SMILE)
+ 

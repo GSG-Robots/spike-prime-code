@@ -1,5 +1,4 @@
-"""Motorsteuerung und Bewegungsfunktionen.
-"""
+"""Motorsteuerung und Bewegungsfunktionen."""
 
 import math
 import time
@@ -83,7 +82,7 @@ def hold_attachment(target_gear: int, await_completion: bool = True):
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
-    global _GS_TARGET,_GS_COMPLETED
+    global _GS_TARGET, _GS_COMPLETED
 
     check_battery()
 
@@ -185,7 +184,7 @@ def run_attachment(
     if await_completion:
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
-    if untension:
+    if untension and False:
         cfg.GEAR_SHAFT.run_for_degrees(
             -math.copysign(untension, speed),
             speed=100,
@@ -194,7 +193,9 @@ def run_attachment(
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
-def stop_attachment(untension: int | Literal[False] = False, await_completion: bool = False):
+def stop_attachment(
+    untension: int | Literal[False] = False, await_completion: bool = False
+):
     """Ausgangsbewegung stoppen.
 
     Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.
@@ -224,12 +225,12 @@ def gyro_turn(
     pid: Optional[PID] = None,
     tolerance: Optional[int] = None,
     timeout: int = 0,
-    brake: bool=True
+    brake: bool = True,
 ):
     """Drehe mithilfe des Gyrosensors in eine bestimmte Richtung
-    
+
     :param target_angle: Zielgradzahl, auf die gedreht werden soll
-    :param step_speed: Drehgeschwindigkeit im Verhältnis zum fehlenden 
+    :param step_speed: Drehgeschwindigkeit im Verhältnis zum fehlenden
                        Drehwinkel; wird multiplikativ angewandt
     :param pivot: Drehpunkt, um den der Roboter dreht; entweder
                   die Mitte des Roboters oder einer seiner Räder
@@ -307,7 +308,7 @@ def gyro_drive(
     brake: bool = True,
 ):
     """Fahre mithilfe des Gyrosensors in eine bestimmte Richtung
-    
+
     :param target_angle: Zielgradzahl; die Richtung in die gefahren werden soll
     :param speed: Fahrgeschwindigkeit; bei negativen Werten fährt der Roboter rückwärts;
                   zwischen -100 und 100
@@ -353,11 +354,11 @@ def gyro_drive(
                 left_speed * speed_mutiplier,
                 right_speed * speed_mutiplier,
             )
-        if 100 - pct < decelerate:
+        if (100 - pct) < decelerate:
             speed_mutiplier = clamp(
                 round(
                     (
-                        sigmoid(((decelerate - pct) / decelerate * 2 * smooth) - smooth)
+                        sigmoid(((100 - pct) / decelerate * 2 * smooth) - smooth)
                         - cutoff
                     )
                     / (1 - cutoff),
@@ -370,12 +371,6 @@ def gyro_drive(
                 left_speed * speed_mutiplier,
                 right_speed * speed_mutiplier,
             )
-
-        if -5 < left_speed < 5:
-            left_speed = math.copysign(5, left_speed)
-
-        if -5 < right_speed < 5:
-            right_speed = math.copysign(5, right_speed)
 
         cfg.DRIVING_MOTORS.run_at_speed(-left_speed, right_speed)
 

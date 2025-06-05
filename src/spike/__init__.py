@@ -1601,22 +1601,22 @@ class ColorSensor:
         Default : no default value
         """
 
-        def get_color(self):
-            """
-            Retrieves the detected color of a surface.
+    def get_color(self):
+        """
+        Retrieves the detected color of a surface.
 
-            Returns
-            -----------
-            Name of the color.
+        Returns
+        -----------
+        Name of the color.
 
-            Type : string (text)
+        Type : string (text)
 
-            Values : 'black','violet','blue','cyan','green','yellow','red','white',None
+        Values : 'black','violet','blue','cyan','green','yellow','red','white',None
 
-            Errors
-            -----------
-            RuntimeError : The sensor has been disconnected from the Port.
-            """
+        Errors
+        -----------
+        RuntimeError : The sensor has been disconnected from the Port.
+        """
 
     def get_ambient_light(self):
         """

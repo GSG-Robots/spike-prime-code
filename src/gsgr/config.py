@@ -107,6 +107,50 @@ class Config:
             _config_dict["correctors"]["gyro_turn"]["max_speed"],
         )
 
+        # Presets:
+        #   Disables native acceleration, deceleration, correction and differential lock
+        # self.LEFT_MOTOR.default(
+        #     speed=70,
+        #     max_power=100,
+        #     acceleration=100,
+        #     deceleration=100,
+        #     stop=1,
+        #     pid=(10, 0, 0),
+        #     stall=False,
+        #     callback=self.LEFT_MOTOR.default()["callback"],
+        # )
+        # self.RIGHT_MOTOR.default(
+        #     speed=70,
+        #     max_power=100,
+        #     acceleration=100,
+        #     deceleration=100,
+        #     stop=1,
+        #     pid=(10, 0, 0),
+        #     stall=False,
+        #     callback=self.RIGHT_MOTOR.default()["callback"],
+        # )
+        self.DRIVING_MOTORS.pid(0, 0, 0)
+        self.GEAR_SHAFT.default(
+            speed=100,
+            max_power=100,
+            acceleration=300,
+            deceleration=300,
+            stop=1,
+            pid=(0, 0, 0),
+            stall=True,
+            callback=self.GEAR_SHAFT.default()["callback"],
+        )
+        self.GEAR_SELECTOR.default(
+            speed=100,
+            max_power=100,
+            acceleration=300,
+            deceleration=300,
+            stop=2,
+            pid=(0, 0, 0),
+            stall=False,
+            callback=self.GEAR_SELECTOR.default()["callback"],
+        )
+
 
 cfg = Config()
 
