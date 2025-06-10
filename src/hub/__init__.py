@@ -2,10 +2,9 @@
 LEGO provided functions and values.
 """
 
-from typing import Any, Dict, List, Tuple, Union, overload
+from typing import Any, overload
 
 from . import battery, bluetooth, button, display, port
-
 from .port import Motor, MotorPair
 
 TOP = 0
@@ -71,7 +70,7 @@ By default ``hub.config[]`` has the following entries:
 """
 
 
-def info() -> Dict[str, Union[int, str]]:
+def info() -> dict[str, int | str]:
     """
     Gets a dictionary of the form:
     ```json
@@ -98,9 +97,10 @@ def info() -> Dict[str, Union[int, str]]:
 
     Returns: Hub information dictionary similar to the example above.
     """
+    ...
 
 
-def status() -> Dict[str, Any]:
+def status() -> dict[str, Any]:
     """
     Gets the state of internal sensors, external devices, and the display.
 
@@ -126,6 +126,7 @@ def status() -> Dict[str, Any]:
 
     Returns: Status dictionary as given above.
     """
+    ...
 
 
 @overload
@@ -140,15 +141,17 @@ def power_off(timeout: int = 0) -> None:
     Keyword Arguments:
         timeout: Sets the inactivity timeout before the hub shuts down automatically.
     """
+    ...
 
 
-def repl_restart(restart: bool = None) -> None:
+def repl_restart(restart: bool | None = None) -> None:
     """
     Resets the REPL and clears all variables.
 
     Parameters:
         restart: Select ``True`` to restart. If this argument is ``False`` or not given at all, nothing happens.
     """
+    ...
 
 
 def temperature() -> float:
@@ -157,6 +160,7 @@ def temperature() -> float:
 
     Returns: Temperature in degrees Celsius.
     """
+    ...
 
 
 @overload
@@ -168,7 +172,7 @@ def led(red: int, green: int, blue: int) -> None: ...
 
 
 @overload
-def led(color: Tuple[int, int, int]) -> None:
+def led(color: tuple[int, int, int]) -> None:
     """
     Sets the color of the LED in the center button of the hub.
 
@@ -194,7 +198,7 @@ def led(color: Tuple[int, int, int]) -> None:
     """
 
 
-def file_transder(
+def file_transfer(
     filename: str, filesize: int, packetsize: int = 1000, timeout: int = 2000, mode=None
 ) -> None:
     """
@@ -216,3 +220,29 @@ def file_transder(
     Raises
         OSError (ETIMEDOUT): If the transfer was started but the expected data was not received within the timeout.
     """
+
+
+__all__ = [
+    "battery",
+    "bluetooth",
+    "button",
+    "display",
+    "port",
+    "Motor",
+    "MotorPair",
+    "TOP",
+    "FRONT",
+    "RIGHT",
+    "BOTTOM",
+    "BACK",
+    "LEFT",
+    "__version__",
+    "config",
+    "info",
+    "status",
+    "power_off",
+    "repl_restart",
+    "temperature",
+    "led",
+    "file_transfer",
+]

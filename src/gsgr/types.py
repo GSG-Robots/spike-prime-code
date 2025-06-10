@@ -1,16 +1,7 @@
 """Types to enable easier overview"""
 
-# from typing import Iterator
-
-Condition = object
-Corrector = object
-
-# class Condition(Iterator[tuple[int]]): ...
+from collections.abc import Generator
+from typing import Any
 
 
-# class Corrector(Iterator[tuple[int, int]]): ...
-
-
-# Condition = Iterator[tuple[int, int]]
-# """Condition type definition
-# """
+type Condition = Generator[Any, Any, Any]
