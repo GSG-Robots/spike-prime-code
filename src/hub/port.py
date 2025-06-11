@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 
 class MotorPair: ...
@@ -10,9 +10,17 @@ class Motor:
     def callback(self, function):
         ...
 
+class Device:
+    def mode(self, mode: int | tuple[int, int] | list[int | tuple[int, int]], data: bytes | None = None) -> MotorPair:
+        ...
+    
+    def get(self) -> tuple[int, ...]:
+        ...
+
 
 class _Port:
     motor: Motor = Motor()
+    device: Device = Device()
 
     def pwm(self, value: int) -> None:
         """

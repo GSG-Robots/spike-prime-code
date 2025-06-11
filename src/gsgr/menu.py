@@ -47,7 +47,7 @@ class ActionMenuItem(MenuItem):
         """
         super().__init__(display_as, color)
         self.action = action
-
+ 
     def run(self) -> Callable:
         """:py:attr:`callback` unter Berücksichtigung von :py:func:`prepare` und :py:func:`cleanup`."""
         self.prepare()
