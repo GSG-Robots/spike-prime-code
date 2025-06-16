@@ -1,5 +1,4 @@
-"""Eignene Fehler
-"""
+"""Eignene Fehler"""
 
 
 class BatteryLowError(RuntimeError):

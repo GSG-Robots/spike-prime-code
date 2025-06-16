@@ -1,6 +1,7 @@
 import math
 from collections import namedtuple
 from typing import Any, Callable, Self, TypeVar
+
 import hub
 
 PID = namedtuple("PID", ("p", "i", "d"))

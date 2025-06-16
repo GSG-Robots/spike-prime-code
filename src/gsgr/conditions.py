@@ -61,7 +61,10 @@ def sec(duration: int | float, /) -> Condition:
     while True:
         yield math.floor((time.ticks_ms() - start_time) / (duration * 1000) * 100)
 
-def impact(during: Condition, /, threshold: int | float = 500, min: int = 50) -> Condition:
+
+def impact(
+    during: Condition, /, threshold: int | float = 500, min: int = 50
+) -> Condition:
     yield 0
 
     sign = 0
@@ -86,7 +89,10 @@ def impact(during: Condition, /, threshold: int | float = 500, min: int = 50) ->
     while True:
         yield 90 + math.floor((time.ticks_ms() - start_time) / 50)
 
-def pickup(during: Condition, /, threshold: int | float = 500, min: int = 50) -> Condition:
+
+def pickup(
+    during: Condition, /, threshold: int | float = 500, min: int = 50
+) -> Condition:
     yield 0
 
     gs_avg = 981
@@ -97,7 +103,9 @@ def pickup(during: Condition, /, threshold: int | float = 500, min: int = 50) ->
         if parent >= min:
             break
         gs_cnt += 1
-        gs_avg = (gs_avg * (gs_cnt-1) + hub.motion.accelerometer(filtered=False)[2]) / gs_cnt
+        gs_avg = (
+            gs_avg * (gs_cnt - 1) + hub.motion.accelerometer(filtered=False)[2]
+        ) / gs_cnt
         yield parent
 
     threshold += gs_avg

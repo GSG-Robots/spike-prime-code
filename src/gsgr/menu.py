@@ -4,11 +4,11 @@ Also supplies run class, being a menu item.
 """
 
 import time
-from typing import Callable
+from typing import Callable, NoReturn
 
-from gsgr.enums import Color
 import hub
 from gsgr.config import cfg
+from gsgr.enums import Color
 
 from .display import show_image
 from .exceptions import ExitMenu, StopRun
@@ -18,7 +18,7 @@ from .math import clamp
 class MenuItem:
     display_as: int | str
     """Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist."""
-    color: int
+    color: Color | int
     """Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist."""
 
     def __init__(self, display_as: int | str, color: Color | int = Color.WHITE) -> None:
@@ -39,7 +39,7 @@ class ActionMenuItem(MenuItem):
         action: Callable | None,
         display_as: int | str,
         color: Color | int = Color.WHITE,
-    ):
+    ) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
         :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
@@ -47,24 +47,24 @@ class ActionMenuItem(MenuItem):
         """
         super().__init__(display_as, color)
         self.action = action
- 
-    def run(self) -> Callable:
+
+    def run(self) -> None:
         """:py:attr:`callback` unter Berücksichtigung von :py:func:`prepare` und :py:func:`cleanup`."""
         self.prepare()
         if self.action:
             self.action()
         self.cleanup()
 
-    def prepare(self):
+    def prepare(self) -> None:
         """Wird direkt vor :py:attr:`action` ausgeführt."""
 
-    def set_action(self, func: Callable | None = None):
+    def set_action(self, func: Callable[[], None] | None = None):
         """Setter-Funktion für :py:attr:`action`.
 
         :param func: Funktion, die als Callback festgelegt werden soll. Falls nicht angegeben, wird eine decorator-Funktion zurückgegeben.
         """
 
-        def decorator(func):
+        def decorator(func: Callable[[], None]) -> Callable[[], None]:
             self.action = func
             return func
 
@@ -72,10 +72,10 @@ class ActionMenuItem(MenuItem):
             return decorator(func)
         return decorator
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Wird direkt nach :py:attr:`action` ausgeführt."""
 
-    def stop(self):
+    def stop(self) -> NoReturn:
         """Hilfsfunktion um die Ausführung der Callback-Funktuion vorzeitig zu stoppen.
 
         :raises: :py:class:`~gsgr.exceptions.StopRun`
@@ -83,10 +83,10 @@ class ActionMenuItem(MenuItem):
         raise StopRun
 
 
-class Menu:
+class Menu[T: MenuItem]:
     """Ein geerellen Menü, welches :py:class:`~gsgr.menu.MenuItem` s enthält"""
 
-    items: list[MenuItem]
+    items: list[T]
     """Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s im Menü"""
 
     swap_buttons: bool
@@ -111,7 +111,7 @@ class Menu:
         """
         self.items.append(item)
 
-    def choose(self, exit_on_charge=False) -> MenuItem:
+    def choose(self, exit_on_charge=False) -> T:
         """Menü zeigen und ein Menü-Element wählen lassen.
 
         :returns: Das gewählte Menü-Element
@@ -169,7 +169,7 @@ class ActionMenu(Menu):
     items: list[ActionMenuItem]
     """Eine List aller :py:class:`~gsgr.menu.ActionMenuItem` s im Menü"""
 
-    def choose_and_run(self, exit_on_charge=False):
+    def choose_and_run(self, exit_on_charge=False) -> None:
         """Menü zeigen und ein Menü-Element wählen lassen, wessen Callback dann ausgeführt wird
 
         :returns: Das gewählte Element
@@ -177,7 +177,7 @@ class ActionMenu(Menu):
         # hw.left_color_sensor.light_up_all(0)
         # hw.right_color_sensor.light_up_all(0)
 
-        result = self.choose(exit_on_charge=exit_on_charge)
+        result: ActionMenuItem = self.choose(exit_on_charge=exit_on_charge)
         show_image(result.display_as, True, True, False)
         result.prepare()
         try:

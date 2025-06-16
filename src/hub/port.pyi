@@ -19,7 +19,7 @@ class Device:
     def mode(self, mode: tuple[int, int], data: bytes | None = None): ...
     @overload
     def mode(self, mode: Iterable[tuple[int, int]], data: bytes | None = None): ...
-    def get(self, format: int | None) -> tuple[int, ...]: ...
+    def get(self, format: int | None = None) -> tuple[int, ...]: ...
     def pwm(self, duty_cycle: int) -> None: ...
 
 class Motor(Device):
@@ -70,7 +70,7 @@ class Motor(Device):
     ) -> None: ...
     def run_for_time(
         self,
-        msec: int,
+        msec: int | float,
         *,
         speed: int | float | None = None,
         max_power: int | None = None,
@@ -81,7 +81,7 @@ class Motor(Device):
     ) -> None: ...
     def run_for_degrees(
         self,
-        degrees: int,
+        degrees: int | float,
         *,
         speed: int | float | None = None,
         max_power: int | None = None,

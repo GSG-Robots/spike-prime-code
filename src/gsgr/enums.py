@@ -1,5 +1,4 @@
-"""Statische Enums
-"""
+"""Statische Enums"""
 
 
 class Color:
@@ -29,7 +28,7 @@ class Attachment:
 
 class Pivot:
     """Drehpunkt für GyroTurn"""
-    
+
     # LEFT_WHEEL_REVERSE = -2
     LEFT_WHEEL = -1
     CENTER = 0

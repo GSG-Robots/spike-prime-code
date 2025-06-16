@@ -4,7 +4,7 @@ LEGO provided functions and values.
 
 from typing import Any, overload
 
-from . import battery, bluetooth, button, display, port
+from . import battery, bluetooth, button, display, port, motion
 from .port import Motor, MotorPair
 
 TOP = 0
@@ -299,6 +299,7 @@ __all__ = [
     "bluetooth",
     "button",
     "display",
+    "motion",
     "port",
     "Motor",
     "MotorPair",

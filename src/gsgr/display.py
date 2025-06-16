@@ -1,17 +1,17 @@
-"""Display utils
-"""
+"""Display utils"""
 
+from typing import Mapping
 import hub
 from micropython import const
 
-images: dict[
+images: Mapping[
     str,
     tuple[
-        tuple[int, int, int],
-        tuple[int, int, int],
-        tuple[int, int, int],
-        tuple[int, int, int],
-        tuple[int, int, int],
+        tuple[int | float, int | float, int | float],
+        tuple[int | float, int | float, int | float],
+        tuple[int | float, int | float, int | float],
+        tuple[int | float, int | float, int | float],
+        tuple[int | float, int | float, int | float],
     ],
 ] = const(
     {
@@ -44,11 +44,11 @@ def show_image(
         int
         | str
         | tuple[
-            tuple[int, int, int],
-            tuple[int, int, int],
-            tuple[int, int, int],
-            tuple[int, int, int],
-            tuple[int, int, int],
+            tuple[int | float, int | float, int | float],
+            tuple[int | float, int | float, int | float],
+            tuple[int | float, int | float, int | float],
+            tuple[int | float, int | float, int | float],
+            tuple[int | float, int | float, int | float],
         ]
     ),
     border_right=True,

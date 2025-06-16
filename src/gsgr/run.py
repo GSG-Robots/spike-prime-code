@@ -3,7 +3,6 @@ from typing import Callable, ContextManager
 from gsgr.config import cfg
 from gsgr.enums import Color
 from gsgr.menu import ActionMenuItem
-from gsgr.movement import free_attachments
 
 
 class Run(ActionMenuItem):
