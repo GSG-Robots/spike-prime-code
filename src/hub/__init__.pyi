@@ -69,7 +69,6 @@ By default ``hub.config[]`` has the following entries:
 * ``device_get_can_return_float``: Configures whether a device (sensor or motor) returns an integer or float as a result of executing the ``get()`` method. Default value is ``False``.
 """
 
-
 def info() -> dict[str, int | str]:
     """
     Gets a dictionary of the form:
@@ -99,7 +98,6 @@ def info() -> dict[str, int | str]:
     """
     ...
 
-
 def status() -> dict[str, Any]:
     """
     Gets the state of internal sensors, external devices, and the display.
@@ -128,11 +126,8 @@ def status() -> dict[str, Any]:
     """
     ...
 
-
 @overload
 def power_off(fast: bool = True, restart: bool = False) -> None: ...
-
-
 @overload
 def power_off(timeout: int = 0) -> None:
     """
@@ -143,7 +138,6 @@ def power_off(timeout: int = 0) -> None:
     """
     ...
 
-
 def repl_restart(restart: bool | None = None) -> None:
     """
     Resets the REPL and clears all variables.
@@ -153,7 +147,6 @@ def repl_restart(restart: bool | None = None) -> None:
     """
     ...
 
-
 def temperature() -> float:
     """
     Gets the temperature of the hub.
@@ -162,15 +155,10 @@ def temperature() -> float:
     """
     ...
 
-
 @overload
 def led(color: int) -> None: ...
-
-
 @overload
 def led(red: int, green: int, blue: int) -> None: ...
-
-
 @overload
 def led(color: tuple[int, int, int]) -> None:
     """
@@ -197,7 +185,6 @@ def led(color: tuple[int, int, int]) -> None:
             * Tuple mode. This works just like RGB mode, but you can provide all three values in a single tuple.
     """
 
-
 def file_transfer(
     filename: str, filesize: int, packetsize: int = 1000, timeout: int = 2000, mode=None
 ) -> None:
@@ -221,6 +208,91 @@ def file_transfer(
         OSError (ETIMEDOUT): If the transfer was started but the expected data was not received within the timeout.
     """
 
+class Image:
+    ANGRY: Image
+    ARROW_E: Image
+    ARROW_N: Image
+    ARROW_NE: Image
+    ARROW_NW: Image
+    ARROW_S: Image
+    ARROW_SE: Image
+    ARROW_SW: Image
+    ARROW_W: Image
+    ASLEEP: Image
+    BUTTERFLY: Image
+    CHESSBOARD: Image
+    CLOCK1: Image
+    CLOCK2: Image
+    CLOCK3: Image
+    CLOCK4: Image
+    CLOCK5: Image
+    CLOCK6: Image
+    CLOCK7: Image
+    CLOCK8: Image
+    CLOCK9: Image
+    CLOCK10: Image
+    CLOCK11: Image
+    CLOCK12: Image
+    CONFUSED: Image
+    COW: Image
+    DIAMOND: Image
+    DIAMOND_SMALL: Image
+    DUCK: Image
+    FABULOUS: Image
+    GHOST: Image
+    GIRAFFE: Image
+    GO_DOWN: Image
+    GO_LEFT: Image
+    GO_RIGHT: Image
+    GO_UP: Image
+    HAPPY: Image
+    HEART: Image
+    HEART_SMALL: Image
+    HOUSE: Image
+    MEH: Image
+    MUSIC_CROTCHET: Image
+    MUSIC_QUAVER: Image
+    MUSIC_QUAVERS: Image
+    NO: Image
+    PACMAN: Image
+    PITCHFORK: Image
+    RABBIT: Image
+    ROLLERSKATE: Image
+    SAD: Image
+    SILLY: Image
+    SKULL: Image
+    SMILE: Image
+    SNAKE: Image
+    SQUARE: Image
+    SQUARE_SMALL: Image
+    STICKFIGURE: Image
+    SURPRISED: Image
+    SWORD: Image
+    TARGET: Image
+    TORTOISE: Image
+    TRIANGLE: Image
+    TRIANGLE_LEFT: Image
+    TSHIRT: Image
+    UMBRELLA: Image
+    XMAS: Image
+    YES: Image
+    ALL_CLOCKS: tuple[Image]
+    ALL_ARROWS: tuple[Image]
+
+    @overload
+    def __init__(self, image: str): ...
+    @overload
+    def __init__(self, width: int, height: int): ...
+    @overload
+    def __init__(self, width: int, height: int, buffer: bytes): ...
+    def width(self) -> int: ...
+    def height(self) -> int: ...
+    def shift_left(self, n: int) -> Image: ...
+    def shift_right(self, n: int) -> Image: ...
+    def shift_up(self, n: int) -> Image: ...
+    def shift_down(self, n: int) -> Image: ...
+    def get_pixel(self, x: int, y: int) -> int: ...
+    def set_pixel(self, x: int, y: int, brightness: int) -> None: ...
 
 __all__ = [
     "battery",
@@ -245,4 +317,5 @@ __all__ = [
     "temperature",
     "led",
     "file_transfer",
+    "Image",
 ]

@@ -1,6 +1,6 @@
 import math
 from collections import namedtuple
-from typing import Self
+from typing import Any, Callable, Self, TypeVar
 import hub
 
 PID = namedtuple("PID", ("p", "i", "d"))
@@ -14,34 +14,38 @@ PORTS = {
     "F": hub.port.F,
 }
 
+T = TypeVar("T")
+
 
 # For Type-Hinting, comPYner will handle @compile specially
-def compile(f):
+def compile(f: Callable[[str], T]) -> T:
     return f(__file__)
 
 
 @compile
-def _config_dict(in_file):
+def _config_dict(in_file) -> dict[str, Any]:
     from pathlib import Path  # pylint: disable=import-outside-toplevel
 
     import yaml  # pylint: disable=import-outside-toplevel
 
-    file = Path(in_file).absolute().parent / ".." / "config.yaml"
+    file: Path = Path(in_file).absolute().parent / ".." / "config.yaml"
 
-    with file.open("r", encoding="utf-8") as file:
-        return yaml.load(file, yaml.Loader)
+    with file.open("r", encoding="utf-8") as f:
+        return yaml.load(f, yaml.Loader)
 
 
 class configure:
-    def __init__(self, **kwargs):
-        self.changes = kwargs
-        self.old = {}
+    def __init__(self, **kwargs) -> None:
+        self.changes: dict[str, Any] = kwargs
+        self.old: dict[str, Any] = {}
 
     def gyro_drive(self, pid: PID) -> Self:
         self.changes["GYRO_DRIVE_PID"] = pid
         return self
 
-    def gyro_turn(self, pid: PID = None, minmax_speed: tuple[int, int] = None) -> Self:
+    def gyro_turn(
+        self, pid: PID | None = None, minmax_speed: tuple[int, int] | None = None
+    ) -> Self:
         if pid is not None:
             self.changes["GYRO_TURN_PID"] = pid
         if minmax_speed is not None:

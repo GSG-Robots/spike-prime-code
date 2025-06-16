@@ -4,7 +4,6 @@ LEGO provided functions and values.
 
 from typing import Dict, List, Union
 
-
 def voltage() -> int:
     """
     Gets the battery voltage.
@@ -12,7 +11,6 @@ def voltage() -> int:
     Returns:
         The voltage in in mV.
     """
-
 
 def current() -> int:
     """
@@ -22,7 +20,6 @@ def current() -> int:
         The current in in mA.
     """
 
-
 def capacity_left() -> int:
     """
     Gets the remaining capacity as a percentage of a fully charged battery.
@@ -30,7 +27,6 @@ def capacity_left() -> int:
     Returns:
         The remaining battery capacity.
     """
-
 
 def temperature() -> float:
     """
@@ -40,7 +36,6 @@ def temperature() -> float:
         The temperature in degrees Celsius.
     """
 
-
 def charger_detect():
     """
     Checks what type of charger was detected.
@@ -48,7 +43,6 @@ def charger_detect():
     Returns:
         See charging constants for all possible return values. Returns False if it failed to detect a charger.
     """
-
 
 def info() -> Dict[str, Union[List[int], int]]:
     """
@@ -78,7 +72,6 @@ def info() -> Dict[str, Union[List[int], int]]:
     Returns:
         Battery status information.
     """
-
 
 BATTERY_NO_ERROR = 0
 "The battery is happy."

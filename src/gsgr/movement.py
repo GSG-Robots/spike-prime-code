@@ -146,9 +146,9 @@ def free_attachments():
 def run_attachment(
     attachment: int,
     speed: int,
-    duration: int | None = None,
+    duration: int | float | None = None,
     stall: bool = False,
-    untension: int | Literal[False] = False,
+    untension: int | None = None,
     await_completion: bool = True,
 ) -> None:
     """Bewege Ausgang zur angegebenen Zeit oder bis es gestoppt wird
@@ -159,7 +159,7 @@ def run_attachment(
     :param speed: Geschwindigkeit, mit der die Anbaute bewegt werden soll. Wert von -100 bis 100.
     :param duration: Zeit in Sekunden, für die der Ausgang bewegt werden soll. Falls nicht angegeben, wird der Motor nur gestartet.
     :param stop_on_resistance: Ob der Motor vorzeitig stoppen soll, wenn er blockiert wird.
-    :param untension: Ob der Motor nach dem Stoppen kurz in die entgegengesetzte Richtung laufen soll, um die Spannung zu lösen.
+    :param untension: Wie viel Grad der Motor nach dem Stoppen kurz in die entgegengesetzte Richtung laufen soll, um die Spannung zu lösen.
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
