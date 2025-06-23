@@ -17,12 +17,6 @@ color_sensors:
 
 correctors:
     gyro_turn:
-        # p: 1.4
-        # i: 0.0003
-        # d: -0.2
-        # p: 0.8
-        # i: 0.0003
-        # d: -0.2
         p: 0.8
         i: 0
         d: -0.1

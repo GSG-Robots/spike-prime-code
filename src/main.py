@@ -86,18 +86,24 @@ def main():
 
     hub.display.align(hub.RIGHT)
     menu = ActionMenu(swap_buttons=True)
-    
+
     cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2])
 
     runs = __glob_import__("runs/*.py")
 
     for run in runs:
+        display_as = run.get("display_as")
+        color = run.get("color")
+        run_action = run.get("run")
+        assert isinstance(display_as, int) or isinstance(display_as, str)
+        assert isinstance(color, int)
+        assert callable(run_action)
         menu.add_item(
             Run(
-                run.get("display_as"),
-                run.get("color"),
+                display_as,
+                color,
                 # run.get("config"),
-                run.get("run"),
+                run_action,
             )
         )
 
@@ -143,7 +149,7 @@ def main():
 if __name__ == "__main__":
     # <DISABLE BUTTON FOR INTERRUPT>
     callback = hub.button.center.callback()
-    hub.button.center.callback(lambda i: ...)
+    hub.button.center.callback(lambda i: None)
     try:
         main()
     except Exception as e:

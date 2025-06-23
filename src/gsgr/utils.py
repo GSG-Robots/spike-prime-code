@@ -1,7 +1,5 @@
 import time
 
-import hub
-
 
 class Timer:
     """Helper class to time things."""

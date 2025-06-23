@@ -1,6 +1,7 @@
 """Display utils"""
 
 from typing import Mapping
+
 import hub
 from micropython import const
 

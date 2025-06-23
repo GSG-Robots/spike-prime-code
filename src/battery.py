@@ -66,7 +66,7 @@ def main():
 
 # <DISABLE BUTTON FOR INTERRUPT>
 callback = hub.button.center.callback()
-hub.button.center.callback(lambda i: ...)
+hub.button.center.callback(lambda i: None)
 try:
     main()
 finally:

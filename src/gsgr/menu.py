@@ -18,10 +18,10 @@ from .math import clamp
 class MenuItem:
     display_as: int | str
     """Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist."""
-    color: Color | int
+    color: int
     """Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist."""
 
-    def __init__(self, display_as: int | str, color: Color | int = Color.WHITE) -> None:
+    def __init__(self, display_as: int | str, color: int = Color.WHITE) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
         :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
@@ -38,7 +38,7 @@ class ActionMenuItem(MenuItem):
         self,
         action: Callable | None,
         display_as: int | str,
-        color: Color | int = Color.WHITE,
+        color: int = Color.WHITE,
     ) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
@@ -95,7 +95,7 @@ class Menu[T: MenuItem]:
     position: int
     """Position des aktuell ausgewählten :py:class:`~gsgr.menu.MenuItem` s"""
 
-    def __init__(self, items: list[MenuItem] | None = None, swap_buttons=False):
+    def __init__(self, items: list[T] | None = None, swap_buttons=False):
         """
         :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
         :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:const:`False`.
@@ -104,7 +104,7 @@ class Menu[T: MenuItem]:
         self.swap_buttons = swap_buttons
         self.position = 0
 
-    def add_item(self, item: MenuItem):
+    def add_item(self, item: T):
         """Ein Element zum Menü hinzufügen
 
         :param item: Hinzuzufügendes Element
@@ -181,6 +181,9 @@ class ActionMenu(Menu):
         show_image(result.display_as, True, True, False)
         result.prepare()
         try:
+            if not callable(result.action):
+                result.cleanup()
+                raise RuntimeError("No callback defined!")
             result.action()
         except StopRun as e:
             raise e

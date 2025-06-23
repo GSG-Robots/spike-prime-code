@@ -5,13 +5,13 @@ import time
 from typing import Generator, Literal, Optional
 
 import hub
-from gsgr.config import cfg, PID
+from gsgr.config import PID, cfg
 
+from .enums import Pivot
 
 # from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
 from .math import clamp, sigmoid
-from .enums import Pivot
 
 
 def check_battery():
@@ -357,10 +357,7 @@ def gyro_drive(
         if (100 - pct) < decelerate:
             speed_mutiplier = clamp(
                 round(
-                    (
-                        sigmoid(((100 - pct) / decelerate * 2 * smooth) - smooth)
-                        - cutoff
-                    )
+                    (sigmoid(((100 - pct) / decelerate * 2 * smooth) - smooth) - cutoff)
                     / (1 - cutoff),
                     2,
                 ),

@@ -1,7 +1,6 @@
 from typing import Callable, ContextManager
 
 from gsgr.config import cfg
-from gsgr.enums import Color
 from gsgr.menu import ActionMenuItem
 
 
@@ -15,7 +14,7 @@ class Run(ActionMenuItem):
     def __init__(
         self,
         display_as: int | str,
-        color: Color | int,
+        color: int,
         run: Callable,
     ):
         """
