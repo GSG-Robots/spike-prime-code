@@ -2,14 +2,12 @@ import math
 from collections import namedtuple
 from typing import Any, Callable, Self, TypeVar
 
-from hub.port import Port
-
 from .enums import SWSensor
 import hub
 
 PID = namedtuple("PID", ("p", "i", "d"))
 
-PORTS: dict[str, Port] = {
+PORTS = {
     "A": hub.port.A,
     "B": hub.port.B,
     "C": hub.port.C,

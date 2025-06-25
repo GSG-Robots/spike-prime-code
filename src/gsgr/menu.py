@@ -150,7 +150,7 @@ class Menu[T: MenuItem]:
             self.position = int(clamp(self.position, 0, len(self.items) - 1))
             selected = self.items[self.position]
 
-            if last_position != self.position or reset_display:
+            if last_position != self.position:
                 show_image(
                     selected.display_as,
                     border_right=self.position == 0,
