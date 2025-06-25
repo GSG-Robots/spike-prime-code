@@ -2,11 +2,14 @@ import math
 from collections import namedtuple
 from typing import Any, Callable, Self, TypeVar
 
+from hub.port import Port
+
+from .enums import SWSensor
 import hub
 
 PID = namedtuple("PID", ("p", "i", "d"))
 
-PORTS = {
+PORTS: dict[str, Port] = {
     "A": hub.port.A,
     "B": hub.port.B,
     "C": hub.port.C,
@@ -84,6 +87,13 @@ class Config:
     GYRO_DRIVE_PID: PID
     GYRO_TURN_PID: PID
     GYRO_TURN_MINMAX_SPEED: tuple[int, int]
+    LEFT_SENSOR: hub.port.Device
+    RIGHT_SENSOR: hub.port.Device
+    LEFT_SENSOR_TYPE: int | None
+    RIGHT_SENSOR_TYPE: int | None
+    LANDSCAPE: bool
+    LEFT_SW_SENSOR: int
+    RIGHT_SW_SENSOR: int
 
     def __init__(self):
         self.LEFT_MOTOR = PORTS[_config_dict["driving_motors"]["left"]].motor
@@ -112,28 +122,7 @@ class Config:
             _config_dict["correctors"]["gyro_turn"]["max_speed"],
         )
 
-        # Presets:
-        #   Disables native acceleration, deceleration, correction and differential lock
-        # self.LEFT_MOTOR.default(
-        #     speed=70,
-        #     max_power=100,
-        #     acceleration=100,
-        #     deceleration=100,
-        #     stop=1,
-        #     pid=(10, 0, 0),
-        #     stall=False,
-        #     callback=self.LEFT_MOTOR.default()["callback"],
-        # )
-        # self.RIGHT_MOTOR.default(
-        #     speed=70,
-        #     max_power=100,
-        #     acceleration=100,
-        #     deceleration=100,
-        #     stop=1,
-        #     pid=(10, 0, 0),
-        #     stall=False,
-        #     callback=self.RIGHT_MOTOR.default()["callback"],
-        # )
+        # Disables differential lock
         self.DRIVING_MOTORS.pid(0, 0, 0)
         self.GEAR_SHAFT.default(
             speed=100,
@@ -155,6 +144,28 @@ class Config:
             stall=False,
             callback=self.GEAR_SELECTOR.default()["callback"],
         )
+        LEFT_PORT = PORTS[_config_dict["sensors"]["left"]]
+        RIGHT_PORT = PORTS[_config_dict["sensors"]["right"]]
+
+        @LEFT_PORT.callback
+        def updtl(x):
+            self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
+
+        PORTS[_config_dict["sensors"]["right"]]
+
+        @RIGHT_PORT.callback
+        def updtr(x):
+            self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
+
+        self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
+        self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
+
+        self.LEFT_SENSOR = LEFT_PORT.device
+        self.RIGHT_SENSOR = RIGHT_PORT.device
+        self.LEFT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
+        self.RIGHT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
+
+        self.LANDSCAPE = _config_dict["landscape"]
 
 
 cfg = Config()

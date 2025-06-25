@@ -29,6 +29,9 @@ class MenuItem:
         self.display_as = display_as
         self.color = color
 
+    def update(self, first=False) -> bool:
+        return False
+
 
 class ActionMenuItem(MenuItem):
     action: Callable | None
@@ -58,7 +61,9 @@ class ActionMenuItem(MenuItem):
     def prepare(self) -> None:
         """Wird direkt vor :py:attr:`action` ausgeführt."""
 
-    def set_action(self, func: Callable[[], None] | None = None):
+    def set_action(
+        self, func: Callable[[], None] | None = None
+    ) -> Callable[[], None] | Callable[..., Callable[[], None]]:
         """Setter-Funktion für :py:attr:`action`.
 
         :param func: Funktion, die als Callback festgelegt werden soll. Falls nicht angegeben, wird eine decorator-Funktion zurückgegeben.
@@ -95,7 +100,7 @@ class Menu[T: MenuItem]:
     position: int
     """Position des aktuell ausgewählten :py:class:`~gsgr.menu.MenuItem` s"""
 
-    def __init__(self, items: list[T] | None = None, swap_buttons=False):
+    def __init__(self, items: list[T] | None = None, swap_buttons=False) -> None:
         """
         :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
         :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:const:`False`.
@@ -104,7 +109,7 @@ class Menu[T: MenuItem]:
         self.swap_buttons = swap_buttons
         self.position = 0
 
-    def add_item(self, item: T):
+    def add_item(self, item: T) -> None:
         """Ein Element zum Menü hinzufügen
 
         :param item: Hinzuzufügendes Element
@@ -117,11 +122,12 @@ class Menu[T: MenuItem]:
         :returns: Das gewählte Menü-Element
         """
         last_position = -1
-
         # Reset button presses
         hub.button.left.was_pressed()
         hub.button.right.was_pressed()
         hub.button.center.was_pressed()
+
+        selected: T = self.items[self.position]
 
         while not hub.button.center.was_pressed():
             # if hub.motion.gesture() == 1:
@@ -142,22 +148,25 @@ class Menu[T: MenuItem]:
                     self.exit()
 
             self.position = int(clamp(self.position, 0, len(self.items) - 1))
+            selected = self.items[self.position]
 
-            if last_position != self.position:
+            if last_position != self.position or reset_display:
                 show_image(
-                    self.items[self.position].display_as,
-                    self.position == 0,
-                    self.position == (len(self.items) - 1),
-                    True,
+                    selected.display_as,
+                    border_right=self.position == 0,
+                    border_left=self.position == (len(self.items) - 1),
+                    bright=True,
                 )
-                hub.led(self.items[self.position].color)
-                last_position = self.position
+                hub.led(selected.color)
+                last_position: int = self.position
+                selected.update(first = True)
+            selected.update()
 
             time.sleep(cfg.LOOP_THROTTLE)
 
-        return self.items[self.position]
+        return selected
 
-    def exit(self):
+    def exit(self) -> NoReturn:
         """Funktion um :py:meth:`~gsgr.menu.Menu.choose` vorzeitig zu beenden.
 
         :raises: ExitMenu
@@ -178,7 +187,7 @@ class ActionMenu(Menu):
         # hw.right_color_sensor.light_up_all(0)
 
         result: ActionMenuItem = self.choose(exit_on_charge=exit_on_charge)
-        show_image(result.display_as, True, True, False)
+        show_image(result.display_as, border_right=True, border_left=True, bright=False)
         result.prepare()
         try:
             if not callable(result.action):
@@ -194,7 +203,7 @@ class ActionMenu(Menu):
         finally:
             result.cleanup()
 
-    def loop(self, autoscroll=False, exit_on_charge=False):
+    def loop(self, autoscroll=False, exit_on_charge=False) -> None:
         """Endlos immer wieder Menü zeigen und ein Menü-Element wählen lassen, welches dann ausgeführt wird.
 
         :param autoscroll: Ob nach dem erfolgreichen Ausführen eines Callbacks automatisch weitergeblättert werden soll.

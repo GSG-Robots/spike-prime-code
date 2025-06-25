@@ -84,8 +84,11 @@ def main():
     cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2])
     cfg.GEAR_SELECTOR.run_to_position(0, speed=25)
 
-    hub.display.align(hub.RIGHT)
-    menu = ActionMenu(swap_buttons=True)
+    if cfg.LANDSCAPE:
+        hub.display.align(hub.RIGHT)
+    else:
+        hub.display.align(hub.BACK)
+    menu = ActionMenu(swap_buttons=cfg.LANDSCAPE)
 
     cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2])
 
@@ -95,15 +98,32 @@ def main():
         display_as = run.get("display_as")
         color = run.get("color")
         run_action = run.get("run")
-        assert isinstance(display_as, int) or isinstance(display_as, str)
-        assert isinstance(color, int)
-        assert callable(run_action)
+        left_sensor = run.get("left_sensor")
+        right_sensor = run.get("right_sensor")
+        assert isinstance(display_as, int) or isinstance(display_as, str), "RunDef: display_as must be str or int"
+        assert isinstance(color, int), "RunDef: color must be int"
+        assert (
+            left_sensor is None
+            or isinstance(left_sensor, tuple)
+            and len(left_sensor) == 2
+            and isinstance(left_sensor[0], int)
+            and isinstance(left_sensor[1], int)
+        ), "RunDef: left_sensor must be None or tuple of two ints"
+        assert (
+            right_sensor is None
+            or isinstance(right_sensor, tuple)
+            and len(right_sensor) == 2
+            and isinstance(right_sensor[0], int)
+            and isinstance(right_sensor[1], int)
+        ), "RunDef: right_sensor must be None or tuple of two ints"
+        assert callable(run_action), "RunDef: run must be callable"
         menu.add_item(
             Run(
                 display_as,
                 color,
-                # run.get("config"),
                 run_action,
+                left_sensor,
+                right_sensor,
             )
         )
 

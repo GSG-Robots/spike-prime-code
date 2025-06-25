@@ -34,3 +34,19 @@ class Pivot:
     CENTER = 0
     RIGHT_WHEEL = 1
     # RIGHT_WHEEL_REVERSE = 2
+
+
+class HWSensor:
+    LIGHT = 61
+
+
+class SWSensor:
+    INTEGRATED_LIGHT = 0
+    EXTERNAL_LIGHT = 1
+    C3PO = 2
+
+
+class Sensor:
+    LIGHT = (HWSensor.LIGHT, SWSensor.INTEGRATED_LIGHT)
+    EXTERNAL_LIGHT = (HWSensor.LIGHT, SWSensor.EXTERNAL_LIGHT)
+    C3PO = (HWSensor.LIGHT, SWSensor.C3PO)

@@ -2,6 +2,7 @@ debug_mode: on
 tire_diameter: 6.5
 gyro_tolerance: 1
 loop_throttle: 0.025
+landscape: yes
 
 gearbox:
     drive_shaft: B
@@ -11,7 +12,7 @@ driving_motors:
     left: F
     right: E
 
-color_sensors:
+sensors:
     left: D
     right: C
 
