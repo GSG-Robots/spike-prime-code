@@ -313,14 +313,14 @@ files = [
 
 [[package]]
 name = "compyner"
-version = "0.3.0"
+version = "0.3.1"
 description = "A small tool to bundle a python file and all its imports into a single file."
 optional = false
 python-versions = "<4.0,>=3.13.1"
 groups = ["main"]
 files = [
-    {file = "compyner-0.3.0-py3-none-any.whl", hash = "sha256:f4730022742e30b1d9acb5cf9c81196dcf451a6100b57d0e0b5a34417d93e21e"},
-    {file = "compyner-0.3.0.tar.gz", hash = "sha256:d068f8101d6c00ba4d3ed710069c8e3dddae96fdb207c340661aab184de4fece"},
+    {file = "compyner-0.3.1-py3-none-any.whl", hash = "sha256:00787cbbdc4d476076ce41552cbccf3c6796fcc1fbf326b586fe5cb4f940b033"},
+    {file = "compyner-0.3.1.tar.gz", hash = "sha256:ac992122d07c65eaf8432ea31ec1556198d1957ba654bb8465751507c6fe38c8"},
 ]
 
 [package.dependencies]
@@ -636,7 +636,6 @@ files = [
     {file = "mpy_cross_v5-1.0.2-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:a3d9c151318c5c4d298fb477497b15ccb2bcde4f0d7e32a7b02179482429a52e"},
     {file = "mpy_cross_v5-1.0.2-py3-none-win32.whl", hash = "sha256:121c22ba2fef5549ceb0640d046c0606857d83cf93aa1bda8084fee8366aa148"},
     {file = "mpy_cross_v5-1.0.2-py3-none-win_amd64.whl", hash = "sha256:bc003357bdc69912a0affa2bb87cefe531bcdcd21e1646f939a4773d6801b435"},
-    {file = "mpy_cross_v5-1.0.2-py3-none-win_arm64.whl", hash = "sha256:c784926367bddc89d0e2943c7fd2bc67548146c00899f59c49f6afd5ea004e4b"},
     {file = "mpy_cross_v5-1.0.2.tar.gz", hash = "sha256:50797bd49e675d262d44816c407f8c8074b4d4304ff9b8dd7aec35f3210b29ce"},
 ]
 
