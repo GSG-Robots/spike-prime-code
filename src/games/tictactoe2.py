@@ -1,49 +1,51 @@
 # LEGO type:standard slot:11 autostart
 
-from spike import PrimeHub, control
+from spike import PrimeHub
+import time
 
 from hub import led
+import hub as hb
 
 brick = PrimeHub()
-
-
-def draw_board(_board, focus: bool, selected: tuple[int, int]):
-    for coord, state in zip(positions, _board):
-        x, y = coord
-        if selected[0] == x and selected[1] == y:
-            brick.light_matrix.set_pixel(y, x, 100)
-        else:
-            brick.light_matrix.set_pixel(
-                y, x, 90 if state is focus else (65 if state is not None else 0)
-            )
-            
-def bot():
-    wins: list[tuple] = []
-    for x in range(3):
-        row = ((x * 3, x * 3 + 1, x * 3 + 2), (board[x * 3], board[x * 3 + 1], board[x * 3 + 2]))
-        col = ((x, x + 3, x +6), (board[x], board[x + 3], board[x + 6]))
-        wins.append(row)
-        wins.append(col)
-    wins.append(((0, 4, 8), (board[0] , board[4] , board[8])))
-    wins.append(((2, 4, 6), (board[2] , board[4] , board[6])))
-
-    for win in wins:
-        if win.count(None) == 3:
-            continue
         
-    
-BOT_PLAYER = False
-HUMAN_PLAYER = True
-board = [None, None, None, None, None, None, None, None, None]
-positions = ((0, 0), (0, 2), (0, 4), (2, 0), (2, 2), (2, 4), (4, 0), (4, 2), (4, 4))
-free_positions = list(range(9))
-current_player = True
-has_winner = None
-while True:
-    selected = 0
-    led(9 if current_player else 3)
-    try:
-        while True:
+def main():
+    def draw_board(_board, focus: bool, selected: tuple[int, int]):
+        for coord, state in zip(positions, _board):
+            x, y = coord
+            if selected[0] == x and selected[1] == y:
+                brick.light_matrix.set_pixel(y, x, 100)
+            else:
+                brick.light_matrix.set_pixel(
+                    y, x, 90 if state is focus else (65 if state is not None else 0)
+                )
+                
+    def bot():
+        wins: list[tuple] = []
+        for x in range(3):
+            row = ((x * 3, x * 3 + 1, x * 3 + 2), (board[x * 3], board[x * 3 + 1], board[x * 3 + 2]))
+            col = ((x, x + 3, x +6), (board[x], board[x + 3], board[x + 6]))
+            wins.append(row)
+            wins.append(col)
+        wins.append(((0, 4, 8), (board[0] , board[4] , board[8])))
+        wins.append(((2, 4, 6), (board[2] , board[4] , board[6])))
+
+        for win in wins:
+            if win.count(None) == 3:
+                continue
+
+
+    BOT_PLAYER = False
+    HUMAN_PLAYER = True
+    board = [None, None, None, None, None, None, None, None, None]
+    positions = ((0, 0), (0, 2), (0, 4), (2, 0), (2, 2), (2, 4), (4, 0), (4, 2), (4, 4))
+    free_positions = list(range(9))
+    current_player = True
+    has_winner = None
+    while True:
+        selected = 0
+        led(9 if current_player else 3)
+
+        while not hb.button.center.was_pressed():
             if brick.left_button.was_pressed():
                 selected -= 1
             if brick.right_button.was_pressed():
@@ -56,7 +58,6 @@ while True:
             selected_position = free_positions[selected]
             x, y = positions[selected_position]
             draw_board(board, current_player, (x, y))
-    except KeyboardInterrupt:
         free_positions.pop(selected)
         board[selected_position] = current_player
         for x in range(3):
@@ -74,17 +75,13 @@ while True:
             break
         current_player = not current_player
 
-try:
-    while True:
+    while not hb.button.center.was_pressed():
         if has_winner:
             led(9 if current_player else 3)
         else:
             led(6)
         brick.light_matrix.off()
-        control.wait_for_seconds(0.1)
+        time.sleep(0.1)
         led(0)
         draw_board(board, current_player, (-1, -1))
-        control.wait_for_seconds(0.1)
-except KeyboardInterrupt:
-    raise SystemExit
-# except IndexError
+        time.sleep(0.1)
