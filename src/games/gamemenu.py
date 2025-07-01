@@ -6,6 +6,7 @@ import tictactoe2
 import spike_invator
 import howmany
 import rollthedice
+import guessthenumber
 hub = PrimeHub()
 
 
@@ -48,5 +49,8 @@ if game == 3:
 if game == 4:
     hub.light_matrix.off()
     rollthedice.main()
-
+if game == 5:
+    hub.light_matrix.off()
+    guessthenumber.main()
+    
 hb.button.center.callback(cb)
