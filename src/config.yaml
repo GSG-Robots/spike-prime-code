@@ -5,16 +5,16 @@ loop_throttle: 0.025
 landscape: yes
 
 gearbox:
-    drive_shaft: B
-    gear_selector: A
+    drive_shaft: A
+    gear_selector: B
 
 driving_motors:
-    left: F
-    right: E
+    left: C
+    right: D
 
 sensors:
-    left: D
-    right: C
+    left: E
+    right: F
 
 correctors:
     gyro_turn:

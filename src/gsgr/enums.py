@@ -20,10 +20,10 @@ class Color:
 class Attachment:
     """Zahnrad-Positionen zur Anseuerung der entsprechenden Ausgänge"""
 
-    FRONT_RIGHT = 90
-    FRONT_LEFT = -90
-    BACK_RIGHT = 0
-    BACK_LEFT = 180
+    FRONT_RIGHT = 90-9
+    FRONT_LEFT = -90-9
+    BACK_RIGHT = 0-9
+    BACK_LEFT = 180-9
 
 
 class Pivot:

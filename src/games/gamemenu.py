@@ -7,6 +7,7 @@ import spike_invator
 import howmany
 import rollthedice
 import guessthenumber
+
 hub = PrimeHub()
 
 
@@ -18,24 +19,35 @@ game = 0
 hb.display.show(hb.Image("33333:39393:33933:39393:33333"))
 
 
+games_cover = [
+    hb.Image("33333:39393:33933:39393:33333"),
+    hb.Image("00509:05500:00900:00500:95550"),
+    hb.Image("05559:00950:05590:95000:05590"),
+    hb.Image("95550:90950:05550:99950:99550"),
+    hb.Image("95059:05050:05950:00050:90059"),
+    hb.Image("05950:09900:05950:00950:05950"),
+]
+
 hub.left_button.was_pressed()
 hub.right_button.was_pressed()
 hb.button.center.was_pressed()
 while not hb.button.center.was_pressed():
     if hub.right_button.was_pressed():
         game += 1
-        if game == 10:
-            game = 9
-        hub.light_matrix.write(game)
+        if game > len(games_cover) -1:
+            game = len(games_cover) -1
+        # hub.light_matrix.write(game)
+        hb.display.show(games_cover[game])
+
 
     if hub.left_button.was_pressed():
         game -= 1
-        if game == -1:
+        if game < 0:
             game = 0
-        if game == 0:
-            hb.display.show(hb.Image("33333:39393:33933:39393:33333"))
-        else:
-            hub.light_matrix.write(game)    
+
+            # hub.light_matrix.write(game)
+        hb.display.show(games_cover[game])
+            
 
 if game == 1:
     hub.light_matrix.off()
@@ -52,5 +64,5 @@ if game == 4:
 if game == 5:
     hub.light_matrix.off()
     guessthenumber.main()
-    
+
 hb.button.center.callback(cb)

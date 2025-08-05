@@ -89,7 +89,7 @@ def hold_attachment(target_gear: int, await_completion: bool = True):
     _GS_TARGET = target_gear
     _GS_COMPLETED = False
     cfg.GEAR_SELECTOR.run_to_position(
-        target_gear, speed=_GS_SPEED, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
+        target_gear, speed=_GS_SPEED, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True, acceleration=100, deceleration=0, max_power=100
     )
 
     if await_completion:
@@ -338,7 +338,7 @@ def gyro_drive(
             pid.p * error + pid.i * error_sum + pid.d * (error - last_error)
         )
 
-        left_speed, right_speed = speed + correction // 2, speed - correction // 2
+        left_speed, right_speed = speed - correction // 2, speed + correction // 2
 
         if pct < accelerate:
             speed_mutiplier = clamp(
@@ -369,7 +369,7 @@ def gyro_drive(
                 right_speed * speed_mutiplier,
             )
 
-        cfg.DRIVING_MOTORS.run_at_speed(-left_speed, right_speed)
+        cfg.DRIVING_MOTORS.run_at_speed(left_speed, -right_speed)
 
         last_error = error
     if brake:
