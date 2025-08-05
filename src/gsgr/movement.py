@@ -2,12 +2,12 @@
 
 import math
 import time
-from typing import Generator, Literal, Optional
+from typing import Generator, Literal
 
 import hub
 from gsgr.config import PID, cfg
 
-from .enums import Pivot
+from .enums import Pivot, SWSensor
 
 # from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
@@ -220,10 +220,10 @@ def gyro_turn(
     target_angle: int,
     step_speed: int | float = 70,
     pivot: Pivot | int = Pivot.CENTER,
-    min_speed: Optional[int] = None,
-    max_speed: Optional[int] = None,
-    pid: Optional[PID] = None,
-    tolerance: Optional[int] = None,
+    min_speed: int | None = None,
+    max_speed: int | None = None,
+    pid: PID | None = None,
+    tolerance: int | None = None,
     timeout: int = 0,
     brake: bool = True,
 ):
@@ -301,7 +301,7 @@ def gyro_drive(
     target_angle: int,
     speed: int | float,
     ending_condition: Generator,
-    pid: Optional[PID] = None,
+    pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,
     sigmoid_conf: tuple[int, bool] = (6, True),
@@ -374,3 +374,14 @@ def gyro_drive(
         last_error = error
     if brake:
         cfg.DRIVING_MOTORS.brake()
+
+
+def start_with_naR(alpha, radius):
+    assert cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: left sensor must be the integrated light sensor"
+    assert cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: right sensor must be the integrated light sensor"
+
+    cfg.LEFT_SENSOR.mode(4)
+    cfg.RIGHT_SENSOR.mode(4)
+    time.sleep(0.1)
+
+    ...
