@@ -1,10 +1,11 @@
 import base64
 import os
-from pathlib import Path
 import time
+from pathlib import Path
+
 import serial.tools.list_ports_windows
 from tqdm import tqdm
-import sys
+
 
 def get_device():
     print("> Searching for devices...")
@@ -48,7 +49,7 @@ def write_command(ser, cmd, no_wait=False):
         wait_for_prompt(ser)
 
 
-def upload_runtime(from_folder = "onboard"):
+def upload_runtime(from_folder="onboard"):
     serial = get_device()
     write_command(serial, b"\x03", no_wait=True)
     write_command(serial, b"\x02", no_wait=True)
@@ -57,7 +58,7 @@ def upload_runtime(from_folder = "onboard"):
     write_command(serial, b"import os")
     write_command(serial, b"import hub")
     write_command(serial, b"import ubinascii")
-    
+
     # serial.write(b"\x05")
     # write_command(serial, b"def clean_dir(dir):", no_wait=True)
     # write_command(serial, b"    for file in os.listdir(dir):", no_wait=True)
@@ -76,20 +77,23 @@ def upload_runtime(from_folder = "onboard"):
     # serial.write(b"\r\n")
     # serial.write(b"\r\n")
     # serial.write(b"\r\n")
-    
+
     # return
-    
+
     # time.sleep(3)
 
     for file in Path(from_folder).rglob("*"):
         print(file.relative_to(from_folder))
         if file.is_dir():
-            write_command(serial, f"os.mkdir('{file.relative_to(from_folder).as_posix()}')".encode())
+            write_command(
+                serial,
+                f"os.mkdir('{file.relative_to(from_folder).as_posix()}')".encode(),
+            )
             continue
         write_command(
             serial,
             f"f = open('/{file.relative_to(from_folder).as_posix()}', 'wb')\r\n".encode(),
-            no_wait=True
+            no_wait=True,
         )
         wait_for_prompt(serial)
         with tqdm(total=os.path.getsize(str(file)), unit="B", unit_scale=True) as pbar:
@@ -108,5 +112,5 @@ def upload_runtime(from_folder = "onboard"):
 
 
 if __name__ == "__main__":
-    upload_runtime(sys.argv[-1])
+    upload_runtime("spielzeug")
     # get_device().write(b"\x03")
