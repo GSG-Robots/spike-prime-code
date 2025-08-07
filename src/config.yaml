@@ -1,8 +1,9 @@
 debug_mode: on
 tire_diameter: 6.5
-gyro_tolerance: 1
 loop_throttle: 0.025
 landscape: yes
+gyro_tolerance: 1
+gyro_off: -11
 
 gearbox:
     drive_shaft: A
@@ -18,29 +19,29 @@ sensors:
 
 correctors:
     gyro_turn:
-        p: 0.8
+        p: 1.4
         i: 0
         d: -0.1
 
         # In deg/s:
-        min_speed: 2
+        min_speed: 5
         max_speed: 90
 
     gyro_drive:
         p: 1.7
-        i: 0 #.0001
+        i: 0
         d: -0.2
 
     motors:
         driving_power:
-            p: 2
+            p: 50
             i: 0
-            d: 1
+            d: 0
 
         driving_differential:
-            p: 7
-            i: 2
-            d: 4
+            p: 0
+            i: 0
+            d: 0
 
         shaft_power:
             p: 2
