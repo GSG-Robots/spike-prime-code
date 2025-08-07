@@ -90,7 +90,10 @@ def build(files: Iterator[Path]):
                 clean_dir(folder)
                 os.rmdir(folder)
             continue
-        builder, new_suffix = file_builders.get(file.suffix)
+        # Skip stup files
+        if file.suffix == ".pyi":
+            continue
+        builder, new_suffix = file_builders.get(file.suffix, (None, None))
         if not builder:
             print(f"Unable to build {file.suffix} file.")
             continue
