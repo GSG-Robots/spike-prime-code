@@ -251,6 +251,8 @@ def gyro_turn(
     :param brake: Ob der Roboter nach der Bewegung bremsen soll
     """
 
+    target_angle = target_angle + cfg.GYRO_OFF / 360 * target_angle
+
     pid = cfg.GYRO_TURN_PID if pid is None else pid
     min_speed = cfg.GYRO_TURN_MINMAX_SPEED[0] if max_speed is None else max_speed
     max_speed = cfg.GYRO_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed

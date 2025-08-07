@@ -76,6 +76,7 @@ class Config:
     LANDSCAPE: bool
     LEFT_SW_SENSOR: int
     RIGHT_SW_SENSOR: int
+    GYRO_OFF: int
 
     def __init__(self):
         self.LEFT_MOTOR = PORTS[_config_dict["driving_motors"]["left"]].motor
@@ -105,11 +106,11 @@ class Config:
         )
 
         # Disables differential lock
-        pid = _config_dict["correctors"]["motors"]["driving_power"]
-        self.LEFT_MOTOR.pid(pid["p"], pid["i"], pid["d"])
-        self.RIGHT_MOTOR.pid(pid["p"], pid["i"], pid["d"])
-        pid = _config_dict["correctors"]["motors"]["driving_differential"]
-        self.DRIVING_MOTORS.pid(pid["p"], pid["i"], pid["d"])
+        # pid = _config_dict["correctors"]["motors"]["driving_power"]
+        # self.LEFT_MOTOR.pid(pid["p"], pid["i"], pid["d"])
+        # self.RIGHT_MOTOR.pid(pid["p"], pid["i"], pid["d"])
+        # pid = _config_dict["correctors"]["motors"]["driving_differential"]
+        # self.DRIVING_MOTORS.pid(pid["p"], pid["i"], pid["d"])
         pid = _config_dict["correctors"]["motors"]["shaft_power"]
         self.GEAR_SHAFT.default(
             speed=100,
@@ -153,6 +154,7 @@ class Config:
         self.RIGHT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
 
         self.LANDSCAPE = _config_dict["landscape"]
+        self.GYRO_OFF = _config_dict["gyro_off"]
 
 cfg = Config()
 
