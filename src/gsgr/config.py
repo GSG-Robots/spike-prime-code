@@ -121,24 +121,30 @@ class Config:
         )
 
         # Disables differential lock
-        self.DRIVING_MOTORS.pid(0, 0, 0)
+        pid = _config_dict["correctors"]["motors"]["driving_power"]
+        self.LEFT_MOTOR.pid(pid["p"], pid["i"], pid["d"])
+        self.RIGHT_MOTOR.pid(pid["p"], pid["i"], pid["d"])
+        pid = _config_dict["correctors"]["motors"]["driving_differential"]
+        self.DRIVING_MOTORS.pid(pid["p"], pid["i"], pid["d"])
+        pid = _config_dict["correctors"]["motors"]["shaft_power"]
         self.GEAR_SHAFT.default(
             speed=100,
             max_power=100,
             acceleration=300,
             deceleration=300,
             stop=1,
-            pid=(0, 0, 0),
+            pid=(pid["p"], pid["i"], pid["d"]),
             stall=True,
             callback=self.GEAR_SHAFT.default()["callback"],
         )
+        pid = _config_dict["correctors"]["motors"]["selector_power"]
         self.GEAR_SELECTOR.default(
             speed=100,
             max_power=100,
-            acceleration=300,
-            deceleration=300,
+            acceleration=100,
+            deceleration=0,
             stop=2,
-            pid=(0, 0, 0),
+            pid=(pid["p"], pid["i"], pid["d"]),
             stall=False,
             callback=self.GEAR_SELECTOR.default()["callback"],
         )
@@ -148,8 +154,6 @@ class Config:
         @LEFT_PORT.callback
         def updtl(x):
             self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
-
-        PORTS[_config_dict["sensors"]["right"]]
 
         @RIGHT_PORT.callback
         def updtr(x):
@@ -164,7 +168,6 @@ class Config:
         self.RIGHT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
 
         self.LANDSCAPE = _config_dict["landscape"]
-
 
 cfg = Config()
 

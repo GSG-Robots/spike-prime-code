@@ -41,8 +41,8 @@ class Run(ActionMenuItem):
 
     def update(self, first=False) -> None:
         if first:
-            self.left_req_dcon = self.left_sensor is not None and not (cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.left_sensor[1])
-            self.right_req_dcon = self.right_sensor is not None and not (cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.right_sensor[1])
+            self.left_req_dcon = self.left_sensor is not None and not (cfg.LEFT_SW_SENSOR == -1 or (cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.left_sensor[1]))
+            self.right_req_dcon = self.right_sensor is not None and not (cfg.RIGHT_SW_SENSOR == -1 or (cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.right_sensor[1]))
         left_con = True
         right_con = True
         if self.left_sensor is not None:
@@ -61,11 +61,11 @@ class Run(ActionMenuItem):
         tm = 750
         scale = abs(tm - time.ticks_ms() % (2 * tm)) / tm
         if cfg.LANDSCAPE:
-            hub.display.pixel(4, 0, int((not left_con) * 9 * overlap * scale))
-            hub.display.pixel(4, 4, int((not right_con) * 9 * overlap * scale))
+            hub.display.pixel(4, 4, int((not left_con) * 9 * overlap * scale))
+            hub.display.pixel(4, 0, int((not right_con) * 9 * overlap * scale))
         else:
-            hub.display.pixel(0, 4, int((not left_con) * 9 * overlap * scale))
-            hub.display.pixel(4, 4, int((not right_con) * 9 * overlap * scale))
+            hub.display.pixel(4, 4, int((not left_con) * 9 * overlap * scale))
+            hub.display.pixel(0, 4, int((not right_con) * 9 * overlap * scale))
         if left_con and right_con:
             hub.led(self.color)
         else:

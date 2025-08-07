@@ -81,26 +81,30 @@ def main():
     print("%s%% battery left" % hub.battery.capacity_left())
     print("Voltage:", hub.battery.voltage(), "mV")
 
-    cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2])
-    cfg.GEAR_SELECTOR.run_to_position(0, speed=25)
+    # Reset gear selector
+    cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2] + 20)
+    cfg.GEAR_SELECTOR.run_to_position(0, speed=100)
 
+    # Align display depending on config
     if cfg.LANDSCAPE:
         hub.display.align(hub.RIGHT)
     else:
         hub.display.align(hub.BACK)
+
+    # Initialize Menu
     menu = ActionMenu(swap_buttons=cfg.LANDSCAPE)
 
-    cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2])
-
+    # Load runs from runs/*.py
     runs = __glob_import__("runs/*.py")
-
     for run in runs:
         display_as = run.get("display_as")
         color = run.get("color")
         run_action = run.get("run")
         left_sensor = run.get("left_sensor")
         right_sensor = run.get("right_sensor")
-        assert isinstance(display_as, int) or isinstance(display_as, str), "RunDef: display_as must be str or int"
+        assert isinstance(display_as, int) or isinstance(
+            display_as, str
+        ), "RunDef: display_as must be str or int"
         assert isinstance(color, int), "RunDef: color must be int"
         assert (
             left_sensor is None
@@ -127,12 +131,13 @@ def main():
             )
         )
 
+    # Add motor control
     menu.add_item(Run("C", Color.YELLOW, run_motorcontrol))
 
-    exit_item = ActionMenuItem(menu.exit, "x", Color.WHITE)
+    # Add exit
+    menu.add_item(ActionMenuItem(menu.exit, "x", Color.WHITE))
 
-    menu.add_item(exit_item)
-
+    # Show dot, indicating that the cable is still plugged in
     gsgr.display.show_image(
         (
             (0, 0, 0),
@@ -160,6 +165,7 @@ def main():
             connect_mode = True
             break
 
+    # Start Menu
     menu.loop(
         autoscroll=True,
         exit_on_charge=cfg.DEBUG_MODE and not connect_mode,
@@ -167,15 +173,14 @@ def main():
 
 
 if __name__ == "__main__":
-    # <DISABLE BUTTON FOR INTERRUPT>
+    # Remove callback from center button to avoid KeyboardInterrupt
     callback = hub.button.center.callback()
     hub.button.center.callback(lambda i: None)
     try:
         main()
-    except Exception as e:
-        raise e
     finally:
-        # Reactivate button callback
+        # Reactivate button callback so we can use the native menu again
         hub.button.center.callback(callback)
 
+    # Forcefully stop. Would do nothing infinitely otherwise
     raise SystemExit

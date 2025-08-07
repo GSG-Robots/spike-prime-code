@@ -89,7 +89,13 @@ def hold_attachment(target_gear: int, await_completion: bool = True):
     _GS_TARGET = target_gear
     _GS_COMPLETED = False
     cfg.GEAR_SELECTOR.run_to_position(
-        target_gear, speed=_GS_SPEED, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True, acceleration=100, deceleration=0, max_power=100
+        target_gear,
+        speed=_GS_SPEED,
+        stop=cfg.GEAR_SELECTOR.STOP_HOLD,
+        stall=True,
+        acceleration=100,
+        deceleration=0,
+        max_power=100,
     )
 
     if await_completion:
@@ -297,6 +303,13 @@ def gyro_turn(
         cfg.DRIVING_MOTORS.brake()
 
 
+def sign(n):
+    if n < 0:
+        return -1
+    else:
+        return 1
+
+
 def gyro_drive(
     target_angle: int,
     speed: int | float,
@@ -334,9 +347,14 @@ def gyro_drive(
             raise StopRun
         error = target_angle - hub.motion.yaw_pitch_roll()[0]
         error_sum += error
-        correction = round(
-            pid.p * error + pid.i * error_sum + pid.d * (error - last_error)
+        correction = clamp(
+            round(pid.p * error + pid.i * error_sum + pid.d * (error - last_error)),
+            -100,
+            100,
         )
+
+        if sign(error) != sign(error_sum):
+            error_sum = 0
 
         left_speed, right_speed = speed - correction // 2, speed + correction // 2
 
@@ -377,8 +395,12 @@ def gyro_drive(
 
 
 def start_with_naR(alpha, radius):
-    assert cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: left sensor must be the integrated light sensor"
-    assert cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: right sensor must be the integrated light sensor"
+    assert (
+        cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
+    ), "naR: left sensor must be the integrated light sensor"
+    assert (
+        cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
+    ), "naR: right sensor must be the integrated light sensor"
 
     cfg.LEFT_SENSOR.mode(4)
     cfg.RIGHT_SENSOR.mode(4)
