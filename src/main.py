@@ -138,6 +138,6 @@ async def main():
     menu.add_item(ActionMenuItem(menu.exit, "x", Color.WHITE))
 
     # Start Menu
-    await menu.loop_async(
+    await menu.loop(
         autoscroll=True,
     )
