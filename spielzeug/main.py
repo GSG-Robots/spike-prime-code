@@ -1,8 +1,12 @@
 import gc
+
 import micropython
+import uasyncio as asyncio
 
-import custom_runtime
+import spielzeug
 
+gc.enable()
+gc.collect()
 micropython.alloc_emergency_exception_buf(256)
 
-custom_runtime.start()
+asyncio.run(spielzeug.main_loop())
