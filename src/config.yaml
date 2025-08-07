@@ -28,26 +28,26 @@ correctors:
 
     gyro_drive:
         p: 1.7
-        i: 0
+        i: 0 #.0001
         d: -0.2
 
     motors:
         driving_power:
-            p: 100
-            i: 2
-            d: 5
+            p: 2
+            i: 0
+            d: 1
 
         driving_differential:
-            p: 20
-            i: 4
-            d: 6
+            p: 7
+            i: 2
+            d: 4
 
         shaft_power:
-            p: 10
-            i: 3
-            d: 5
+            p: 2
+            i: 0
+            d: 1
 
         selector_power:
-            p: 10
-            i: 3
+            p: 70
+            i: 70
             d: 1

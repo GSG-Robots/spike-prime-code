@@ -1,6 +1,5 @@
 import math
 from collections import namedtuple
-from typing import Any, Callable, Self, TypeVar
 
 from .enums import SWSensor
 import hub
@@ -16,25 +15,10 @@ PORTS = {
     "F": hub.port.F,
 }
 
-T = TypeVar("T")
+import json
 
-
-# For Type-Hinting, comPYner will handle @compile specially
-def compile(f: Callable[[str], T]) -> T:
-    return f(__file__)
-
-
-@compile
-def _config_dict(in_file) -> dict[str, Any]:
-    from pathlib import Path  # pylint: disable=import-outside-toplevel
-
-    import yaml  # pylint: disable=import-outside-toplevel
-
-    file: Path = Path(in_file).absolute().parent / ".." / "config.yaml"
-
-    with file.open("r", encoding="utf-8") as f:
-        return yaml.load(f, yaml.Loader)
-
+with open("/spielzeugs/config.json", "r", encoding="utf-8") as f:
+    _config_dict = json.load(f)
 
 class configure:
     def __init__(self, **kwargs) -> None:
@@ -148,6 +132,7 @@ class Config:
             stall=False,
             callback=self.GEAR_SELECTOR.default()["callback"],
         )
+        self.GEAR_SELECTOR.mode([(1, 0), (2, 0), (3, 0), (0, 0)])
         LEFT_PORT = PORTS[_config_dict["sensors"]["left"]]
         RIGHT_PORT = PORTS[_config_dict["sensors"]["right"]]
 

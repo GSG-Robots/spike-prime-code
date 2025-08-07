@@ -1,14 +1,12 @@
 import time
-from typing import Callable, ContextManager
 
-from gsgr.config import cfg
+from .config import cfg
 from .enums import SWSensor
 import hub
-from gsgr.menu import ActionMenuItem
+from .menu import ActionMenuItem
 
 
 class Run(ActionMenuItem):
-    context: ContextManager
     """A context manager in which the run is being executed.
 
     This is implemented to support :py:class:`~gsgr.config.cfg` changes for individual runs.
@@ -18,7 +16,7 @@ class Run(ActionMenuItem):
         self,
         display_as: int | str,
         color: int,
-        run: Callable,
+        run,
         left_sensor: tuple[int, int] | None = None,
         right_sensor: tuple[int, int] | None = None,
     ):

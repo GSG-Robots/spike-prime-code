@@ -1,16 +1,15 @@
 import gc
+import os
 import time
 
-from compyner.typehints import __glob_import__
-
-import gsgr.display
-from gsgr.enums import Color, Attachment
-import gsgr.movement
+from .gsgr import display
+from .gsgr.enums import Color, Attachment
+from .gsgr import movement
 import hub
-from gsgr.config import cfg
-from gsgr.exceptions import StopRun
-from gsgr.menu import ActionMenu, ActionMenuItem
-from gsgr.run import Run
+from .gsgr.config import cfg
+from .gsgr.exceptions import StopRun
+from .gsgr.menu import ActionMenu, ActionMenuItem
+from .gsgr.run import Run
 
 
 def run_motorcontrol():
@@ -52,7 +51,7 @@ def run_motorcontrol():
                 hub.display.pixel(4, 4, 9)
                 motor = Attachment.BACK_RIGHT
     speed = 100
-    is_inverted = motor != 90
+    is_inverted = motor in (Attachment.FRONT_RIGHT, Attachment.BACK_RIGHT)
     hub.display.clear()
     RIGHT_ARROW = hub.Image("09000:09900:09990:09900:09000")
     LEFT_ARROW = hub.Image("00090:00990:09990:00990:00090")
@@ -66,42 +65,43 @@ def run_motorcontrol():
         if hub.button.left.is_pressed():
             speed = -100
             hub.display.show(LEFT_ARROW if is_inverted else RIGHT_ARROW)
-    gsgr.movement.run_attachment(motor, speed)
+    movement.run_attachment(motor, speed)
     while not hub.button.center.was_pressed():
         time.sleep(0.1)
-    gsgr.movement.stop_attachment()
+    movement.stop_attachment()
     time.sleep(1.0)
     raise StopRun
 
 
-def main():
+async def main():
     gc.collect()
     mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
     print("%s%% of memory used" % mem_perc)
     print("%s%% battery left" % hub.battery.capacity_left())
     print("Voltage:", hub.battery.voltage(), "mV")
 
-    # Reset gear selector
-    cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2] + 20)
+    # # Reset gear selector
+    print(cfg.GEAR_SELECTOR.get())
+    cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2] + 10)
     cfg.GEAR_SELECTOR.run_to_position(0, speed=100)
 
-    # Align display depending on config
+    # # Align display depending on config
     if cfg.LANDSCAPE:
         hub.display.align(hub.RIGHT)
     else:
         hub.display.align(hub.BACK)
 
-    # Initialize Menu
+    # # Initialize Menu
     menu = ActionMenu(swap_buttons=cfg.LANDSCAPE)
 
     # Load runs from runs/*.py
-    runs = __glob_import__("runs/*.py")
-    for run in runs:
-        display_as = run.get("display_as")
-        color = run.get("color")
-        run_action = run.get("run")
-        left_sensor = run.get("left_sensor")
-        right_sensor = run.get("right_sensor")
+    for file in os.listdir("/spielzeugs/runs"):
+        run = getattr(__import__("spielzeugs.runs.%s" % file[:-4]).runs, file[:-4])
+        display_as = run.display_as
+        color = run.color
+        run_action = run.run
+        left_sensor = run.left_sensor if hasattr(run, "left_sensor") else None
+        right_sensor = run.right_sensor if hasattr(run, "right_sensor") else None
         assert isinstance(display_as, int) or isinstance(
             display_as, str
         ), "RunDef: display_as must be str or int"
@@ -137,50 +137,7 @@ def main():
     # Add exit
     menu.add_item(ActionMenuItem(menu.exit, "x", Color.WHITE))
 
-    # Show dot, indicating that the cable is still plugged in
-    gsgr.display.show_image(
-        (
-            (0, 0, 0),
-            (0, 0, 0),
-            (0, 1, 0),
-            (0, 0, 0),
-            (0, 0, 0),
-        )
-    )
-
-    connect_mode = False
-
-    # Reset
-    hub.button.center.was_pressed()
-    hub.button.connect.was_pressed()
-
-    while hub.battery.charger_detect() in [
-        hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
-        hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-    ]:
-        time.sleep(0.2)
-        if hub.button.center.was_pressed():
-            raise SystemExit
-        if hub.button.connect.was_pressed():
-            connect_mode = True
-            break
-
     # Start Menu
-    menu.loop(
+    await menu.loop_async(
         autoscroll=True,
-        exit_on_charge=cfg.DEBUG_MODE and not connect_mode,
     )
-
-
-if __name__ == "__main__":
-    # Remove callback from center button to avoid KeyboardInterrupt
-    callback = hub.button.center.callback()
-    hub.button.center.callback(lambda i: None)
-    try:
-        main()
-    finally:
-        # Reactivate button callback so we can use the native menu again
-        hub.button.center.callback(callback)
-
-    # Forcefully stop. Would do nothing infinitely otherwise
-    raise SystemExit

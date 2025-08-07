@@ -2,10 +2,9 @@
 
 import math
 import time
-from typing import Generator, Literal
 
 import hub
-from gsgr.config import PID, cfg
+from .config import PID, cfg
 
 from .enums import Pivot, SWSensor
 
@@ -64,11 +63,15 @@ def _gs_callback(state: int):
         )
 
 
-def _gs_await_completion(timeout: int = 10000):
+def _gs_await_completion(timeout: int = 5):
     start = time.time()
     while not _GS_COMPLETED:
         if timeout and (time.time() - start) > timeout:
             return
+        cfg.GEAR_SHAFT.run_for_time(200, 100)
+        time.sleep(0.2)
+        cfg.GEAR_SHAFT.run_for_time(200, -100)
+        time.sleep(0.2)
         if hub.button.center.was_pressed():
             raise StopRun
 

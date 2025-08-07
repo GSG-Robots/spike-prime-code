@@ -1,5 +1,5 @@
-from gsgr.enums import Color
-from gsgr.movement import (
+from ..gsgr.enums import Color
+from ..gsgr.movement import (
     gyro_set_origin,
     run_attachment,
 )

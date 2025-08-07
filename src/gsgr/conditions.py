@@ -5,7 +5,7 @@ import time
 
 from .enums import SWSensor
 import hub
-from gsgr.config import cfg
+from .config import cfg
 
 from .types import Condition
 
