@@ -1,6 +1,7 @@
 """Motorsteuerung und Bewegungsfunktionen."""
 
 import math
+import machine
 import time
 
 import hub
@@ -11,6 +12,7 @@ from .enums import Pivot, SWSensor
 # from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
 from .math import clamp, sigmoid
+from .interpolators import linear
 
 
 def check_battery():
@@ -339,8 +341,7 @@ def gyro_drive(
                        in Prozent von der :code:`ending_condition`
     :param brake: Ob der Roboter nach der Bewegung bremsen soll
     """
-    smooth, stretch = sigmoid_conf
-    cutoff = sigmoid(-smooth) if stretch else 0
+    target_angle = target_angle + cfg.GYRO_OFF / 360 * target_angle
 
     pid = cfg.GYRO_DRIVE_PID if pid is None else pid
     last_error = 0
@@ -351,6 +352,8 @@ def gyro_drive(
         if hub.button.center.was_pressed():
             raise StopRun
         error = target_angle - hub.motion.yaw_pitch_roll()[0]
+        if abs(error) < cfg.GYRO_TOLERANCE:
+            error = 0
         error_sum += error
         correction = clamp(
             round(pid.p * error + pid.i * error_sum + pid.d * (error - last_error)),
@@ -363,38 +366,23 @@ def gyro_drive(
 
         left_speed, right_speed = speed - correction // 2, speed + correction // 2
 
-        if pct < accelerate:
-            speed_mutiplier = clamp(
-                round(
-                    (sigmoid((pct / accelerate * 2 * smooth) - smooth) - cutoff)
-                    / (1 - cutoff),
-                    2,
-                ),
-                0.2,
-                1,
-            )
+        if pct <= accelerate:
+            speed_multiplier = linear(0.2, 1, pct / accelerate)
             left_speed, right_speed = (
-                left_speed * speed_mutiplier,
-                right_speed * speed_mutiplier,
+                left_speed * speed_multiplier,
+                right_speed * speed_multiplier,
             )
-        if (100 - pct) < decelerate:
-            speed_mutiplier = clamp(
-                round(
-                    (sigmoid(((100 - pct) / decelerate * 2 * smooth) - smooth) - cutoff)
-                    / (1 - cutoff),
-                    2,
-                ),
-                0.2,
-                1,
-            )
+        if (100 - pct) <= decelerate:
+            speed_multiplier = linear(0.2, 1, (100 - pct) / decelerate)
             left_speed, right_speed = (
-                left_speed * speed_mutiplier,
-                right_speed * speed_mutiplier,
+                left_speed * speed_multiplier,
+                right_speed * speed_multiplier,
             )
 
         cfg.DRIVING_MOTORS.run_at_speed(left_speed, -right_speed)
 
         last_error = error
+        time.sleep(cfg.LOOP_THROTTLE)
     if brake:
         cfg.DRIVING_MOTORS.brake()
 

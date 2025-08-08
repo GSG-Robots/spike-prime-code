@@ -19,16 +19,16 @@ sensors:
 
 correctors:
     gyro_turn:
-        p: 1.4
+        p: 1.1
         i: 0
-        d: -0.1
+        d: -0.2
 
         # In deg/s:
         min_speed: 5
         max_speed: 90
 
     gyro_drive:
-        p: 1.7
+        p: 2.2
         i: 0
         d: -0.2
 
@@ -36,12 +36,12 @@ correctors:
         driving_power:
             p: 50
             i: 0
-            d: 0
+            d: 5
 
         driving_differential:
-            p: 0
+            p: 30
             i: 0
-            d: 0
+            d: 4
 
         shaft_power:
             p: 2

@@ -95,7 +95,7 @@ async def main():
     menu = ActionMenu(swap_buttons=cfg.LANDSCAPE)
 
     # Load runs from runs/*.py
-    for file in os.listdir("/spielzeugs/runs"):
+    for file in sorted(os.listdir("/spielzeugs/runs")):
         run = getattr(__import__("spielzeugs.runs.%s" % file[:-4]).runs, file[:-4])
         display_as = run.display_as
         color = run.color
