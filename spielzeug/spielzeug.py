@@ -8,9 +8,14 @@ import hub
 import uasyncio as asyncio
 
 
-usb = hub.USB_VCP()
+# usb = hub.USB_VCP()
+usb = hub.BT_VCP()
 spielzeug_lib.set_ser(usb, 5)
 
+@hub.button.connect.callback
+def button_callback():
+    hub.sound.beep(700, 100)
+    hub.bluetooth.discoverable(10)
 
 if "spielzeugs" not in os.listdir("/"):
     os.mkdir("/spielzeugs")
