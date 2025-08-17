@@ -227,6 +227,15 @@ def gyro_set_origin():
     hub.motion.yaw_pitch_roll(0)
 
 
+def gyro_wall_align(backwards=False, wall_align_duration: int | float = 1):
+    speed = 30 if backwards else -30
+    cfg.DRIVING_MOTORS.run_at_speed(speed, -speed)
+    time.sleep(wall_align_duration / 2)
+    hub.motion.yaw_pitch_roll(0)
+    time.sleep(wall_align_duration / 2)
+    cfg.DRIVING_MOTORS.float()
+
+
 def gyro_turn(
     target_angle: int,
     step_speed: int | float = 70,
@@ -324,7 +333,7 @@ def gyro_drive(
     pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,
-    sigmoid_conf: tuple[int, bool] = (6, True),
+    interpolators=(linear, linear),
     brake: bool = True,
 ):
     """Fahre mithilfe des Gyrosensors in eine bestimmte Richtung
@@ -366,14 +375,14 @@ def gyro_drive(
 
         left_speed, right_speed = speed - correction // 2, speed + correction // 2
 
-        if pct <= accelerate:
-            speed_multiplier = linear(0.2, 1, pct / accelerate)
+        if pct < accelerate:
+            speed_multiplier = interpolators[0](0.2, 1, pct / accelerate)
             left_speed, right_speed = (
                 left_speed * speed_multiplier,
                 right_speed * speed_multiplier,
             )
-        if (100 - pct) <= decelerate:
-            speed_multiplier = linear(0.2, 1, (100 - pct) / decelerate)
+        if (100 - pct) < decelerate:
+            speed_multiplier = interpolators[1](0.2, 1, (100 - pct) / decelerate)
             left_speed, right_speed = (
                 left_speed * speed_multiplier,
                 right_speed * speed_multiplier,

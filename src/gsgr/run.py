@@ -38,6 +38,8 @@ class Run(ActionMenuItem):
         return super().prepare()
 
     def update(self, first=False) -> None:
+        if self.left_sensor is None and self.right_sensor is None:
+            return
         if first:
             self.left_req_dcon = self.left_sensor is not None and not (cfg.LEFT_SW_SENSOR == -1 or (cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.left_sensor[1]))
             self.right_req_dcon = self.right_sensor is not None and not (cfg.RIGHT_SW_SENSOR == -1 or (cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.right_sensor[1]))

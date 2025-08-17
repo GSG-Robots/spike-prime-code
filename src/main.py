@@ -95,8 +95,8 @@ async def main():
     menu = ActionMenu(swap_buttons=cfg.LANDSCAPE)
 
     # Load runs from runs/*.py
-    for file in sorted(os.listdir("/spielzeugs/runs")):
-        run = getattr(__import__("spielzeugs.runs.%s" % file[:-4]).runs, file[:-4])
+    for file in sorted(os.listdir("/src/runs")):
+        run = getattr(__import__("src.runs.%s" % file[:-4]).runs, file[:-4])
         display_as = run.display_as
         color = run.color
         run_action = run.run
@@ -135,7 +135,7 @@ async def main():
     menu.add_item(Run("C", Color.YELLOW, run_motorcontrol))
 
     # Add exit
-    menu.add_item(ActionMenuItem(menu.exit, "x", Color.WHITE))
+    # menu.add_item(ActionMenuItem(menu.exit, "x", Color.WHITE))
 
     # Start Menu
     await menu.loop(

@@ -6,19 +6,68 @@ import sys
 import spielzeug_lib
 import hub
 import uasyncio as asyncio
+import time
 
 
-# usb = hub.USB_VCP()
-usb = hub.BT_VCP()
+def choose_usb():
+    hub.display.align(hub.FRONT)
+    animation_a = (
+        (2, 0),
+        (2, 1),
+        (2, 2),
+        (1, 2),
+        (0, 2),
+        (0, 3),
+        (0, 4),
+    )
+    animation_b = (
+        (4, 0),
+        (4, 1),
+        (4, 2),
+        (4, 3),
+        (4, 4),
+    )
+
+    frame = 0
+    hub.button.left.was_pressed()
+    hub.button.right.was_pressed()
+    hub.button.connect.was_pressed()
+    hub.button.center.was_pressed()
+    while True:
+        a_frame = frame % len(animation_a)
+        for idx, (x, y) in enumerate(animation_a):
+            if a_frame == idx:
+                hub.display.pixel(x, y, 9)
+            else:
+                hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
+        b_frame = frame % len(animation_b)
+        for idx, (x, y) in enumerate(animation_b):
+            if b_frame == idx:
+                hub.display.pixel(x, y, 9)
+            else:
+                hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
+        frame += 1
+        time.sleep(0.15)
+        if hub.button.left.was_pressed():
+            return hub.USB_VCP()
+        if hub.button.right.was_pressed() or hub.button.connect.was_pressed():
+            return hub.BT_VCP()
+        if hub.button.center.was_pressed():
+            return None
+
+
+usb = choose_usb()
 spielzeug_lib.set_ser(usb, 5)
+
 
 @hub.button.connect.callback
 def button_callback():
     hub.sound.beep(700, 100)
     hub.bluetooth.discoverable(10)
 
-if "spielzeugs" not in os.listdir("/"):
-    os.mkdir("/spielzeugs")
+
+if "src" not in os.listdir("/"):
+    os.mkdir("/src")
 
 
 async def display_connected():
@@ -36,8 +85,8 @@ async def display_connected():
 
 
 def clean_tree(path=""):
-    for item, type, *_ in os.ilistdir("/spielzeugs/" + path):
-        item_path = "/spielzeugs/" + path + item
+    for item, type, *_ in os.ilistdir("/src/" + path):
+        item_path = "/src/" + path + item
         if type == 0x8000:
             os.remove(item_path)
         elif type == 0x4000:
@@ -48,7 +97,7 @@ def clean_tree(path=""):
 def list_files(path=""):
     files = []
     directories = []
-    for item, type, *_ in os.ilistdir("/spielzeugs/" + path):
+    for item, type, *_ in os.ilistdir("/src/" + path):
         item_path = path + item
         if type == 0x8000:
             files.append(item_path)
@@ -76,7 +125,7 @@ def perform_sync():
             if path in old_files:
                 old_files.remove(path)
 
-                with open("/spielzeugs/" + path, "rb") as f:
+                with open("/src/" + path, "rb") as f:
                     old_hash = binascii.hexlify(
                         hashlib.sha256(f.read()).digest()
                     ).decode()
@@ -86,21 +135,21 @@ def perform_sync():
                     continue
             spielzeug_lib.send_command("update")
             data = spielzeug_lib.intake_raw_data()
-            with open("/spielzeugs/" + path, "wb") as f:
+            with open("/src/" + path, "wb") as f:
                 f.write(data)
             spielzeug_lib.send_command("done")
         elif command == "dir":
             if arguments in old_directories:
                 old_directories.remove(arguments)
             else:
-                os.mkdir("/spielzeugs/" + arguments)
+                os.mkdir("/src/" + arguments)
             spielzeug_lib.send_command("done")
 
     for file in old_files:
-        os.remove("/spielzeugs/" + file)
+        os.remove("/src/" + file)
 
     for directory in reversed(old_directories):
-        os.rmdir("/spielzeugs/" + directory)
+        os.rmdir("/src/" + directory)
 
 
 prog_task = None
@@ -121,23 +170,31 @@ async def start_main():
         prog_task.cancel()
         await has_stopped.wait()
     for module in sys.modules.keys():
-        if module == "spielzeugs" or module.startswith("spielzeugs."):
+        if module == "src" or module.startswith("src."):
             del sys.modules[module]
     hub.display.clear()
-    module = __import__("spielzeugs")
+    module = __import__("src")
     prog_task = asyncio.create_task(task_wrapper(module.loop()))
 
 
 async def main_loop():
-    asyncio.create_task(display_connected())
+    if spielzeug_lib.ser:
+        asyncio.create_task(display_connected())
     hub.display.show(hub.Image("00000:00000:90909:00000:00000"))
     await asyncio.sleep_ms(2000)
     hub.display.clear()
     try:
         await start_main()
     except Exception as e:
-        print("error", binascii.b2a_base64(str(e).encode()).decode())
-    while True:
+        print("show_error", binascii.b2a_base64(str(e).encode()).decode())
+        hub.led(9)
+        time.sleep(0.1)
+        hub.led(0)
+        time.sleep(0.1)
+        hub.led(9)
+    if not spielzeug_lib.ser:
+        await prog_task
+    while spielzeug_lib.ser:
         if usb.isconnected():
             try:
                 command, arguments = spielzeug_lib.get_command()
@@ -161,18 +218,18 @@ async def main_loop():
                     spielzeug_lib.send_command("DONE")
                 elif command == "write":
                     data = spielzeug_lib.intake_raw_data()
-                    with open("/spielzeugs/" + arguments, "wb") as f:
+                    with open("/src/" + arguments, "wb") as f:
                         f.write(data)
                     spielzeug_lib.send_command("DONE")
                 elif command == "rm":
-                    os.remove("/spielzeugs/" + arguments)
+                    os.remove("/src/" + arguments)
                 elif command == "rmdir":
-                    os.remove("/spielzeugs/" + arguments)
+                    os.remove("/src/" + arguments)
                 elif command == "mkdir":
-                    os.mkdir("/spielzeugs/" + arguments)
+                    os.mkdir("/src/" + arguments)
                     spielzeug_lib.send_command("DONE")
                 elif command == "read":
-                    with open("/spielzeugs/" + arguments, "rb") as f:
+                    with open("/src/" + arguments, "rb") as f:
                         spielzeug_lib.send_raw_data(f)
                 else:
                     print(

@@ -181,7 +181,8 @@ class ActionMenu(Menu):
         # hw.right_color_sensor.light_up_all(0)
 
         result: ActionMenuItem = await self.choose(exit_on_charge=exit_on_charge)
-        spielzeug_lib.send_command("blocked")
+        if spielzeug_lib.ser:
+            spielzeug_lib.send_command("blocked")
         show_image(result.display_as, border_right=True, border_left=True, bright=False)
         result.prepare()
         try:
@@ -197,7 +198,8 @@ class ActionMenu(Menu):
             raise e
         finally:
             result.cleanup()
-            spielzeug_lib.send_command("unblocked")
+            if spielzeug_lib.ser:
+                spielzeug_lib.send_command("unblocked")
 
     async def loop(self, autoscroll=False, exit_on_charge=False) -> None:
         """Endlos immer wieder Menü zeigen und ein Menü-Element wählen lassen, welches dann ausgeführt wird.
