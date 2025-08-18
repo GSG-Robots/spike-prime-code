@@ -28,9 +28,9 @@ correctors:
         max_speed: 90
 
     gyro_drive:
-        p: 2.2
-        i: 0
-        d: -0.2
+        p: 0.45
+        i: 0.001
+        d: -0.7
 
     motors:
         driving_power:

@@ -12,7 +12,7 @@ from .enums import Pivot, SWSensor
 # from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
 from .math import clamp, sigmoid
-from .interpolators import linear
+from .interpolators import exponential, linear
 
 
 def check_battery():
@@ -333,7 +333,7 @@ def gyro_drive(
     pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,
-    interpolators=(linear, linear),
+    interpolators=(exponential, exponential),
     brake: bool = True,
 ):
     """Fahre mithilfe des Gyrosensors in eine bestimmte Richtung
@@ -355,6 +355,7 @@ def gyro_drive(
     pid = cfg.GYRO_DRIVE_PID if pid is None else pid
     last_error = 0
     error_sum = 0
+    last = time.ticks_us()
 
     hub.button.center.was_pressed()
     while (pct := next(ending_condition)) < 100:
@@ -362,8 +363,12 @@ def gyro_drive(
             raise StopRun
         error = target_angle - hub.motion.yaw_pitch_roll()[0]
         if abs(error) < cfg.GYRO_TOLERANCE:
-            error = 0
-        error_sum += error
+            # error = 0
+            error_sum = 0
+            last_error = 0
+        now = time.ticks_us()
+        error_sum += error / max(time.ticks_diff(now, last), 1)
+        last = now
         correction = clamp(
             round(pid.p * error + pid.i * error_sum + pid.d * (error - last_error)),
             -100,
@@ -372,6 +377,7 @@ def gyro_drive(
 
         if sign(error) != sign(error_sum):
             error_sum = 0
+            last_error = 0
 
         left_speed, right_speed = speed - correction // 2, speed + correction // 2
 
@@ -391,7 +397,7 @@ def gyro_drive(
         cfg.DRIVING_MOTORS.run_at_speed(left_speed, -right_speed)
 
         last_error = error
-        time.sleep(cfg.LOOP_THROTTLE)
+        # time.sleep(cfg.LOOP_THROTTLE)
     if brake:
         cfg.DRIVING_MOTORS.brake()
 
