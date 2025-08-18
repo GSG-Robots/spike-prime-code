@@ -7,6 +7,8 @@ import spike_invator
 import howmany
 import rollthedice
 import guessthenumber
+import waahlrooßen
+
 
 hub = PrimeHub()
 
@@ -64,5 +66,7 @@ if game == 4:
 if game == 5:
     hub.light_matrix.off()
     guessthenumber.main()
-
+if game == 6:
+    hub.light_matrix.off()
+    waahlrooßen.main()
 hb.button.center.callback(cb)

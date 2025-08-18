@@ -9,7 +9,7 @@ duration = 0.5
 
 hub.button.center.was_pressed()
 hub.button.left.was_pressed()
-while True:
+while not hub.button.right.was_pressed():
     hub.display.show(hub.Image("00000:90000:09990:90000:00000"))
     time.sleep(duration)
     hub.display.show(hub.Image("00000:09000:00999:09000:00000"))
@@ -17,6 +17,12 @@ while True:
 
     if hub.button.center.was_pressed():
         duration = 0.07
+
+    if hub.button.left.is_pressed() and hub.button.center.is_pressed() and hub.button.connect.is_pressed():
+        with open("/flag.txt", "w") as f:
+            f.write("LOCK active! Code: Left, Left, Right, Connect, Center")
+
+        hub.power_off(restart=True)
 
     duration = min(0.7, max(0.075, duration))
 
