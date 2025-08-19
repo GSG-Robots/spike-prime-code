@@ -3,13 +3,14 @@ import os
 import time
 from pathlib import Path
 
+import serial.tools.list_ports
 import serial.tools.list_ports_windows
 from tqdm import tqdm
 
 
 def get_device():
     print("> Searching for devices...")
-    devices = serial.tools.list_ports_windows.comports()
+    devices = serial.tools.list_ports.comports()
     if len(devices) == 0:
         print("Error: No devices found")
         return

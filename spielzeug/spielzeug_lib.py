@@ -42,7 +42,6 @@ def wait_for_keyword(keyword):
         if not cmd:
             continue
         cmd = cmd.strip().decode()
-        print(cmd)
         if cmd.startswith(keyword):
             break
         if cmd.startswith("error "):

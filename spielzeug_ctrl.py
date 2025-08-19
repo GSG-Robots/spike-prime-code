@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 from typing import Iterator
 
+import serial.tools.list_ports
 import serial.tools.list_ports_windows
 import watchdog.events
 import watchdog.observers
@@ -41,7 +42,7 @@ clean_dir(build_dir)
 
 def get_device():
     print("> Searching for devices...")
-    devices = serial.tools.list_ports_windows.comports()
+    devices = serial.tools.list_ports.comports()
     if len(devices) == 0:
         print("Error: No devices found")
         return
