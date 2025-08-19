@@ -17,5 +17,5 @@ def run():
         cm(50),
         accelerate=10,
         decelerate=40,
-        pid=PID(2.5, 0.001, -1.5),
+        pid=PID(0.9, 0, -0.9),
     )

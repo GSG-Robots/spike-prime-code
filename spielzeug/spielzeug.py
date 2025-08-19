@@ -61,9 +61,9 @@ spielzeug_lib.set_ser(usb, 5)
 
 
 @hub.button.connect.callback
-def button_callback():
+def button_callback(i):
     hub.sound.beep(700, 100)
-    hub.bluetooth.discoverable(10)
+    hub.bluetooth.discoverable(90000)
 
 
 if "src" not in os.listdir("/"):
@@ -81,7 +81,7 @@ async def display_connected():
         elif connected:
             connected = False
             hub.led(0)
-        await asyncio.sleep_ms(50)
+        await asyncio.sleep_ms(100)
 
 
 def clean_tree(path=""):
@@ -199,7 +199,7 @@ async def main_loop():
             try:
                 command, arguments = spielzeug_lib.get_command()
                 if command is None:
-                    await asyncio.sleep_ms(30)
+                    await asyncio.sleep_ms(100)
                     continue
                 hub.display.show(hub.Image("99999:99999:99999:99999:99999"))
                 if command == "clean":
@@ -224,7 +224,7 @@ async def main_loop():
                 elif command == "rm":
                     os.remove("/src/" + arguments)
                 elif command == "rmdir":
-                    os.remove("/src/" + arguments)
+                    os.rmdir("/src/" + arguments)
                 elif command == "mkdir":
                     os.mkdir("/src/" + arguments)
                     spielzeug_lib.send_command("DONE")
