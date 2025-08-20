@@ -238,10 +238,13 @@ async def main_loop():
                             "GOT unknown command '" + str(command) + "'"
                         ).decode(),
                     )
+            except KeyboardInterrupt:
+                await asyncio.sleep_ms(100)
+                continue
             except Exception as e:
                 buf = io.StringIO()
                 sys.print_exception(e, buf)
                 print("error", binascii.b2a_base64(buf.getvalue()).decode())
         else:
             await asyncio.sleep_ms(100)
-        await asyncio.sleep_ms(10)
+        await asyncio.sleep_ms(100)

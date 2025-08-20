@@ -245,10 +245,12 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
 
 
 def main():
+    print("Building...")
     build(src_dir.glob("**"))
     ser = get_device()
     time.sleep(1)
     spielzeug_lib.set_ser(ser, 5)
+    spielzeug_lib.send_command("cancel-any")
     print("Connected to device.")
     print("Initial file synchronization...")
     sync_build_files()

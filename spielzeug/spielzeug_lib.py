@@ -22,6 +22,8 @@ def intake_raw_data(cb=None):
         cmd = cmd.strip().decode()
         if cmd == "EOF":
             break
+        elif cmd == "cancel-any":
+            break
         elif cmd.startswith("CHUNK "):
             data += binascii.a2b_base64(cmd[6:])
             start = time.time()
@@ -42,6 +44,8 @@ def wait_for_keyword(keyword):
         if not cmd:
             continue
         cmd = cmd.strip().decode()
+        if cmd.startswith("cancel-any"):
+            raise KeyboardInterrupt
         if cmd.startswith(keyword):
             break
         if cmd.startswith("error "):
@@ -81,4 +85,6 @@ def get_command():
     command, arguments = data.split(" ", 1) if " " in data else (data, "")
     if command == "error":
         raise RuntimeError(binascii.a2b_base64(arguments).decode())
+    if command.startswith("cancel-any"):
+        raise KeyboardInterrupt
     return command, arguments
