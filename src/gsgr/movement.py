@@ -370,7 +370,7 @@ def gyro_drive(
             error_sum = 0
             last_error = 0
         now = time.ticks_us()
-        error_sum += error / max(time.ticks_diff(now, last), 1)
+        error_sum += error * (time.ticks_diff(now, last) / 1000)
         last = now
         correction = clamp(
             round(pid.p * error + pid.i * error_sum + pid.d * (error - last_error)),
@@ -406,12 +406,12 @@ def gyro_drive(
 
 
 def start_with_naR(alpha, radius):
-    assert (
-        cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
-    ), "naR: left sensor must be the integrated light sensor"
-    assert (
-        cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
-    ), "naR: right sensor must be the integrated light sensor"
+    assert cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, (
+        "naR: left sensor must be the integrated light sensor"
+    )
+    assert cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, (
+        "naR: right sensor must be the integrated light sensor"
+    )
 
     cfg.LEFT_SENSOR.mode(4)
     cfg.RIGHT_SENSOR.mode(4)

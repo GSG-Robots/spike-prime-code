@@ -13,9 +13,8 @@ def run():
     gyro_wall_align()
     gyro_drive(
         0,
-        80,
+        40,
         cm(50),
         accelerate=10,
         decelerate=40,
-        pid=PID(0.9, 0, -0.9),
     )
