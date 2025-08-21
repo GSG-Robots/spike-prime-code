@@ -80,31 +80,30 @@ async def main():
     print("%s%% battery left" % hub.battery.capacity_left())
     print("Voltage:", hub.battery.voltage(), "mV")
 
-    # # Reset gear selector
-    print(cfg.GEAR_SELECTOR.get())
+    # Reset gear selector
     cfg.GEAR_SELECTOR.preset(cfg.GEAR_SELECTOR.get()[2] + 10)
     cfg.GEAR_SELECTOR.run_to_position(0, speed=100)
 
-    # # Align display depending on config
+    # Align display depending on config
     if cfg.LANDSCAPE:
         hub.display.align(hub.RIGHT)
     else:
         hub.display.align(hub.BACK)
 
-    # # Initialize Menu
-    menu = ActionMenu(swap_buttons=cfg.LANDSCAPE)
+    # Initialize Menu
+    menu = ActionMenu(swap_buttons=cfg.LANDSCAPE, focus=cfg.DEBUG_FOCUS)
 
     # Load runs from runs/*.py
-    for file in sorted(os.listdir("/src/runs")):
+    for file in sorted(os.listdir("/src/runs"), key=str.lower):
         run = getattr(__import__("src.runs.%s" % file[:-4]).runs, file[:-4])
         display_as = run.display_as
         color = run.color
         run_action = run.run
         left_sensor = run.left_sensor if hasattr(run, "left_sensor") else None
         right_sensor = run.right_sensor if hasattr(run, "right_sensor") else None
-        assert isinstance(display_as, int) or isinstance(
-            display_as, str
-        ), "RunDef: display_as must be str or int"
+        assert isinstance(display_as, int) or isinstance(display_as, str), (
+            "RunDef: display_as must be str or int"
+        )
         assert isinstance(color, int), "RunDef: color must be int"
         assert (
             left_sensor is None
@@ -139,5 +138,5 @@ async def main():
 
     # Start Menu
     await menu.loop(
-        autoscroll=True,
+        autoscroll=not cfg.DEBUG_NOSCROLL,
     )
