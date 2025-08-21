@@ -101,14 +101,16 @@ class Menu:
     position: int
     """Position des aktuell ausgewählten :py:class:`~gsgr.menu.MenuItem` s"""
 
-    def __init__(self, items: list | None = None, swap_buttons=False) -> None:
+    def __init__(
+        self, items: list | None = None, swap_buttons=False, focus: int = 0
+    ) -> None:
         """
         :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
         :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:const:`False`.
         """
         self.items = items or []
         self.swap_buttons = swap_buttons
-        self.position = 0
+        self.position = focus
 
     def add_item(self, item) -> None:
         """Ein Element zum Menü hinzufügen
@@ -193,7 +195,7 @@ class ActionMenu(Menu):
         except StopRun as e:
             raise e
         except Exception as e:
-            if cfg.DEBUG_MODE:
+            if cfg.DEBUG_DISPLAY_ERRORS:
                 hub.display.show(repr(e))
             raise e
         finally:

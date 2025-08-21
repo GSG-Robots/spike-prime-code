@@ -20,6 +20,7 @@ import json
 with open("/src/config.json", "r", encoding="utf-8") as f:
     _config_dict = json.load(f)
 
+
 class configure:
     def __init__(self, **kwargs) -> None:
         self.changes: dict[str, Any] = kwargs
@@ -38,9 +39,9 @@ class configure:
             self.changes["GYRO_TURN_MINMAX_SPEED"] = minmax_speed
         return self
 
-    def debug_mode(self, enabled: bool) -> Self:
-        self.changes["DEBUG_MODE"] = enabled
-        return self
+    # def debug_mode(self, enabled: bool) -> Self:
+    #     self.changes["DEBUG_MODE"] = enabled
+    #     return self
 
     def gyro_tolerance(self, tolernce: int) -> Self:
         self.changes["GYRO_TOLERANCE"] = tolernce
@@ -63,7 +64,10 @@ class Config:
     GEAR_SHAFT: hub.Motor
     GEAR_SELECTOR: hub.Motor
     TIRE_CIRCUMFRENCE: float
-    DEBUG_MODE: bool
+    DEBUG_NOSCROLL: bool
+    DEBUG_FOCUS: bool
+    DEBUG_RAISE_BATTERY: bool
+    DEBUG_DISPLAY_ERRORS: bool
     LOOP_THROTTLE: float
     GYRO_TOLERANCE: int
     GYRO_DRIVE_PID: PID
@@ -87,7 +91,15 @@ class Config:
         self.GEAR_SHAFT = PORTS[_config_dict["gearbox"]["drive_shaft"]].motor
         self.GEAR_SELECTOR = PORTS[_config_dict["gearbox"]["gear_selector"]].motor
         self.TIRE_CIRCUMFRENCE = _config_dict["tire_diameter"] * math.pi
-        self.DEBUG_MODE = _config_dict["debug_mode"]
+        allow_debug = not _config_dict["competition"]
+        self.DEBUG_NOSCROLL = allow_debug and _config_dict["debugging"]["no_autoscroll"]
+        self.DEBUG_FOCUS = allow_debug and _config_dict["debugging"]["initial_focus"]
+        self.DEBUG_RAISE_BATTERY = (
+            allow_debug and _config_dict["debugging"]["require_battery_full"]
+        )
+        self.DEBUG_DISPLAY_ERRORS = (
+            allow_debug and _config_dict["debugging"]["display_errors"]
+        )
         self.LOOP_THROTTLE = _config_dict["loop_throttle"]
         self.GYRO_TOLERANCE = _config_dict["gyro_tolerance"]
         self.GYRO_DRIVE_PID = PID(
@@ -155,6 +167,7 @@ class Config:
 
         self.LANDSCAPE = _config_dict["landscape"]
         self.GYRO_OFF = _config_dict["gyro_off"]
+
 
 cfg = Config()
 

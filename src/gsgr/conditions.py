@@ -109,7 +109,6 @@ def pickup(during: Condition, threshold: int | float = 500, min: int = 50) -> Co
 
     while True:
         v = hub.motion.accelerometer(filtered=False)[2]
-        print(v, threshold)
         if v > threshold:
             break
         yield next(during)
@@ -150,7 +149,6 @@ def light_left(threshold: float, below: bool = False):
         yield 100 if cfg.LEFT_SENSOR.get(0)[0] / 10.24 < threshold else 0
 
     while True:
-        print(cfg.LEFT_SENSOR.get(0)[0] / 10.24)
         yield 100 if cfg.LEFT_SENSOR.get(0)[0] / 10.24 > threshold else 0
 
 

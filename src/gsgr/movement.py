@@ -26,7 +26,7 @@ def check_battery():
     """
 
     # Only in debug mode
-    if not cfg.DEBUG_MODE:
+    if not cfg.DEBUG_RAISE_BATTERY:
         return
     # Check if the battery is low and raise an error if it is
     if hub.battery.voltage() < 7850:
@@ -188,17 +188,17 @@ def run_attachment(
     if not duration:
         cfg.GEAR_SHAFT.run_at_speed(speed, stall=stall)
     else:
-        cfg.GEAR_SHAFT.pwm(speed)
-        time.sleep(duration)
-        cfg.GEAR_SHAFT.brake()
-        # cfg.GEAR_SHAFT.run_for_time(
-        #     duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
-        # )
+        # cfg.GEAR_SHAFT.pwm(speed)
+        # time.sleep(duration)
+        # cfg.GEAR_SHAFT.brake()
+        cfg.GEAR_SHAFT.run_for_time(
+            duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
+        )
 
     if await_completion:
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
-    if untension and False:
+    if untension:
         cfg.GEAR_SHAFT.run_for_degrees(
             -math.copysign(untension, speed),
             speed=100,
