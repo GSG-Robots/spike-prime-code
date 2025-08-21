@@ -1,8 +1,10 @@
+import hub
+
 from ..gsgr.conditions import cm
 from ..gsgr.enums import Color, Pivot
 from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn
-import hub
-display_as = 3
+
+display_as = "3x3h"
 color = Color.RED
 
 
