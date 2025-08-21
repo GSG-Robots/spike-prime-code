@@ -303,6 +303,7 @@ def main():
                     if blocked:
                         continue
                     print("> Updating...")
+                    spielzeug_lib.send_command("cancel-any")
                     done = []
                     for task in file_uploader.tasks:
                         if task in done:
