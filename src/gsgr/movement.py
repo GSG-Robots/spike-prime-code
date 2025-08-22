@@ -231,7 +231,7 @@ def gyro_set_origin():
 
 
 def gyro_wall_align(backwards=False, wall_align_duration: int | float = 1):
-    speed = 30 if backwards else -30
+    speed = -30 if backwards else 30
     cfg.DRIVING_MOTORS.run_at_speed(speed, -speed)
     time.sleep(wall_align_duration / 2)
     hub.motion.yaw_pitch_roll(0)
@@ -382,7 +382,7 @@ def gyro_drive(
             error_sum = 0
             last_error = 0
 
-        left_speed, right_speed = speed - correction // 2, speed + correction // 2
+        left_speed, right_speed = speed + correction // 2, speed - correction // 2
 
         if pct < accelerate:
             speed_multiplier = interpolators[0](0.2, 1, pct / accelerate)
@@ -397,7 +397,7 @@ def gyro_drive(
                 right_speed * speed_multiplier,
             )
 
-        cfg.DRIVING_MOTORS.run_at_speed(left_speed, -right_speed)
+        cfg.DRIVING_MOTORS.run_at_speed(-left_speed, right_speed)
 
         last_error = error
         # time.sleep(cfg.LOOP_THROTTLE)

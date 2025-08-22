@@ -20,7 +20,7 @@ def static(value: bool | int) -> Condition:
         yield (100 if value else 0) if isinstance(value, bool) else value
 
 
-def cm(distance: int) -> Condition:
+def cm(distance: int | float) -> Condition:
     """... bis sich die Räder um eine Bestimmte Strecke bewegt haben.
 
     :param distance: Die Strecke, die zurückgelegt werden soll, in cm.

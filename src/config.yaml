@@ -1,16 +1,16 @@
-tire_diameter: 6.5
+tire_diameter: 6.24
 loop_throttle: 0.025
 landscape: yes
 gyro_tolerance: 1
-gyro_off: -11
+gyro_off: -12
 
 gearbox:
     drive_shaft: A
     gear_selector: B
 
 driving_motors:
-    left: C
-    right: D
+    left: D
+    right: C
 
 sensors:
     left: E
