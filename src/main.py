@@ -2,13 +2,13 @@ import gc
 import os
 import time
 
-from .gsgr import display
-from .gsgr.enums import Color, Attachment
-from .gsgr import movement
 import hub
+
+from .gsgr import movement
 from .gsgr.config import cfg
+from .gsgr.enums import Attachment, Color
 from .gsgr.exceptions import StopRun
-from .gsgr.menu import ActionMenu, ActionMenuItem
+from .gsgr.menu import ActionMenu
 from .gsgr.run import Run
 
 
