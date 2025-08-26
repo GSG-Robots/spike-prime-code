@@ -5,58 +5,59 @@ import os
 import sys
 import spielzeug_lib
 import hub
+from machine import UART
 import uasyncio as asyncio
 import time
 
 
-def choose_usb():
-    hub.display.align(hub.FRONT)
-    animation_a = (
-        (2, 0),
-        (2, 1),
-        (2, 2),
-        (1, 2),
-        (0, 2),
-        (0, 3),
-        (0, 4),
-    )
-    animation_b = (
-        (4, 0),
-        (4, 1),
-        (4, 2),
-        (4, 3),
-        (4, 4),
-    )
+# def choose_usb():
+#     hub.display.align(hub.FRONT)
+#     animation_a = (
+#         (2, 0),
+#         (2, 1),
+#         (2, 2),
+#         (1, 2),
+#         (0, 2),
+#         (0, 3),
+#         (0, 4),
+#     )
+#     animation_b = (
+#         (4, 0),
+#         (4, 1),
+#         (4, 2),
+#         (4, 3),
+#         (4, 4),
+#     )
 
-    frame = 0
-    hub.button.left.was_pressed()
-    hub.button.right.was_pressed()
-    hub.button.connect.was_pressed()
-    hub.button.center.was_pressed()
-    while True:
-        a_frame = frame % len(animation_a)
-        for idx, (x, y) in enumerate(animation_a):
-            if a_frame == idx:
-                hub.display.pixel(x, y, 9)
-            else:
-                hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
-        b_frame = frame % len(animation_b)
-        for idx, (x, y) in enumerate(animation_b):
-            if b_frame == idx:
-                hub.display.pixel(x, y, 9)
-            else:
-                hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
-        frame += 1
-        time.sleep(0.15)
-        if hub.button.left.was_pressed():
-            return hub.USB_VCP()
-        if hub.button.right.was_pressed() or hub.button.connect.was_pressed():
-            return hub.BT_VCP()
-        if hub.button.center.was_pressed():
-            return None
+#     frame = 0
+#     hub.button.left.was_pressed()
+#     hub.button.right.was_pressed()
+#     hub.button.connect.was_pressed()
+#     hub.button.center.was_pressed()
+#     while True:
+#         a_frame = frame % len(animation_a)
+#         for idx, (x, y) in enumerate(animation_a):
+#             if a_frame == idx:
+#                 hub.display.pixel(x, y, 9)
+#             else:
+#                 hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
+#         b_frame = frame % len(animation_b)
+#         for idx, (x, y) in enumerate(animation_b):
+#             if b_frame == idx:
+#                 hub.display.pixel(x, y, 9)
+#             else:
+#                 hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
+#         frame += 1
+#         time.sleep(0.15)
+#         if hub.button.left.was_pressed():
+#             return hub.USB_VCP()
+#         if hub.button.right.was_pressed() or hub.button.connect.was_pressed():
+#             return hub.BT_VCP()
+#         if hub.button.center.was_pressed():
+#             return None
 
 
-usb = choose_usb()
+usb = UART(1, 9600)
 spielzeug_lib.set_ser(usb, 5)
 
 

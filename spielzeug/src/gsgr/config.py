@@ -17,7 +17,7 @@ PORTS = {
 
 import json
 
-with open("/flash/src/config.json", "r", encoding="utf-8") as f:
+with open("/src/config.json", "r", encoding="utf-8") as f:
     _config_dict = json.load(f)
 
 

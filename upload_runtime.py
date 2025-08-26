@@ -57,7 +57,7 @@ def upload_runtime(from_folder="onboard"):
     write_command(serial, b"")
 
     write_command(serial, b"import os")
-    write_command(serial, b"import hub")
+    write_command(serial, b"import machine")
     write_command(serial, b"import ubinascii")
 
     # serial.write(b"\x05")
@@ -88,12 +88,12 @@ def upload_runtime(from_folder="onboard"):
         if file.is_dir():
             write_command(
                 serial,
-                f"os.mkdir('{file.relative_to(from_folder).as_posix()}')".encode(),
+                f"os.mkdir('/flash/{file.relative_to(from_folder).as_posix()}')".encode(),
             )
             continue
         write_command(
             serial,
-            f"f = open('/{file.relative_to(from_folder).as_posix()}', 'wb')\r\n".encode(),
+            f"f = open('/flash/{file.relative_to(from_folder).as_posix()}', 'wb')\r\n".encode(),
             no_wait=True,
         )
         wait_for_prompt(serial)
@@ -109,7 +109,7 @@ def upload_runtime(from_folder="onboard"):
                     byte = f.read(192)
         write_command(serial, b"f.close()")
     time.sleep(5)
-    write_command(serial, b"hub.reset()", no_wait=True)
+    write_command(serial, b"machine.reset()", no_wait=True)
 
 
 if __name__ == "__main__":
