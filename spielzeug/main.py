@@ -1,10 +1,7 @@
 import micropython
 import uasyncio as asyncio
-import os
-
-print(os.listdir("/flash/flash/src"))
-import src
+import spielzeug
 
 micropython.alloc_emergency_exception_buf(256)
 
-asyncio.run(src.loop())
+asyncio.run(spielzeug.main_loop())

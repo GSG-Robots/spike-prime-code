@@ -5,89 +5,39 @@ import os
 import sys
 import spielzeug_lib
 import hub
-from machine import UART
 import uasyncio as asyncio
 import time
 
 
-# def choose_usb():
-#     hub.display.align(hub.FRONT)
-#     animation_a = (
-#         (2, 0),
-#         (2, 1),
-#         (2, 2),
-#         (1, 2),
-#         (0, 2),
-#         (0, 3),
-#         (0, 4),
-#     )
-#     animation_b = (
-#         (4, 0),
-#         (4, 1),
-#         (4, 2),
-#         (4, 3),
-#         (4, 4),
-#     )
+class Interface:
+    def read(*args, **kwargs):
+        return sys.stdin.read(*args, **kwargs)
 
-#     frame = 0
-#     hub.button.left.was_pressed()
-#     hub.button.right.was_pressed()
-#     hub.button.connect.was_pressed()
-#     hub.button.center.was_pressed()
-#     while True:
-#         a_frame = frame % len(animation_a)
-#         for idx, (x, y) in enumerate(animation_a):
-#             if a_frame == idx:
-#                 hub.display.pixel(x, y, 9)
-#             else:
-#                 hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
-#         b_frame = frame % len(animation_b)
-#         for idx, (x, y) in enumerate(animation_b):
-#             if b_frame == idx:
-#                 hub.display.pixel(x, y, 9)
-#             else:
-#                 hub.display.pixel(x, y, max(0, hub.display.pixel(x, y) - 1))
-#         frame += 1
-#         time.sleep(0.15)
-#         if hub.button.left.was_pressed():
-#             return hub.USB_VCP()
-#         if hub.button.right.was_pressed() or hub.button.connect.was_pressed():
-#             return hub.BT_VCP()
-#         if hub.button.center.was_pressed():
-#             return None
+    def readline(self, *args, **kwargs):
+        return input(*args, **kwargs).encode()
+
+    def write(self, *args, **kwargs):
+        print(*[a.decode() for a in args], **kwargs, end="")
 
 
-usb = UART(1, 9600)
+usb = Interface()
 spielzeug_lib.set_ser(usb, 5)
+spielzeug_lib.send_command("START")
 
 
-@hub.button.connect.callback
-def button_callback(i):
-    hub.sound.beep(700, 100)
-    hub.bluetooth.discoverable(90000)
+# @hub.button.connect.callback
+# def button_callback(i):
+#     hub.sound.beep(700, 100)
+#     hub.bluetooth.discoverable(90000)
 
 
-if "src" not in os.listdir("/"):
-    os.mkdir("/src")
-
-
-async def display_connected():
-    connected = False
-    while True:
-        if usb.isconnected():
-            if not connected:
-                spielzeug_lib.send_command("START")
-                connected = True
-                hub.led(3)
-        elif connected:
-            connected = False
-            hub.led(0)
-        await asyncio.sleep_ms(100)
+if "src" not in os.listdir("/flash"):
+    os.mkdir("/flash/src")
 
 
 def clean_tree(path=""):
-    for item, type, *_ in os.ilistdir("/src/" + path):
-        item_path = "/src/" + path + item
+    for item, type, *_ in os.ilistdir("/flash/src/" + path):
+        item_path = "/flash/src/" + path + item
         if type == 0x8000:
             os.remove(item_path)
         elif type == 0x4000:
@@ -98,7 +48,7 @@ def clean_tree(path=""):
 def list_files(path=""):
     files = []
     directories = []
-    for item, type, *_ in os.ilistdir("/src/" + path):
+    for item, type, *_ in os.ilistdir("/flash/src/" + path):
         item_path = path + item
         if type == 0x8000:
             files.append(item_path)
@@ -126,7 +76,7 @@ def perform_sync():
             if path in old_files:
                 old_files.remove(path)
 
-                with open("/src/" + path, "rb") as f:
+                with open("/flash/src/" + path, "rb") as f:
                     old_hash = binascii.hexlify(
                         hashlib.sha256(f.read()).digest()
                     ).decode()
@@ -136,21 +86,21 @@ def perform_sync():
                     continue
             spielzeug_lib.send_command("update")
             data = spielzeug_lib.intake_raw_data()
-            with open("/src/" + path, "wb") as f:
+            with open("/flash/src/" + path, "wb") as f:
                 f.write(data)
             spielzeug_lib.send_command("done")
         elif command == "dir":
             if arguments in old_directories:
                 old_directories.remove(arguments)
             else:
-                os.mkdir("/src/" + arguments)
+                os.mkdir("/flash/src/" + arguments)
             spielzeug_lib.send_command("done")
 
     for file in old_files:
-        os.remove("/src/" + file)
+        os.remove("/flash/src/" + file)
 
     for directory in reversed(old_directories):
-        os.rmdir("/src/" + directory)
+        os.rmdir("/flash/src/" + directory)
 
 
 prog_task = None
@@ -163,89 +113,84 @@ async def task_wrapper(coro):
         await coro
     finally:
         has_stopped.set()
-
-
+        
 async def start_main():
-    global prog_task
-    if prog_task:
-        prog_task.cancel()
-        await has_stopped.wait()
-    for module in sys.modules.keys():
-        if module == "src" or module.startswith("src."):
-            del sys.modules[module]
-    hub.display.clear()
-    module = __import__("src")
-    prog_task = asyncio.create_task(task_wrapper(module.loop()))
-
+    ...
+    # global prog_task
+    # if prog_task:
+    #     prog_task.cancel()
+    #     await has_stopped.wait()
+    # for module in sys.modules.keys():
+    #     if module == "src" or module.startswith("src."):
+    #         del sys.modules[module]
+    # hub.display.clear()
+    # module = __import__("src")
+    # prog_task = asyncio.create_task(task_wrapper(module.loop()))
+import color
 
 async def main_loop():
-    if spielzeug_lib.ser:
-        asyncio.create_task(display_connected())
-    hub.display.show(hub.Image("00000:00000:90909:00000:00000"))
+    hub.light_matrix.show(
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    )
     await asyncio.sleep_ms(2000)
-    hub.display.clear()
+    hub.light_matrix.clear()
     try:
         await start_main()
     except Exception as e:
         print("show_error", binascii.b2a_base64(str(e).encode()).decode())
-        hub.led(9)
+        hub.light.color(hub.light.POWER, color.RED)
         time.sleep(0.1)
-        hub.led(0)
+        hub.light.color(hub.light.POWER, color.BLACK)
         time.sleep(0.1)
-        hub.led(9)
-    if not spielzeug_lib.ser:
-        await prog_task
+        hub.light.color(hub.light.POWER, color.RED)
     while spielzeug_lib.ser:
-        if usb.isconnected():
-            try:
-                command, arguments = spielzeug_lib.get_command()
-                if command is None:
-                    await asyncio.sleep_ms(100)
-                    continue
-                hub.display.show(hub.Image("99999:99999:99999:99999:99999"))
-                if command == "clean":
-                    clean_tree()
-                    spielzeug_lib.send_command("DONE")
-                elif command == "sync-down":
-                    perform_sync()
-                    spielzeug_lib.send_command("DONE")
-                elif command == "start":
-                    await start_main()
-                    spielzeug_lib.send_command("DONE")
-                elif command == "stop":
-                    if prog_task:
-                        prog_task.cancel()
-                        await has_stopped.wait()
-                    spielzeug_lib.send_command("DONE")
-                elif command == "write":
-                    data = spielzeug_lib.intake_raw_data()
-                    with open("/src/" + arguments, "wb") as f:
-                        f.write(data)
-                    spielzeug_lib.send_command("DONE")
-                elif command == "rm":
-                    os.remove("/src/" + arguments)
-                elif command == "rmdir":
-                    os.rmdir("/src/" + arguments)
-                elif command == "mkdir":
-                    os.mkdir("/src/" + arguments)
-                    spielzeug_lib.send_command("DONE")
-                elif command == "read":
-                    with open("/src/" + arguments, "rb") as f:
-                        spielzeug_lib.send_raw_data(f)
-                else:
-                    print(
-                        "error",
-                        binascii.b2a_base64(
-                            "GOT unknown command '" + str(command) + "'"
-                        ).decode(),
-                    )
-            except KeyboardInterrupt:
+        try:
+            command, arguments = spielzeug_lib.get_command()
+            if command is None:
                 await asyncio.sleep_ms(100)
                 continue
-            except Exception as e:
-                buf = io.StringIO()
-                sys.print_exception(e, buf)
-                print("error", binascii.b2a_base64(buf.getvalue()).decode())
-        else:
+            hub.light_matrix.show([100]*25)
+            if command == "clean":
+                clean_tree()
+                spielzeug_lib.send_command("DONE")
+            elif command == "sync-down":
+                perform_sync()
+                spielzeug_lib.send_command("DONE")
+            elif command == "start":
+                await start_main()
+                spielzeug_lib.send_command("DONE")
+            elif command == "stop":
+                if prog_task:
+                    prog_task.cancel()
+                    await has_stopped.wait()
+                spielzeug_lib.send_command("DONE")
+            elif command == "write":
+                data = spielzeug_lib.intake_raw_data()
+                with open("/flash/src/" + arguments, "wb") as f:
+                    f.write(data)
+                spielzeug_lib.send_command("DONE")
+            elif command == "rm":
+                os.remove("/flash/src/" + arguments)
+            elif command == "rmdir":
+                os.rmdir("/flash/src/" + arguments)
+            elif command == "mkdir":
+                os.mkdir("/flash/src/" + arguments)
+                spielzeug_lib.send_command("DONE")
+            elif command == "read":
+                with open("/flash/src/" + arguments, "rb") as f:
+                    spielzeug_lib.send_raw_data(f)
+            else:
+                print(
+                    "error",
+                    binascii.b2a_base64(
+                        "GOT unknown command '" + str(command) + "'"
+                    ).decode(),
+                )
+        except KeyboardInterrupt:
             await asyncio.sleep_ms(100)
+            continue
+        except Exception as e:
+            buf = io.StringIO()
+            sys.print_exception(e, buf)
+            print("error", binascii.b2a_base64(buf.getvalue()).decode())
         await asyncio.sleep_ms(100)

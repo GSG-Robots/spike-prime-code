@@ -124,8 +124,11 @@ def list_build_files():
 
 
 def sync_build_files():
+    print("a")
     spielzeug_lib.send_command("sync-down")
+    print("B")
     spielzeug_lib.wait_for_keyword("ready")
+    print("C")
 
     for entry in list_build_files():
         spielzeug_lib.send_command(*entry[:-1])
@@ -250,7 +253,9 @@ def main():
     ser = get_device()
     time.sleep(1)
     spielzeug_lib.set_ser(ser, 5)
+    spielzeug_lib.send_command("")
     spielzeug_lib.send_command("cancel-any")
+    spielzeug_lib.send_command("")
     print("Connected to device.")
     print("Initial file synchronization...")
     sync_build_files()

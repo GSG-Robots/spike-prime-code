@@ -41,6 +41,7 @@ def wait_for_keyword(keyword):
     start = time.time()
     while start + timeout > time.time():
         cmd = ser.readline()
+        print(cmd)
         if not cmd:
             continue
         cmd = cmd.strip().decode()
