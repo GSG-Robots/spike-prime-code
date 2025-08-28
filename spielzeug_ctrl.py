@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Iterator
 
 import serial.tools.list_ports
-import serial.tools.list_ports_windows
 import watchdog.events
 import watchdog.observers
 import yaml

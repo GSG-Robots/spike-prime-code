@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import sys
+from spielzeug import spike2compat
 import spielzeug_lib
 import hub
 import uasyncio as asyncio
@@ -113,31 +114,32 @@ async def task_wrapper(coro):
         await coro
     finally:
         has_stopped.set()
-        
+
+
 async def start_main():
-    ...
-    # global prog_task
-    # if prog_task:
-    #     prog_task.cancel()
-    #     await has_stopped.wait()
-    # for module in sys.modules.keys():
-    #     if module == "src" or module.startswith("src."):
-    #         del sys.modules[module]
-    # hub.display.clear()
-    # module = __import__("src")
-    # prog_task = asyncio.create_task(task_wrapper(module.loop()))
+    global prog_task
+    if prog_task:
+        prog_task.cancel()
+        await has_stopped.wait()
+    for module in sys.modules.keys():
+        if module == "src" or module.startswith("src."):
+            del sys.modules[module]
+    hub.light_matrix.clear()
+    module = __import__("src")
+    prog_task = asyncio.create_task(task_wrapper(module.loop()))
+
+
 import color
 
+
 async def main_loop():
-    hub.light_matrix.show(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    )
+    hub.light_matrix.show(spike2compat.Image("00000:00000:90909:00000:00000"))
     await asyncio.sleep_ms(2000)
     hub.light_matrix.clear()
     try:
         await start_main()
     except Exception as e:
-        print("show_error", binascii.b2a_base64(str(e).encode()).decode())
+        print("error", binascii.b2a_base64(str(e).encode()).decode())
         hub.light.color(hub.light.POWER, color.RED)
         time.sleep(0.1)
         hub.light.color(hub.light.POWER, color.BLACK)
@@ -149,7 +151,7 @@ async def main_loop():
             if command is None:
                 await asyncio.sleep_ms(100)
                 continue
-            hub.light_matrix.show([100]*25)
+            hub.light_matrix.show([100] * 25)
             if command == "clean":
                 clean_tree()
                 spielzeug_lib.send_command("DONE")
@@ -179,6 +181,8 @@ async def main_loop():
             elif command == "read":
                 with open("/flash/src/" + arguments, "rb") as f:
                     spielzeug_lib.send_raw_data(f)
+            elif command == "exit":
+                return
             else:
                 print(
                     "error",

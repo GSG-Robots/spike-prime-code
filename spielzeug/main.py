@@ -1,7 +1,7 @@
 import micropython
 import uasyncio as asyncio
-import spielzeug
+import server
 
 micropython.alloc_emergency_exception_buf(256)
 
-asyncio.run(spielzeug.main_loop())
+asyncio.run(server.server())

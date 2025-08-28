@@ -1,6 +1,6 @@
 import time
 
-from src import hub
+from osrc import hub
 
 from ..gsgr.config import cfg
 from ..gsgr.conditions import cm, impact, pickup
