@@ -3,16 +3,18 @@ from collections import namedtuple
 
 from .enums import SWSensor
 import hub
+import motor
+import motor_pair
 
 PID = namedtuple("PID", ("p", "i", "d"))
 
 PORTS = {
-    "A": hub.port.A,
-    "B": hub.port.B,
-    "C": hub.port.C,
-    "D": hub.port.D,
-    "E": hub.port.E,
-    "F": hub.port.F,
+    "A": 0,
+    "B": 1,
+    "C": 2,
+    "D": 3,
+    "E": 4,
+    "F": 5,
 }
 
 import json
@@ -58,11 +60,11 @@ class configure:
 
 
 class Config:
-    LEFT_MOTOR: hub.Motor
-    RIGHT_MOTOR: hub.Motor
-    DRIVING_MOTORS: hub.MotorPair
-    GEAR_SHAFT: hub.Motor
-    GEAR_SELECTOR: hub.Motor
+    LEFT_MOTOR: int
+    RIGHT_MOTOR: int
+    DRIVING_MOTORS: tuple[int, int]
+    GEAR_SHAFT: int
+    GEAR_SELECTOR: int
     TIRE_CIRCUMFRENCE: float
     DEBUG_NOSCROLL: bool
     DEBUG_FOCUS: bool
@@ -73,8 +75,8 @@ class Config:
     GYRO_DRIVE_PID: PID
     GYRO_TURN_PID: PID
     GYRO_TURN_MINMAX_SPEED: tuple[int, int]
-    LEFT_SENSOR: hub.port.Device
-    RIGHT_SENSOR: hub.port.Device
+    LEFT_SENSOR: int
+    RIGHT_SENSOR: int
     LEFT_SENSOR_TYPE: int | None
     RIGHT_SENSOR_TYPE: int | None
     LANDSCAPE: bool
@@ -83,13 +85,13 @@ class Config:
     GYRO_OFF: int
 
     def __init__(self):
-        self.LEFT_MOTOR = PORTS[_config_dict["driving_motors"]["left"]].motor
-        self.RIGHT_MOTOR = PORTS[_config_dict["driving_motors"]["right"]].motor
-        self.DRIVING_MOTORS = self.LEFT_MOTOR.pair(self.RIGHT_MOTOR)
-        if not self.DRIVING_MOTORS:
-            raise ValueError("Motors cannot be paired")
-        self.GEAR_SHAFT = PORTS[_config_dict["gearbox"]["drive_shaft"]].motor
-        self.GEAR_SELECTOR = PORTS[_config_dict["gearbox"]["gear_selector"]].motor
+        self.LEFT_MOTOR = PORTS[_config_dict["driving_motors"]["left"]]
+        self.RIGHT_MOTOR = PORTS[_config_dict["driving_motors"]["right"]]
+        motor_pair.unpair(motor_pair.PAIR_1)
+        motor_pair.pair(motor_pair.PAIR_1, self.LEFT_MOTOR, self.RIGHT_MOTOR)
+        self.DRIVING_MOTORS = motor_pair.PAIR_1
+        self.GEAR_SHAFT = PORTS[_config_dict["gearbox"]["drive_shaft"]]
+        self.GEAR_SELECTOR = PORTS[_config_dict["gearbox"]["gear_selector"]]
         self.TIRE_CIRCUMFRENCE = _config_dict["tire_diameter"] * math.pi
         allow_debug = not _config_dict["competition"]
         self.DEBUG_NOSCROLL = allow_debug and _config_dict["debugging"]["no_autoscroll"]
@@ -123,47 +125,47 @@ class Config:
         # self.RIGHT_MOTOR.pid(pid["p"], pid["i"], pid["d"])
         # pid = _config_dict["correctors"]["motors"]["driving_differential"]
         # self.DRIVING_MOTORS.pid(pid["p"], pid["i"], pid["d"])
-        pid = _config_dict["correctors"]["motors"]["shaft_power"]
-        self.GEAR_SHAFT.default(
-            speed=100,
-            max_power=100,
-            acceleration=300,
-            deceleration=300,
-            stop=1,
-            pid=(pid["p"], pid["i"], pid["d"]),
-            stall=True,
-            callback=self.GEAR_SHAFT.default()["callback"],
-        )
-        pid = _config_dict["correctors"]["motors"]["selector_power"]
-        self.GEAR_SELECTOR.default(
-            speed=100,
-            max_power=100,
-            acceleration=100,
-            deceleration=0,
-            stop=2,
-            pid=(pid["p"], pid["i"], pid["d"]),
-            stall=False,
-            callback=self.GEAR_SELECTOR.default()["callback"],
-        )
-        self.GEAR_SELECTOR.mode([(1, 0), (2, 0), (3, 0), (0, 0)])
+        # pid = _config_dict["correctors"]["motors"]["shaft_power"]
+        # self.GEAR_SHAFT.default(
+        #     speed=100,
+        #     max_power=100,
+        #     acceleration=300,
+        #     deceleration=300,
+        #     stop=1,
+        #     pid=(pid["p"], pid["i"], pid["d"]),
+        #     stall=True,
+        #     callback=self.GEAR_SHAFT.default()["callback"],
+        # )
+        # pid = _config_dict["correctors"]["motors"]["selector_power"]
+        # self.GEAR_SELECTOR.default(
+        #     speed=100,
+        #     max_power=100,
+        #     acceleration=100,
+        #     deceleration=0,
+        #     stop=2,
+        #     pid=(pid["p"], pid["i"], pid["d"]),
+        #     stall=False,
+        #     callback=self.GEAR_SELECTOR.default()["callback"],
+        # )
+        # self.GEAR_SELECTOR.mode([(1, 0), (2, 0), (3, 0), (0, 0)])
         LEFT_PORT = PORTS[_config_dict["sensors"]["left"]]
         RIGHT_PORT = PORTS[_config_dict["sensors"]["right"]]
 
-        @LEFT_PORT.callback
-        def updtl(x):
-            self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
+        # @LEFT_PORT.callback
+        # def updtl(x):
+        #     self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
 
-        @RIGHT_PORT.callback
-        def updtr(x):
-            self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
+        # @RIGHT_PORT.callback
+        # def updtr(x):
+        #     self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
 
-        self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
-        self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
+        # self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
+        # self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
 
-        self.LEFT_SENSOR = LEFT_PORT.device
-        self.RIGHT_SENSOR = RIGHT_PORT.device
-        self.LEFT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
-        self.RIGHT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
+        # self.LEFT_SENSOR = LEFT_PORT.device
+        # self.RIGHT_SENSOR = RIGHT_PORT.device
+        # self.LEFT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
+        # self.RIGHT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
 
         self.LANDSCAPE = _config_dict["landscape"]
         self.GYRO_OFF = _config_dict["gyro_off"]

@@ -1,9 +1,10 @@
 from ..gsgr.conditions import cm, impact, pickup
-from ..gsgr.enums import Attachment, Color
+from ..gsgr.enums import Attachment
+import color as col
 from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_wall_align, hold_attachment, run_attachment
 
 display_as = 1
-color = Color.RED
+color = col.RED
 
 
 def run():

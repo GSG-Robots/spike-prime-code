@@ -3,15 +3,16 @@ import binascii
 import contextlib
 import hashlib
 import json
-from math import exp
 import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 import traceback
-from typing import Iterator
+from typing import Iterator, overload
 
+import colorama
+import mpy_cross
 from serial import Serial
 import serial.tools.list_ports
 import watchdog.events
@@ -23,6 +24,12 @@ from tqdm import tqdm
 class ForceReconnect(BaseException): ...
 
 
+SRC_DIR = Path("src").absolute()
+BUILD_DIR = Path("build").absolute()
+SERIAL: Serial | None = None
+mpy_cross.set_version("1.20", 6)
+
+
 def clean_dir(dir: Path):
     for file in dir.glob("**"):
         if file == dir:
@@ -32,11 +39,6 @@ def clean_dir(dir: Path):
             os.rmdir(file)
         else:
             os.remove(file)
-
-
-SRC_DIR = Path("src").absolute()
-BUILD_DIR = Path("build").absolute()
-SERIAL: Serial | None = None
 
 
 def get_device():
@@ -66,15 +68,23 @@ def _get_next(
 ) -> tuple[str, str | None] | None:
     assert SERIAL is not None
     if SERIAL.in_waiting:
-        while SERIAL.read(1) != b":":
-            ...
+        while (a := SERIAL.read(1)) != b":":
+            if debug:
+                print(a.decode(), end="")
+        if debug:
+            print()
 
         cmd = SERIAL.read(1).decode()
         nxt = SERIAL.read(1)
         if nxt == b"]":
             return cmd, None
         else:
-            ln = int(nxt + SERIAL.read(3))
+            lns = nxt + SERIAL.read(3)
+            try:
+                ln = int(lns)
+            except ValueError:
+                print(f"Failed {lns} {cmd}")
+                ln = 0
             arg = SERIAL.read(ln)
             try:
                 decoded_arg = binascii.a2b_base64(arg).decode()
@@ -87,7 +97,12 @@ def _get_next(
     return None
 
 
+debug = False
+
+
 def write(cmd, args=None):
+    if debug:
+        print("write", cmd, args)
     assert SERIAL is not None
     SERIAL.write(b":" + cmd.encode())
     if args is not None:
@@ -100,15 +115,38 @@ def write(cmd, args=None):
         SERIAL.write(b"]")
 
 
-async def get_next():
+@overload
+async def get_next(max_retries: int) -> tuple[str, str | None] | None: ...
+@overload
+async def get_next() -> tuple[str, str | None]: ...
+
+
+async def get_next(max_retries=None):
+    retries = 0
     while True:
         result = _get_next(0)
         if not result:
             await asyncio.sleep(0.1)
+            if max_retries:
+                retries += 1
+                if retries >= max_retries:
+                    return None
             continue
+        if debug:
+            print("read", *result)
         if result[0] == "!":
             handle_error(result[1])
-        return result
+            return result
+        elif result[0] == "P":
+            assert result[1]
+            args, kwargs = json.loads(result[1])
+            kwargs["file"] = None
+            print("|", *args, **kwargs)
+        elif result[0] == "E":
+            assert result[1]
+            print(colorama.Fore.RED + result[1] + colorama.Fore.RESET, file=sys.stderr)
+        else:
+            return result
 
 
 async def expect_OK():
@@ -134,7 +172,7 @@ async def send_file(file, cb=None):
 
 def build_py(src: Path, dest: Path):
     result = subprocess.run(
-        ["mpy-cross-v5", src, "-o", dest],
+        ["mpy-cross", src, "-o", dest],
         check=False,
         stderr=subprocess.PIPE,
     )
@@ -185,54 +223,57 @@ def build(files: Iterator[Path]):
             continue
 
 
-def list_build_files():
-    files = []
-    for file in BUILD_DIR.glob("**"):
-        path = file.relative_to(BUILD_DIR).as_posix()
-        if file.is_dir():
-            if path != ".":
-                yield "D", "/" + path, file
-        else:
-            hashv = hashlib.sha256(file.read_bytes()).hexdigest()
-            yield "F", "/" + path + " " + hashv, file
-    return files
+async def sync_path(file: Path):
+    path = file.relative_to(BUILD_DIR).as_posix()
+    if path == ".":
+        return
+    if not file.exists():
+        write("R", "/" + path)
+    if file.is_dir():
+        write("D", "/" + path)
+        await expect_OK()
+    else:
+        hashv = hashlib.sha256(file.read_bytes()).hexdigest()
+        write("F", "/" + path + " " + hashv)
+        while True:
+            nxt, _ = await get_next()
+            if nxt == "K":
+                break
+            elif nxt != "U":
+                print(
+                    f"Expecting OK or U, Invalid response {nxt}, resetting connection"
+                )
+                write("$")
+                raise ForceReconnect()
+            with tqdm(
+                total=file.stat().st_size,
+                unit="B",
+                unit_scale=True,
+                desc=f"Uploading {file.name}",
+            ) as bar:
+
+                def tqdmcb():
+                    bar.update(192)
+
+                with file.open("rb") as f:
+                    await send_file(f, tqdmcb)
+                await expect_OK()
+                break
 
 
 async def sync_build_files():
     write("Y")
     await expect_OK()
 
-    for entry in list_build_files():
-        write(*entry[:-1])
-        while True:
-            nxt, _ = await get_next()
-            if nxt == "K":
-                break
-            elif nxt != "U":
-                print(f"Expecting OK or U, Invalid response {nxt}, resetting connection")
-                write("$")
-                raise ForceReconnect()
-            with tqdm(
-                total=entry[-1].stat().st_size,
-                unit="B",
-                unit_scale=True,
-                desc=f"Uploading {entry[-1].name}",
-            ) as bar:
-
-                def tqdmcb():
-                    bar.update(192)
-
-                with entry[-1].open("rb") as f:
-                    await send_file(f, tqdmcb)
-                await expect_OK()
-                break
+    for file in BUILD_DIR.glob("**"):
+        await sync_path(file)
 
     write("N")
     await expect_OK()
 
 
 class FileUploader(watchdog.events.FileSystemEventHandler):
-    tasks = []
+    modified = []
     _lock = False
 
     @contextlib.contextmanager
@@ -247,37 +288,26 @@ class FileUploader(watchdog.events.FileSystemEventHandler):
         self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent
     ):
         with self.lock():
-            if event.is_directory:
-                self.tasks.append(("mkdir", Path(event.src_path)))
-            else:
-                self.tasks.append(("write", Path(event.src_path)))
+            self.modified.append(Path(event.src_path))
 
     def on_modified(
         self,
         event: watchdog.events.DirModifiedEvent | watchdog.events.FileModifiedEvent,
     ):
         with self.lock():
-            if event.is_directory:
-                return
-            self.tasks.append(("write", Path(event.src_path)))
+            self.modified.append(Path(event.src_path))
 
     def on_deleted(
         self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent
     ):
         with self.lock():
-            if event.is_directory:
-                self.tasks.append(("rmdir", Path(event.src_path)))
-            else:
-                self.tasks.append(("rm", Path(event.src_path)))
+            self.modified.append(Path(event.src_path))
 
     def on_moved(
         self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent
     ):
         with self.lock():
-            if event.is_directory:
-                self.tasks.append(("mvdir", Path(event.src_path)))
-            else:
-                self.tasks.append(("mv", Path(event.src_path)))
+            self.modified.append(Path(event.src_path))
 
 
 class FileBuilder(watchdog.events.FileSystemEventHandler):
@@ -319,12 +349,26 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
             self.backlog.append(Path(event.dest_path))
 
 
+async def sync_stream(timeout=10):
+    otm = time.time()
+    write("=", str(otm))
+    while time.time() < otm + timeout:
+        resp = await get_next(10)
+        if resp is None:
+            write("=", str(otm))
+            continue
+        nxt, tm = resp
+        if nxt == "=" and tm == str(otm):
+            return
+    raise TimeoutError(f"Hub failed to sync after {timeout} seconds.")
+
+
 async def main():
     global SERIAL
     ser = get_device()
     SERIAL = ser
     time.sleep(1)
-    write("$")
+    await sync_stream()
     print("Connected to device.")
     print("Preparing environment...")
     if not SRC_DIR.exists():
@@ -337,84 +381,59 @@ async def main():
     build(SRC_DIR.glob("**"))
     print("Initial file synchronization...")
     await sync_build_files()
-    # print("Restarting program...")
-    # spielzeug_lib.send_command("start")
-    # try:
-    #     spielzeug_lib.wait_for_keyword("DONE")
-    # except RuntimeError as e:
-    #     print("--- REMOTE ERROR ---")
-    #     print(e)
+    print("Restarting program...")
+    write("P")
+    await expect_OK()
 
-    # print()
-    # print("> IDLE", end="\r")
+    observer = watchdog.observers.Observer()
+    file_builder = FileBuilder()
+    file_uploader = FileUploader()
+    observer.schedule(file_builder, SRC_DIR, recursive=True)
+    observer.schedule(file_uploader, BUILD_DIR, recursive=True)
+    observer.start()
+    blocked = False
+    try:
+        while True:
+            time.sleep(0.1)
+            if ser.closed:
+                raise ConnectionAbortedError
+            if ser.in_waiting:
+                nxt, args = await get_next()
+                if nxt == "B":
+                    blocked = True
+                elif nxt == "D":
+                    blocked = False
+            with file_builder.lock():
+                if len(file_builder.backlog) > 0:
+                    print("Rebuilding...")
+                    unique = []
+                    for task in file_builder.backlog:
+                        if task in unique:
+                            continue
+                        unique.append(task)
 
-    # observer = watchdog.observers.Observer()
-    # file_builder = FileBuilder()
-    # file_uploader = FileUploader()
-    # observer.schedule(file_builder, SRC_DIR, recursive=True)
-    # observer.schedule(file_uploader, BUILD_DIR, recursive=True)
-    # observer.start()
-    # blocked = False
-    # try:
-    #     while True:
-    #         time.sleep(0.1)
-    #         if ser.closed:
-    #             raise ConnectionAbortedError
-    #         if ser.in_waiting:
-    #             line = ser.readline().strip()
-    #             if line == b"blocked":
-    #                 blocked = True
-    #             elif line == b"unblocked":
-    #                 blocked = False
-    #             else:
-    #                 print("O:", line.decode("utf-8"))
-    #         with file_builder.lock():
-    #             if len(file_builder.backlog) > 0:
-    #                 print("Rebuilding...")
-    #                 unique = []
-    #                 for task in file_builder.backlog:
-    #                     if task in unique:
-    #                         continue
-    #                     unique.append(task)
+                    build(unique)
+                    file_builder.backlog = []
 
-    #                 build(unique)
-    #                 file_builder.backlog = []
-
-    #                 print("Build done.")
-    #         with file_uploader.lock():
-    #             if len(file_uploader.tasks) > 0:
-    #                 if blocked:
-    #                     continue
-    #                 print("> Updating...")
-    #                 spielzeug_lib.send_command("cancel-any")
-    #                 done = []
-    #                 for task in file_uploader.tasks:
-    #                     if task in done:
-    #                         continue
-    #                     done.append(task)
-    #                     spielzeug_lib.send_command(
-    #                         task[0],
-    #                         task[1].relative_to(BUILD_DIR).as_posix(),
-    #                     )
-    #                     if task[0] == "write":
-    #                         with task[1].open("rb") as f:
-    #                             spielzeug_lib.send_raw_data(f)
-    #                     spielzeug_lib.wait_for_keyword("DONE")
-    #                 print("> Restarting...")
-    #                 spielzeug_lib.send_command("start")
-    #                 try:
-    #                     spielzeug_lib.wait_for_keyword("DONE")
-    #                 except RuntimeError as e:
-    #                     print("--- REMOTE ERROR ---")
-    #                     print(e)
-    #                     print()
-    #                     print("> IDLE")
-    #                 else:
-    #                     print("> IDLE")
-    #                 file_uploader.tasks = []
-    # except KeyboardInterrupt:
-    #     observer.stop()
-    # observer.join()
+                    print("Build done.")
+            with file_uploader.lock():
+                if len(file_uploader.modified) > 0:
+                    if blocked:
+                        continue
+                    print("> Updating...")
+                    done = []
+                    for task in file_uploader.modified:
+                        if task in done:
+                            continue
+                        done.append(task)
+                        await sync_path(task)
+                    print("> Restarting...")
+                    write("P")
+                    await get_next()
+                    file_uploader.modified = []
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 
 asyncio.run(main())

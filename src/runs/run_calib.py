@@ -1,11 +1,12 @@
 import hub
 
 from ..gsgr.conditions import cm
-from ..gsgr.enums import Color, Pivot
+from ..gsgr.enums import Pivot
+import color as col
 from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn
 
 display_as = "3x3h"
-color = Color.RED
+color = col.RED
 
 
 def run():

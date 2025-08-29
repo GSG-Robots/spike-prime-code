@@ -1,14 +1,23 @@
 import time
 
-from osrc import hub
+from src import hub
 
 from ..gsgr.config import cfg
 from ..gsgr.conditions import cm, impact, pickup
-from ..gsgr.enums import Attachment, Color, Pivot
-from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn, gyro_wall_align, hold_attachment, run_attachment
+from ..gsgr.enums import Attachment, Pivot
+from ..gsgr.movement import (
+    gyro_drive,
+    gyro_set_origin,
+    gyro_turn,
+    gyro_wall_align,
+    hold_attachment,
+    run_attachment,
+)
+
+import color as col
 
 display_as = 3
-color = Color.RED
+color = col.RED
 
 
 def run():

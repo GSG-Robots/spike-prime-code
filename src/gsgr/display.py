@@ -29,6 +29,17 @@ images = {
 }
 
 
+class Image:
+    def __init__(self):
+        self.pixels = [0] * 25
+
+    def set_pixel(self, x, y, brightness=100):
+        self.pixels[x * 5 + y] = brightness
+
+    def show(self):
+        hub.light_matrix.show(self.pixels)
+
+
 def show_image(
     image: (
         int
@@ -52,10 +63,10 @@ def show_image(
     :param bright: Ob das Bild in voller Helligkeit angezeigt werden soll.
     """
 
-    img = hub.Image(5, 5)
+    img = Image()
 
-    light = 9 if bright else 7
-    dark = 7 if bright else 3
+    light = 100 if bright else 70
+    dark = 70 if bright else 30
 
     if isinstance(image, int):
         image = str(image)
@@ -86,4 +97,4 @@ def show_image(
         img.set_pixel(4, 0, dark)
         img.set_pixel(4, 2, dark)
 
-    hub.display.show(img)
+    img.show()

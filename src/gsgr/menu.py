@@ -4,13 +4,13 @@ Also supplies run class, being a menu item.
 """
 
 import time
-import spielzeug_lib
+
+import color
 import uasyncio as asyncio
 
 import hub
-from .config import cfg
-from .enums import Color
 
+from .config import cfg
 from .display import show_image
 from .exceptions import ExitMenu, StopRun
 from .math import clamp
@@ -22,7 +22,7 @@ class MenuItem:
     color: int
     """Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist."""
 
-    def __init__(self, display_as: int | str, color: int = Color.WHITE) -> None:
+    def __init__(self, display_as: int | str, color: int = color.WHITE) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
         :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
@@ -42,7 +42,7 @@ class ActionMenuItem(MenuItem):
         self,
         action: Callable | None,
         display_as: int | str,
-        color: int = Color.WHITE,
+        color: int = color.WHITE,
     ) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
@@ -125,21 +125,17 @@ class Menu:
         :returns: Das gewählte Menü-Element
         """
         last_position = -1
-        # Reset button presses
-        hub.button.left.was_pressed()
-        hub.button.right.was_pressed()
-        hub.button.center.was_pressed()
 
         selected = self.items[self.position]
 
-        while not hub.button.center.was_pressed():
-            # if hub.motion.gesture() == 1:
-            #     hub.display.show(hub.Image("90909:09090:90909:09090:90909"))
-            #     hub.sound.beep(500, 50, 1)
-            #     cfg.GEAR_SELECTOR.run_to_position(0)
-            if hub.button.left.was_pressed():
+        while not hub.button.pressed(hub.button.POWER):
+            if hub.button.pressed(hub.button.LEFT):
+                while hub.button.pressed(hub.button.LEFT):
+                    ...
                 self.position = self.position - (-1 if self.swap_buttons else 1)
-            if hub.button.right.was_pressed():
+            if hub.button.pressed(hub.button.RIGHT):
+                while hub.button.pressed(hub.button.RIGHT):
+                    ...
                 self.position = self.position + (-1 if self.swap_buttons else 1)
 
             self.position = int(clamp(self.position, 0, len(self.items) - 1))
@@ -148,18 +144,20 @@ class Menu:
             if last_position != self.position:
                 show_image(
                     selected.display_as,
-                    border_right=self.position == 0,
-                    border_left=self.position == (len(self.items) - 1),
+                    border_left=self.position == 0,
+                    border_right=self.position == (len(self.items) - 1),
                     bright=True,
                 )
-                hub.led(selected.color)
+                hub.light.color(hub.light.CONNECT, selected.color)
+                hub.light.color(hub.light.POWER, selected.color)
                 last_position: int = self.position
                 selected.update(first=True)
             selected.update()
-
             await asyncio.sleep(cfg.LOOP_THROTTLE)
             await asyncio.sleep_ms(10)
 
+        while hub.button.pressed(hub.button.POWER):
+            ...
         return selected
 
     def exit(self):
@@ -183,8 +181,7 @@ class ActionMenu(Menu):
         # hw.right_color_sensor.light_up_all(0)
 
         result: ActionMenuItem = await self.choose(exit_on_charge=exit_on_charge)
-        if spielzeug_lib.ser:
-            spielzeug_lib.send_command("blocked")
+        remote.block()
         show_image(result.display_as, border_right=True, border_left=True, bright=False)
         result.prepare()
         try:
@@ -196,12 +193,11 @@ class ActionMenu(Menu):
             raise e
         except Exception as e:
             if cfg.DEBUG_DISPLAY_ERRORS:
-                hub.display.show(repr(e))
+                hub.light_matrix.write(repr(e))
             raise e
         finally:
             result.cleanup()
-            if spielzeug_lib.ser:
-                spielzeug_lib.send_command("unblocked")
+            remote.unblock()
 
     async def loop(self, autoscroll=False, exit_on_charge=False) -> None:
         """Endlos immer wieder Menü zeigen und ein Menü-Element wählen lassen, welches dann ausgeführt wird.

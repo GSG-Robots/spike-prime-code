@@ -1,11 +1,21 @@
 import asyncio
 import binascii
+import builtins
 import hashlib
 import io
+import json
 import os
+
 import machine
 import select
 import sys
+import hub
+
+
+try:
+    os.mkdir("/flash/src")
+except Exception as e:
+    ...
 
 
 def _get_next(
@@ -55,10 +65,27 @@ def write(cmd, args=None):
         sys.stdout.write("]")
 
 
-def write_error(e: Exception):
+class Remote:
+    def send(self, *args, **kwargs):
+        write(*args, **kwargs)
+
+    def block(self):
+        write("B")
+
+    def unblock(self):
+        write("D")
+
+    def error(self, e):
+        write_error(e, "E")
+
+
+builtins.remote = Remote()
+
+
+def write_error(e: Exception, symbol="!"):
     buf = io.StringIO()
     sys.print_exception(e, buf)
-    write("!", buf.getvalue())
+    write(symbol, buf.getvalue())
 
 
 def OK():
@@ -78,7 +105,8 @@ def recursive_listdir(path: str):
 
 
 def remove(path: str):
-    typ = os.stat("/flash/src" +path)[0]
+    path = "/flash/src" + path
+    typ = os.stat(path)[0]
     if typ == 32768:
         os.remove(path)
     elif typ == 16384:
@@ -88,7 +116,7 @@ def remove(path: str):
 
 
 async def read_file(file_name):
-    with open(file_name, "wb+") as f:
+    with open("/flash/src" + file_name, "wb+") as f:
         while True:
             cmd, args = await get_next(True)
             if cmd == "C":
@@ -100,11 +128,70 @@ async def read_file(file_name):
                 sys.exit()
             elif cmd == "$":
                 return
+            elif cmd == "=":
+                return
             else:
                 write("!", "Unkown command %s" % cmd)
 
 
+prog_task = None
+has_stopped = asyncio.Event()
+
+
+async def program_wrapper(program):
+    has_stopped.clear()
+    try:
+        try:
+            await program
+        except Exception as e:
+            write_error(e)
+    finally:
+        has_stopped.set()
+
+
+async def run_program():
+    global prog_task
+    if prog_task:
+        prog_task.cancel()
+        await has_stopped.wait()
+    for module in sys.modules.keys():
+        if module == "src" or module.startswith("src."):
+            del sys.modules[module]
+    hub.light_matrix.clear()
+    try:
+        module = __import__("src")
+    except Exception as e:
+        write_error(e)
+    if hasattr(module, "loop"):
+        prog_task = asyncio.create_task(program_wrapper(module.loop()))
+    else:
+        write("!", "You must define a function called 'loop' in '__init__.py'!")
+
+
+async def kill_program():
+    if prog_task:
+        prog_task.cancel()
+        await has_stopped.wait()
+
+
+def remote_print(*args, **kwargs):
+    write(
+        "P",
+        json.dumps(
+            (
+                tuple(a if isinstance(a, str) else repr(a) for a in args),
+                {
+                    key: a if isinstance(a, str) else repr(a)
+                    for key, a in kwargs.items()
+                },
+            )
+        ),
+    )
+
+
 async def server():
+    original_print = print
+    builtins.print = remote_print
     all_paths = []
 
     while True:
@@ -127,14 +214,14 @@ async def server():
 
                 if old_hash != hash:
                     write("U")
-                    await read_file("main.py")
-                if args in all_paths:
-                    all_paths.remove(args)
+                    await read_file(name)
+                if name in all_paths:
+                    all_paths.remove(name)
                 OK()
             elif cmd == "D":
                 assert args is not None
                 if args not in all_paths:
-                    os.mkdir(args)
+                    os.mkdir("/flash/src" + args)
                 if args in all_paths:
                     all_paths.remove(args)
                 OK()
@@ -147,25 +234,24 @@ async def server():
                 assert args is not None
                 remove(args)
                 OK()
-            elif cmd == "A":
-                assert args is not None
-                os.mkdir(args)
-                OK()
             elif cmd == "P":
-                ...
+                await run_program()
                 OK()
             elif cmd == "X":
-                ...
+                await kill_program()
                 OK()
             elif cmd == "&":
                 machine.reset()
                 OK()
+            elif cmd == "=":
+                write("=", args)
             elif cmd == ">":
-                return
+                break
             elif cmd == "$":
                 all_paths = []
                 OK()
             else:
-                write("!", "Unkown command %s" % cmd)
+                write("!", f"Unkown command {cmd}")
         except Exception as e:
             write_error(e)
+    builtins.print = original_print

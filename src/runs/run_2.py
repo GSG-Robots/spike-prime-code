@@ -2,11 +2,12 @@ import time
 
 from ..gsgr.config import cfg
 from ..gsgr.conditions import cm, impact, pickup
-from ..gsgr.enums import Attachment, Color, Pivot
+from ..gsgr.enums import Attachment, Pivot
+import color as col
 from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn, gyro_wall_align, hold_attachment, run_attachment
 
 display_as = 2
-color = Color.YELLOW
+color = col.YELLOW
 
 
 def run():

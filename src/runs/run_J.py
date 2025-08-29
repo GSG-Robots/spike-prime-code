@@ -1,11 +1,11 @@
-from ..gsgr.enums import Color
+import color as col
 from ..gsgr.movement import (
     gyro_set_origin,
     run_attachment,
 )
 
 display_as = "J"
-color = Color.WHITE
+color = col.WHITE
 
 
 def run():

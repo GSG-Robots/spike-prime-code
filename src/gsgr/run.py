@@ -4,7 +4,7 @@ from .config import cfg
 from .enums import SWSensor
 import hub
 from .menu import ActionMenuItem
-
+import motor
 
 class Run(ActionMenuItem):
     """A context manager in which the run is being executed.
@@ -73,6 +73,7 @@ class Run(ActionMenuItem):
 
     def cleanup(self):
         """Patched verison of :py:meth:`MenuItem.cleanup` to stop all motors."""
-        cfg.DRIVING_MOTORS.brake()
-        cfg.GEAR_SHAFT.float()
-        cfg.GEAR_SELECTOR.hold()
+        motor.stop(cfg.LEFT_MOTOR, stop=motor.BRAKE)
+        motor.stop(cfg.RIGHT_MOTOR, stop=motor.BRAKE)
+        motor.stop(cfg.GEAR_SHAFT, stop=motor.COAST)
+        motor.stop(cfg.GEAR_SELECTOR, stop=motor.HOLD)

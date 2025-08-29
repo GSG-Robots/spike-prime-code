@@ -1,18 +1,21 @@
 """Motorsteuerung und Bewegungsfunktionen."""
 
 import math
-import machine
 import time
 
-import hub
-from .config import PID, cfg
+import machine
+import motor
+import motor_pair
 
+import hub
+
+from .config import PID, cfg
 from .enums import Pivot, SWSensor
 
 # from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
-from .math import clamp, sigmoid
 from .interpolators import exponential, linear
+from .math import clamp, sigmoid
 
 
 def check_battery():
@@ -46,7 +49,7 @@ _GS_SPEED = 100
 _GS_TARGET = 0
 
 
-@cfg.GEAR_SELECTOR.callback
+# @cfg.GEAR_SELECTOR.callback
 def _gs_callback(state: int):
     global _GS_STATE, _GS_COMPLETED, _GS_SPEED
     _GS_STATE = state
@@ -227,7 +230,7 @@ def stop_attachment(
 
 def gyro_set_origin():
     """Gyro-Sensor Origin zurücksetzen"""
-    hub.motion.yaw_pitch_roll(0)
+    hub.motion_sensor.reset_yaw(0)
 
 
 def gyro_wall_align(backwards=False, wall_align_duration: int | float = 1):
@@ -360,11 +363,12 @@ def gyro_drive(
     error_sum = 0
     last = time.ticks_us()
 
-    hub.button.center.was_pressed()
     while (pct := next(ending_condition)) < 100:
-        if hub.button.center.was_pressed():
+        if hub.button.pressed(hub.button.POWER):
+            while hub.button.pressed(hub.button.POWER):
+                ...
             raise StopRun
-        error = target_angle - hub.motion.yaw_pitch_roll()[0]
+        error = target_angle - hub.motion_sensor.tilt_angles()[0]
         if abs(error) < cfg.GYRO_TOLERANCE:
             # error = 0
             error_sum = 0
@@ -397,12 +401,14 @@ def gyro_drive(
                 right_speed * speed_multiplier,
             )
 
-        cfg.DRIVING_MOTORS.run_at_speed(-left_speed, right_speed)
+        motor_pair.move_tank(
+            cfg.DRIVING_MOTORS, int(left_speed * 10), int(right_speed * 10)
+        )
 
         last_error = error
         # time.sleep(cfg.LOOP_THROTTLE)
     if brake:
-        cfg.DRIVING_MOTORS.brake()
+        motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.BRAKE)
 
 
 def start_with_naR(alpha, radius):
