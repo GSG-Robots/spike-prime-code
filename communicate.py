@@ -150,12 +150,15 @@ async def get_next(max_retries=None):
 
 
 async def expect_OK():
-    nxt, _ = await get_next()
-    if nxt != "K":
-        print(f"Expecting OK, Invalid response {nxt}, resetting connection")
-        write("$")
-        raise ForceReconnect()
-    return True
+    while True:
+        nxt, _ = await get_next()
+        if nxt in "BD":
+            continue
+        if nxt != "K":
+            print(f"Expecting OK, Invalid response {nxt}, resetting connection")
+            write("$")
+            raise ForceReconnect()
+        return True
 
 
 async def send_file(file, cb=None):
@@ -237,6 +240,10 @@ async def sync_path(file: Path):
         write("F", "/" + path + " " + hashv)
         while True:
             nxt, _ = await get_next()
+            if nxt == "B":
+                return True
+            if nxt == "D":
+                continue
             if nxt == "K":
                 break
             elif nxt != "U":
@@ -259,6 +266,7 @@ async def sync_path(file: Path):
                     await send_file(f, tqdmcb)
                 await expect_OK()
                 break
+    return False
 
 
 async def sync_build_files():
@@ -398,11 +406,13 @@ async def main():
             if ser.closed:
                 raise ConnectionAbortedError
             if ser.in_waiting:
-                nxt, args = await get_next()
-                if nxt == "B":
-                    blocked = True
-                elif nxt == "D":
-                    blocked = False
+                cmd = await get_next(1)
+                if cmd is not None:
+                    nxt, args = cmd
+                    if nxt == "B":
+                        blocked = True
+                    elif nxt == "D":
+                        blocked = False
             with file_builder.lock():
                 if len(file_builder.backlog) > 0:
                     print("Rebuilding...")
@@ -422,15 +432,20 @@ async def main():
                         continue
                     print("> Updating...")
                     done = []
-                    for task in file_uploader.modified:
+                    while file_uploader.modified:
+                        task = file_uploader.modified.pop()
                         if task in done:
                             continue
                         done.append(task)
-                        await sync_path(task)
-                    print("> Restarting...")
-                    write("P")
-                    await get_next()
-                    file_uploader.modified = []
+                        undermined = await sync_path(task)
+                        if undermined:
+                            file_uploader.modified.append(task)
+                            break
+                    else:
+                        print("> Restarting...")
+                        write("P")
+                        await expect_OK()
+
     except KeyboardInterrupt:
         observer.stop()
     observer.join()

@@ -144,12 +144,12 @@ class Menu:
             if last_position != self.position:
                 show_image(
                     selected.display_as,
-                    border_left=self.position == 0,
-                    border_right=self.position == (len(self.items) - 1),
+                    border_left=self.position == (len(self.items) - 1),
+                    border_right=self.position == 0,
                     bright=True,
                 )
                 hub.light.color(hub.light.CONNECT, selected.color)
-                hub.light.color(hub.light.POWER, selected.color)
+                hub.light.color(hub.light.POWER, selected.color) 
                 last_position: int = self.position
                 selected.update(first=True)
             selected.update()

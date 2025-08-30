@@ -2,11 +2,14 @@ tire_diameter: 6.24
 loop_throttle: 0.025
 landscape: yes
 gyro_tolerance: 1
-gyro_off: -12
+gyro_off: 0
 
 gearbox:
     drive_shaft: A
     gear_selector: B
+
+    # "Dieses Problem ist softwaretechnisch zu lösen" - danke
+    offset: -7
 
 driving_motors:
     left: D
@@ -18,39 +21,18 @@ sensors:
 
 correctors:
     gyro_turn:
-        p: 1.1
+        p: 1.6
         i: 0
-        d: -0.2
+        d: -1
 
         # In deg/s:
         min_speed: 5
         max_speed: 90
 
     gyro_drive:
-        p: 0.9
-        i: 0.0005
-        d: -1.2
-
-    motors:
-        driving_power:
-            p: 50
-            i: 0
-            d: 5
-
-        driving_differential:
-            p: 30
-            i: 0
-            d: 4
-
-        shaft_power:
-            p: 2
-            i: 0
-            d: 1
-
-        selector_power:
-            p: 70
-            i: 70
-            d: 1
+        p: 1.5
+        i: 0.001
+        d: -1
 
 competition: no
 debugging:

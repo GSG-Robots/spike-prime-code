@@ -34,7 +34,7 @@ class Image:
         self.pixels = [0] * 25
 
     def set_pixel(self, x, y, brightness=100):
-        self.pixels[x * 5 + y] = brightness
+        self.pixels[x + y * 5] = brightness
 
     def show(self):
         hub.light_matrix.show(self.pixels)
@@ -66,7 +66,7 @@ def show_image(
     img = Image()
 
     light = 100 if bright else 70
-    dark = 70 if bright else 30
+    dark = 40 if bright else 15
 
     if isinstance(image, int):
         image = str(image)

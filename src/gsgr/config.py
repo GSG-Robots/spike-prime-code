@@ -65,6 +65,7 @@ class Config:
     DRIVING_MOTORS: tuple[int, int]
     GEAR_SHAFT: int
     GEAR_SELECTOR: int
+    GEAR_SELECTOR_OFFSET: int
     TIRE_CIRCUMFRENCE: float
     DEBUG_NOSCROLL: bool
     DEBUG_FOCUS: bool
@@ -92,6 +93,7 @@ class Config:
         self.DRIVING_MOTORS = motor_pair.PAIR_1
         self.GEAR_SHAFT = PORTS[_config_dict["gearbox"]["drive_shaft"]]
         self.GEAR_SELECTOR = PORTS[_config_dict["gearbox"]["gear_selector"]]
+        self.GEAR_SELECTOR_OFFSET = _config_dict["gearbox"]["offset"]
         self.TIRE_CIRCUMFRENCE = _config_dict["tire_diameter"] * math.pi
         allow_debug = not _config_dict["competition"]
         self.DEBUG_NOSCROLL = allow_debug and _config_dict["debugging"]["no_autoscroll"]

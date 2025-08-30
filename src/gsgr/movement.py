@@ -14,6 +14,7 @@ from .enums import Pivot, SWSensor
 
 # from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
+from . import buttons
 from .interpolators import exponential, linear
 from .math import clamp, sigmoid
 
@@ -36,48 +37,28 @@ def check_battery():
         raise BatteryLowError
 
 
-def _wait_until_not_busy(motor):
-    while motor.busy(motor.BUSY_MOTOR):
-        if hub.button.center.was_pressed():
+def _wait_until_not_busy(m):
+    while motor.status(m) == motor.RUNNING:
+        if buttons.pressed(hub.button.POWER):
             raise StopRun
 
 
 _LAST_SHAFT_SPEED = 0
-_GS_STATE = 0
-_GS_COMPLETED = True
-_GS_SPEED = 100
-_GS_TARGET = 0
-
-
-# @cfg.GEAR_SELECTOR.callback
-def _gs_callback(state: int):
-    global _GS_STATE, _GS_COMPLETED, _GS_SPEED
-    _GS_STATE = state
-    if state == 0:
-        _GS_COMPLETED = True
-    elif state == 2:
-        _GS_SPEED *= -1
-        if cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
-            return
-        cfg.GEAR_SHAFT.run_for_degrees(
-            180, speed=-math.copysign(100, _LAST_SHAFT_SPEED)
-        )
-        _wait_until_not_busy(cfg.GEAR_SHAFT)
-        cfg.GEAR_SELECTOR.run_to_position(
-            _GS_TARGET, speed=_GS_SPEED, stop=cfg.GEAR_SELECTOR.STOP_HOLD, stall=True
-        )
 
 
 def _gs_await_completion(timeout: int = 5):
+    if motor.status(cfg.GEAR_SELECTOR) != motor.RUNNING:
+        return
     start = time.time()
-    while not _GS_COMPLETED:
+    sign = 1
+    time.sleep(0.1)
+    while motor.status(cfg.GEAR_SELECTOR) == motor.RUNNING:
         if timeout and (time.time() - start) > timeout:
             return
-        cfg.GEAR_SHAFT.run_for_time(200, 100)
-        time.sleep(0.2)
-        cfg.GEAR_SHAFT.run_for_time(200, -100)
-        time.sleep(0.2)
-        if hub.button.center.was_pressed():
+        motor.run_for_degrees(cfg.GEAR_SHAFT, sign * 10, 500)
+        time.sleep(0.1)
+        sign = -sign
+        if buttons.pressed(hub.button.POWER):
             raise StopRun
 
 
@@ -90,20 +71,15 @@ def hold_attachment(target_gear: int, await_completion: bool = True):
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
-    global _GS_TARGET, _GS_COMPLETED
 
     check_battery()
 
-    _GS_TARGET = target_gear
-    _GS_COMPLETED = False
-    cfg.GEAR_SELECTOR.run_to_position(
-        target_gear,
-        speed=_GS_SPEED,
-        stop=cfg.GEAR_SELECTOR.STOP_HOLD,
-        stall=True,
-        acceleration=100,
-        deceleration=0,
-        max_power=100,
+    motor.run_to_absolute_position(
+        cfg.GEAR_SELECTOR,
+        target_gear + cfg.GEAR_SELECTOR_OFFSET,
+        1000,
+        direction=motor.SHORTEST_PATH,
+        stop=motor.HOLD,
     )
 
     if await_completion:
@@ -121,21 +97,10 @@ def free_attachment(target_gear: int, await_completion: bool = True):
 
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
-    global _GS_COMPLETED
-
-    check_battery()
-
-    _wait_until_not_busy(cfg.GEAR_SELECTOR)
-    target_gear += 90
-    if target_gear > 180:
-        target_gear -= 360
-    _GS_COMPLETED = False
-    cfg.GEAR_SELECTOR.run_to_position(target_gear, speed=100)
-    if await_completion:
-        _gs_await_completion()
+    hold_attachment(target_gear + 90, await_completion)
 
 
-def free_attachments():
+def free_attachments(await_completion: bool = True):
     """Getriebewähler in eine Stellung bringen, in der in der Theorie Reibung an allen Ausgängen freigegeben wird.
 
     .. warning::
@@ -145,16 +110,9 @@ def free_attachments():
     :raises: :py:exc:`~gsgr.exceptions.BatteryLowError` (more: :py:func:`check_battery`)
     """
     check_battery()
-    # Move to some position exactly between two gears. moves by 45 degrees.
-    # hw.gear_selector.run_to_position(
-    #     ((hw.gear_selector.get_position() // 90) * 90 + 45) % 360,
-    #     "shortest path",
-    #     20,
-    # )
-    # while cfg.GEAR_SHAFT.busy(cfg.GEAR_SHAFT.BUSY_MOTOR):
-    #     ...
-    # cfg.GEAR_SHAFT.pwm(0)
-    raise NotImplementedError
+    hold_attachment(
+        motor.absolute_position(cfg.GEAR_SELECTOR) // 90 * 90 + 45, await_completion
+    )
 
 
 def run_attachment(
@@ -182,30 +140,27 @@ def run_attachment(
 
     _wait_until_not_busy(cfg.GEAR_SHAFT)
 
-    if _GS_TARGET != attachment:
-        hold_attachment(attachment)
-    elif not _GS_COMPLETED:
-        _gs_await_completion()
+    hold_attachment(attachment)
+    _gs_await_completion()
 
     _LAST_SHAFT_SPEED = speed
     if not duration:
-        cfg.GEAR_SHAFT.run_at_speed(speed, stall=stall)
+        motor.run(cfg.GEAR_SHAFT, speed)
     else:
         # cfg.GEAR_SHAFT.pwm(speed)
         # time.sleep(duration)
         # cfg.GEAR_SHAFT.brake()
-        cfg.GEAR_SHAFT.run_for_time(
-            duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
-        )
+        motor.run_for_time(cfg.GEAR_SHAFT, int(duration * 1000), speed)
+        # cfg.GEAR_SHAFT.run_for_time(
+        #     duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
+        # )
 
     if await_completion:
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
     if untension:
-        cfg.GEAR_SHAFT.run_for_degrees(
-            -math.copysign(untension, speed),
-            speed=100,
-            stop=cfg.GEAR_SHAFT.STOP_FLOAT,
+        motor.run_for_degrees(
+            cfg.GEAR_SHAFT, -math.copysign(untension, _LAST_SHAFT_SPEED), speed=1000
         )
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
@@ -219,11 +174,10 @@ def stop_attachment(
     """
     if await_completion:
         _wait_until_not_busy(cfg.GEAR_SHAFT)
+    motor.stop(cfg.GEAR_SHAFT, stop=motor.BRAKE)
     if untension:
-        cfg.GEAR_SHAFT.run_for_degrees(
-            -math.copysign(untension, _LAST_SHAFT_SPEED),
-            speed=100,
-            stop=cfg.GEAR_SHAFT.STOP_FLOAT,
+        motor.run_for_degrees(
+            cfg.GEAR_SHAFT, -math.copysign(untension, _LAST_SHAFT_SPEED), speed=1000
         )
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
@@ -244,7 +198,7 @@ def gyro_wall_align(backwards=False, wall_align_duration: int | float = 1):
 
 def gyro_turn(
     target_angle: int,
-    step_speed: int | float = 70,
+    step_speed: int | float = 120,
     pivot: Pivot | int = Pivot.CENTER,
     min_speed: int | None = None,
     max_speed: int | None = None,
@@ -278,26 +232,26 @@ def gyro_turn(
     start_time = time.time()
 
     if pivot == Pivot.LEFT_WHEEL:
-        cfg.LEFT_MOTOR.brake()
+        motor.stop(cfg.LEFT_MOTOR, stop=motor.BRAKE)
     elif pivot == Pivot.RIGHT_WHEEL:
-        cfg.RIGHT_MOTOR.brake()
+        motor.stop(cfg.RIGHT_MOTOR, stop=motor.BRAKE)
 
     step_speed /= 100
 
     speed_last_error = 0
     speed_error_sum = 0
 
-    hub.button.center.was_pressed()
+    buttons.pressed(hub.button.POWER)
     while True:
-        if hub.button.center.was_pressed():
+        if buttons.pressed(hub.button.POWER):
             raise StopRun
-        degree_error = target_angle - hub.motion.yaw_pitch_roll()[0]
+        degree_error = target_angle - hub.motion_sensor.tilt_angles()[0] // 10
         target_speed = step_speed * degree_error
         if -min_speed < target_speed < min_speed:
             target_speed = math.copysign(min_speed, target_speed)
         if abs(target_speed) > max_speed:
             target_speed = math.copysign(max_speed, target_speed)
-        speed_error = target_speed - hub.motion.gyroscope()[0]
+        speed_error = target_speed * 10 - hub.motion_sensor.angular_velocity()[0]
         speed_error_sum += speed_error
         speed_correction = round(
             pid.p * speed_error
@@ -310,19 +264,17 @@ def gyro_turn(
         if timeout and time.time() - start_time > timeout:
             break
         if pivot == Pivot.CENTER:
-            cfg.DRIVING_MOTORS.run_at_speed(
-                -speed_correction // 2, -speed_correction // 2
+            motor_pair.move_tank(
+                motor_pair.PAIR_1, -speed_correction / 2, speed_correction / 2
             )
         elif pivot == Pivot.LEFT_WHEEL:
-            cfg.RIGHT_MOTOR.run_at_speed(-speed_correction)
-            # cfg.DRIVING_MOTORS.run_at_speed(0, -speed_correction)
+            motor.run(cfg.RIGHT_MOTOR, int(speed_correction / 1.5))
         elif pivot == Pivot.RIGHT_WHEEL:
-            # cfg.DRIVING_MOTORS.run_at_speed(-speed_correction, 0)
-            cfg.LEFT_MOTOR.run_at_speed(-speed_correction)
+            motor.run(cfg.LEFT_MOTOR, int(speed_correction / 1.5))
 
         speed_last_error = speed_error
     if brake:
-        cfg.DRIVING_MOTORS.brake()
+        motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.BRAKE)
 
 
 def sign(n):
@@ -339,7 +291,7 @@ def gyro_drive(
     pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,
-    interpolators=(exponential, exponential),
+    interpolators=(exponential, linear),
     brake: bool = True,
 ):
     """Fahre mithilfe des Gyrosensors in eine bestimmte Richtung
@@ -368,7 +320,7 @@ def gyro_drive(
             while hub.button.pressed(hub.button.POWER):
                 ...
             raise StopRun
-        error = target_angle - hub.motion_sensor.tilt_angles()[0]
+        error = target_angle * 10 - hub.motion_sensor.tilt_angles()[0]
         if abs(error) < cfg.GYRO_TOLERANCE:
             # error = 0
             error_sum = 0
@@ -378,16 +330,15 @@ def gyro_drive(
         last = now
         correction = clamp(
             round(pid.p * error + pid.i * error_sum + pid.d * (error - last_error)),
-            -100,
-            100,
+            -1000,
+            1000,
         )
 
         if sign(error) != sign(error_sum):
             error_sum = 0
             last_error = 0
 
-        left_speed, right_speed = speed + correction // 2, speed - correction // 2
-
+        left_speed, right_speed = speed - correction // 2, speed + correction // 2
         if pct < accelerate:
             speed_multiplier = interpolators[0](0.2, 1, pct / accelerate)
             left_speed, right_speed = (
@@ -401,9 +352,7 @@ def gyro_drive(
                 right_speed * speed_multiplier,
             )
 
-        motor_pair.move_tank(
-            cfg.DRIVING_MOTORS, int(left_speed * 10), int(right_speed * 10)
-        )
+        motor_pair.move_tank(cfg.DRIVING_MOTORS, int(left_speed), int(right_speed))
 
         last_error = error
         # time.sleep(cfg.LOOP_THROTTLE)
@@ -412,12 +361,12 @@ def gyro_drive(
 
 
 def start_with_naR(alpha, radius):
-    assert cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, (
-        "naR: left sensor must be the integrated light sensor"
-    )
-    assert cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, (
-        "naR: right sensor must be the integrated light sensor"
-    )
+    assert (
+        cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
+    ), "naR: left sensor must be the integrated light sensor"
+    assert (
+        cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
+    ), "naR: right sensor must be the integrated light sensor"
 
     cfg.LEFT_SENSOR.mode(4)
     cfg.RIGHT_SENSOR.mode(4)

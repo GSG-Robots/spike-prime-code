@@ -5,6 +5,7 @@ import time
 
 from .enums import SWSensor
 import hub
+import motor
 from .config import cfg
 
 from .types import Condition
@@ -27,20 +28,17 @@ def cm(distance: int | float) -> Condition:
     """
     yield 0
 
-    cfg.LEFT_MOTOR.mode([(2, 0)])
-    cfg.RIGHT_MOTOR.mode([(2, 0)])
-
     start_degrees = (
-        cfg.LEFT_MOTOR.get()[0],
-        cfg.RIGHT_MOTOR.get()[0],
+        motor.relative_position(cfg.LEFT_MOTOR),
+        motor.relative_position(cfg.RIGHT_MOTOR),
     )
 
     while True:
         yield math.floor(
             (
                 (
-                    abs(cfg.RIGHT_MOTOR.get()[0] - start_degrees[1])
-                    + abs(cfg.LEFT_MOTOR.get()[0] - start_degrees[0])
+                    abs(motor.relative_position(cfg.RIGHT_MOTOR) - start_degrees[1])
+                    + abs(motor.relative_position(cfg.LEFT_MOTOR) - start_degrees[0])
                 )
                 / 720
                 * cfg.TIRE_CIRCUMFRENCE
@@ -140,7 +138,10 @@ def deg(angle: int) -> Condition:
 def light_left(threshold: float, below: bool = False):
     yield 0
 
-    assert cfg.LEFT_SW_SENSOR in (SWSensor.INTEGRATED_LIGHT, SWSensor.EXTERNAL_LIGHT), "light_left: left sensor must be a light sensor"
+    assert cfg.LEFT_SW_SENSOR in (
+        SWSensor.INTEGRATED_LIGHT,
+        SWSensor.EXTERNAL_LIGHT,
+    ), "light_left: left sensor must be a light sensor"
 
     cfg.LEFT_SENSOR.mode(4)
     time.sleep(0.1)
@@ -155,7 +156,10 @@ def light_left(threshold: float, below: bool = False):
 def light_right(threshold: float, below: bool = False):
     yield 0
 
-    assert cfg.RIGHT_SW_SENSOR in (SWSensor.INTEGRATED_LIGHT, SWSensor.EXTERNAL_LIGHT), "light_right: right sensor must be a light sensor"
+    assert cfg.RIGHT_SW_SENSOR in (
+        SWSensor.INTEGRATED_LIGHT,
+        SWSensor.EXTERNAL_LIGHT,
+    ), "light_right: right sensor must be a light sensor"
 
     cfg.RIGHT_SENSOR.mode(4)
     time.sleep(0.1)

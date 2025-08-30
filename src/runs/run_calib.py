@@ -11,8 +11,7 @@ color = col.RED
 
 def run():
     # Set Gyro Origin
-    hub.motion.yaw_pitch_roll(0)
-    hub.button.center.was_pressed()
-    while not hub.button.center.was_pressed():
+    hub.motion_sensor.reset_yaw(0)
+    while not hub.button.pressed(hub.button.POWER):
         pass
-    print(hub.motion.yaw_pitch_roll()[0])
+    print(hub.motion_sensor.tilt_angles()[0])

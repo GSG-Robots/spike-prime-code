@@ -14,8 +14,8 @@ import hub
 
 try:
     os.mkdir("/flash/src")
-except Exception as e:
-    ...
+except OSError:
+    pass
 
 
 def _get_next(
@@ -221,7 +221,10 @@ async def server():
             elif cmd == "D":
                 assert args is not None
                 if args not in all_paths:
-                    os.mkdir("/flash/src" + args)
+                    try:
+                        os.mkdir("/flash/src" + args)
+                    except OSError:
+                        pass
                 if args in all_paths:
                     all_paths.remove(args)
                 OK()
