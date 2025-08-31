@@ -41,6 +41,7 @@ def run():
         decelerate=60,
     )
     time.sleep(0.1)
+    # TODO
     cfg.DRIVING_MOTORS.run_for_degrees(35, speed_0=0, speed_1=30)
     run_attachment(Attachment.FRONT_LEFT, -100, 2)
     gyro_turn(-90)

@@ -5,50 +5,78 @@ import hashlib
 import io
 import json
 import os
-
-import machine
 import select
 import sys
-import hub
+import time
 
+import machine
+import color
+import hub
+from bleio import BLE_UART
 
 try:
     os.mkdir("/flash/src")
 except OSError:
     pass
 
+off = 0
+important = False
 
-def _get_next(
+
+def _read_decoded(io, *args):
+    data = io.read(*args)
+    if isinstance(data, bytes):
+        return data.decode()
+    return data
+
+
+async def _get_next(
     timeout=-1,
     bin=False,
 ) -> tuple[str, str | bytes | None] | None:
+    global off, important
     poll = select.poll()
+    poll.register(BLE_UART.rx, select.POLLIN)
     poll.register(sys.stdin, select.POLLIN)
     for stdin, _ in poll.poll(timeout):
-        while stdin.read(1) != ":":
-            ...
+        hub.light.color(hub.light.CONNECT, color.YELLOW)
+        important = True
+        if _read_decoded(stdin, 1) != ":":
+            important = False
+            continue
 
-        cmd = stdin.read(1)
-        nxt = stdin.read(1)
+        cmd = _read_decoded(stdin, 1)
+        nxt = _read_decoded(stdin, 1)
         if nxt == "]":
+            hub.light.color(hub.light.CONNECT, color.GREEN)
+            off = time.ticks_ms() + 30
+            important = False
             return (cmd, None)
         else:
-            ln = int(nxt + stdin.read(3))
-            arg = stdin.read(ln)
+            hub.light.color(hub.light.CONNECT, color.ORANGE)
             try:
+                ln = int(nxt + _read_decoded(stdin, 3))
+                arg = _read_decoded(stdin, ln)  
                 decoded_arg = binascii.a2b_base64(arg)
                 if not bin:
                     decoded_arg = decoded_arg.decode()
             except Exception as e:
                 write_error(e)
+                hub.light.color(hub.light.CONNECT, color.RED)
+                hub.sound.beep(300, 225)
+                off = time.ticks_ms() + 225
+                important = False
                 return None
+            hub.light.color(hub.light.CONNECT, color.GREEN)
+            off = time.ticks_ms() + 30
+            important = False
             return cmd, decoded_arg
     return None
 
 
 async def get_next(bin=False):
     while True:
-        result = _get_next(0, bin)
+        result = await _get_next(0, bin)
         if not result:
             await asyncio.sleep_ms(100)
             continue
@@ -56,13 +84,14 @@ async def get_next(bin=False):
 
 
 def write(cmd, args=None):
-    sys.stdout.write(":" + cmd)
+    msg = ":" + cmd
     if args is not None:
         encoded_args = binascii.b2a_base64(args, newline=False)
-        sys.stdout.write(("0000" + str(len(encoded_args)))[-4:])
-        sys.stdout.write(encoded_args.decode())
+        msg += ("0000" + str(len(encoded_args)))[-4:] + encoded_args.decode()
     else:
-        sys.stdout.write("]")
+        msg += "]"
+    sys.stdout.write(msg)
+    BLE_UART.write(msg)
 
 
 class Remote:
@@ -110,6 +139,8 @@ def remove(path: str):
     if typ == 32768:
         os.remove(path)
     elif typ == 16384:
+        for p in recursive_listdir(path):
+            remove(p)
         os.rmdir(path)
     else:
         assert False
@@ -136,16 +167,25 @@ async def read_file(file_name):
 
 prog_task = None
 has_stopped = asyncio.Event()
-
+has_stopped.set()
 
 async def program_wrapper(program):
     has_stopped.clear()
     try:
-        try:
-            await program
-        except Exception as e:
-            write_error(e)
+        await program
+    except Exception as e:
+        write_error(e, "E")
+        hub.light.color(hub.light.POWER, color.RED)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.BLACK)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.RED)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.BLACK)
+        await asyncio.sleep_ms(50)
     finally:
+        hub.light_matrix.clear()
+        hub.light.color(hub.light.POWER, color.WHITE)
         has_stopped.set()
 
 
@@ -161,11 +201,29 @@ async def run_program():
     try:
         module = __import__("src")
     except Exception as e:
-        write_error(e)
+        write_error(e, "E")
+        hub.light.color(hub.light.POWER, color.MAGENTA)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.BLACK)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.MAGENTA)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.BLACK)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.WHITE)
     if hasattr(module, "loop"):
         prog_task = asyncio.create_task(program_wrapper(module.loop()))
     else:
-        write("!", "You must define a function called 'loop' in '__init__.py'!")
+        write("E", "You must define a function called 'loop' in '__init__.py'!")
+        hub.light.color(hub.light.POWER, color.PURPLE)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.BLACK)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.MAGENTA)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.BLACK)
+        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.WHITE)
 
 
 async def kill_program():
@@ -189,10 +247,98 @@ def remote_print(*args, **kwargs):
     )
 
 
-async def server():
-    original_print = print
+async def handle_connect_button():
+    global off
+    while True:
+        if off and time.ticks_ms() > off:
+            hub.light.color(hub.light.CONNECT, color.BLACK)
+            off = 0
+        elif not off and not important:
+            if BLE_UART.is_connected():
+                hub.light.color(hub.light.CONNECT, color.BLUE)
+            elif BLE_UART.is_advertising():
+                if time.ticks_ms() % 1350 < 150:
+                    hub.light.color(hub.light.CONNECT, color.BLUE)
+                    hub.sound.beep(500, 50)
+                    await asyncio.sleep_ms(50)
+                    hub.light.color(hub.light.CONNECT, color.BLACK)
+                    await asyncio.sleep_ms(40)
+                    hub.light.color(hub.light.CONNECT, color.BLUE)
+                    hub.sound.beep(500, 60)
+                    await asyncio.sleep_ms(60)
+                    hub.light.color(hub.light.CONNECT, color.BLACK)
+            else:
+                hub.light.color(hub.light.CONNECT, color.BLACK)
+        if hub.button.pressed(hub.button.CONNECT):
+            hub.sound.beep(500, 100)
+            if not important:
+                if BLE_UART.is_connected():
+                    hub.light.color(hub.light.CONNECT, color.AZURE)
+                else:
+                    hub.light.color(hub.light.CONNECT, color.BLUE)
+            took = 0
+            while hub.button.pressed(hub.button.CONNECT):
+                await asyncio.sleep_ms(100)
+                took += 1
+                if took > 30:
+                    break
+            else:
+                if not important:
+                    hub.light.color(hub.light.CONNECT, color.BLACK)
+                if BLE_UART.is_advertising():
+                    BLE_UART.stop_advertising()
+                elif BLE_UART.is_connected():
+                    BLE_UART.disconnect()
+                else:
+                    BLE_UART.start_advertising()
+                await asyncio.sleep_ms(160)
+                continue
+            hub.sound.beep(700, 50)
+            time.sleep(0.1)
+            hub.sound.beep(700, 200)
+            hub.light.color(hub.light.CONNECT, color.PURPLE)
+            while hub.button.pressed(hub.button.CONNECT):
+                if hub.button.pressed(hub.button.LEFT):
+                    hub.light.color(hub.light.CONNECT, color.GREEN)
+                    hub.sound.beep(800, 400)
+                    time.sleep(0.4)
+                    machine.reset()
+                    break
+                if hub.button.pressed(hub.button.RIGHT):
+                    hub.light.color(hub.light.CONNECT, color.GREEN)
+                    hub.sound.beep(800, 400)
+                    time.sleep(0.4)
+                    machine.soft_reset()
+                    break
+                if hub.button.pressed(hub.button.POWER):
+                    hub.light.color(hub.light.CONNECT, color.GREEN)
+                    hub.sound.beep(800, 400)
+                    time.sleep(0.1)
+                    if not has_stopped.is_set():
+                        hub.sound.beep(400, 1000)
+                        break
+                    await run_program()
+                    break
+            hub.light.color(hub.light.CONNECT, color.BLACK)
+            while hub.button.pressed(hub.button.CONNECT):
+                await asyncio.sleep_ms(100)
+        await asyncio.sleep_ms(10)
+
+
+async def main():
+    _print = builtins.print
     builtins.print = remote_print
+    hub.light.color(hub.light.POWER, color.WHITE)
+    task = asyncio.create_task(handle_connect_button())
+    await run_program()
+    await server()
+    task.cancel()
+    builtins.print = _print
+
+
+async def server():
     all_paths = []
+    global off
 
     while True:
         try:
@@ -254,7 +400,9 @@ async def server():
                 all_paths = []
                 OK()
             else:
+                hub.light.color(hub.light.CONNECT, color.RED)
+                hub.sound.beep(350, 225)
+                off = time.ticks_ms() + 225
                 write("!", f"Unkown command {cmd}")
         except Exception as e:
             write_error(e)
-    builtins.print = original_print

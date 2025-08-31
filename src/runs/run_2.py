@@ -17,18 +17,18 @@ def run():
     hold_attachment(Attachment.FRONT_LEFT, await_completion=False)
     gyro_drive(
         0,
-        90,
+        900,
         impact(cm(30.72)),
         accelerate=10,
         decelerate=40,
     )
-    run_attachment(Attachment.FRONT_LEFT, 60, 0.7, stall=True)
+    run_attachment(Attachment.FRONT_LEFT, 600, 0.7, stall=True)
     time.sleep(0.1)
     gyro_drive(
         0,
-        -100,
+        -1000,
         cm(43.2),
         accelerate=60,
         decelerate=0,
     )
-    gyro_turn(100, step_speed=100)
+    gyro_turn(100)

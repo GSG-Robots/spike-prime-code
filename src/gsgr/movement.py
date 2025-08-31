@@ -160,7 +160,7 @@ def run_attachment(
 
     if untension:
         motor.run_for_degrees(
-            cfg.GEAR_SHAFT, -math.copysign(untension, _LAST_SHAFT_SPEED), speed=1000
+            cfg.GEAR_SHAFT, -int(math.copysign(untension, _LAST_SHAFT_SPEED)), 1000
         )
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
@@ -265,7 +265,7 @@ def gyro_turn(
             break
         if pivot == Pivot.CENTER:
             motor_pair.move_tank(
-                motor_pair.PAIR_1, -speed_correction / 2, speed_correction / 2
+                motor_pair.PAIR_1, -int(speed_correction / 2), int(speed_correction / 2)
             )
         elif pivot == Pivot.LEFT_WHEEL:
             motor.run(cfg.RIGHT_MOTOR, int(speed_correction / 1.5))

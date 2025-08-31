@@ -24,6 +24,7 @@ from tqdm import tqdm
 class ForceReconnect(BaseException): ...
 
 
+debug = False
 SRC_DIR = Path("src").absolute()
 BUILD_DIR = Path("build").absolute()
 SERIAL: Serial | None = None
@@ -97,7 +98,6 @@ def _get_next(
     return None
 
 
-debug = False
 
 
 def write(cmd, args=None):
@@ -116,12 +116,14 @@ def write(cmd, args=None):
 
 
 @overload
-async def get_next(max_retries: int) -> tuple[str, str | None] | None: ...
+async def get_next(
+    max_retries: int, /, *, ignore_errors: bool = False
+) -> tuple[str, str | None] | None: ...
 @overload
-async def get_next() -> tuple[str, str | None]: ...
+async def get_next(*, ignore_errors: bool = False) -> tuple[str, str | None]: ...
 
 
-async def get_next(max_retries=None):
+async def get_next(max_retries=None, /, *,ignore_errors=False):
     retries = 0
     while True:
         result = _get_next(0)
@@ -134,7 +136,7 @@ async def get_next(max_retries=None):
             continue
         if debug:
             print("read", *result)
-        if result[0] == "!":
+        if result[0] == "!" and not ignore_errors:
             handle_error(result[1])
             return result
         elif result[0] == "P":
@@ -361,7 +363,7 @@ async def sync_stream(timeout=10):
     otm = time.time()
     write("=", str(otm))
     while time.time() < otm + timeout:
-        resp = await get_next(10)
+        resp = await get_next(10, ignore_errors=True)
         if resp is None:
             write("=", str(otm))
             continue

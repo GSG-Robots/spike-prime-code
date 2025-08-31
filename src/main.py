@@ -15,7 +15,6 @@ from .gsgr.exceptions import StopRun
 from .gsgr.menu import ActionMenu, ActionMenuItem
 from .gsgr.run import Run
 
-
 def run_motorcontrol():
     """Motorcontrol"""
     select = 1
@@ -150,25 +149,25 @@ async def main():
         run_action = run.run
         left_sensor = run.left_sensor if hasattr(run, "left_sensor") else None
         right_sensor = run.right_sensor if hasattr(run, "right_sensor") else None
-        # assert isinstance(display_as, int) or isinstance(display_as, str), (
-        #     "RunDef: display_as must be str or int"
-        # )
-        # assert isinstance(color, int), "RunDef: color must be int"
-        # assert (
-        #     left_sensor is None
-        #     or isinstance(left_sensor, tuple)
-        #     and len(left_sensor) == 2
-        #     and isinstance(left_sensor[0], int)
-        #     and isinstance(left_sensor[1], int)
-        # ), "RunDef: left_sensor must be None or tuple of two ints"
-        # assert (
-        #     right_sensor is None
-        #     or isinstance(right_sensor, tuple)
-        #     and len(right_sensor) == 2
-        #     and isinstance(right_sensor[0], int)
-        #     and isinstance(right_sensor[1], int)
-        # ), "RunDef: right_sensor must be None or tuple of two ints"
-        # assert callable(run_action), "RunDef: run must be callable"
+        assert isinstance(display_as, int) or isinstance(display_as, str), (
+            "RunDef: display_as must be str or int"
+        )
+        assert isinstance(color, int), "RunDef: color must be int"
+        assert (
+            left_sensor is None
+            or isinstance(left_sensor, tuple)
+            and len(left_sensor) == 2
+            and isinstance(left_sensor[0], int)
+            and isinstance(left_sensor[1], int)
+        ), "RunDef: left_sensor must be None or tuple of two ints"
+        assert (
+            right_sensor is None
+            or isinstance(right_sensor, tuple)
+            and len(right_sensor) == 2
+            and isinstance(right_sensor[0], int)
+            and isinstance(right_sensor[1], int)
+        ), "RunDef: right_sensor must be None or tuple of two ints"
+        assert callable(run_action), "RunDef: run must be callable"
         menu.add_item(
             Run(
                 display_as,

@@ -148,8 +148,7 @@ class Menu:
                     border_right=self.position == 0,
                     bright=True,
                 )
-                hub.light.color(hub.light.CONNECT, selected.color)
-                hub.light.color(hub.light.POWER, selected.color) 
+                hub.light.color(hub.light.POWER, selected.color)
                 last_position: int = self.position
                 selected.update(first=True)
             selected.update()
@@ -198,6 +197,8 @@ class ActionMenu(Menu):
         finally:
             result.cleanup()
             remote.unblock()
+        while hub.button.pressed(hub.button.POWER):
+            pass
 
     async def loop(self, autoscroll=False, exit_on_charge=False) -> None:
         """Endlos immer wieder Menü zeigen und ein Menü-Element wählen lassen, welches dann ausgeführt wird.

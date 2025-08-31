@@ -70,13 +70,13 @@ def impact(during: Condition, threshold: int | float = 500, min: int = 50) -> Co
         parent = next(during)
         if parent >= min:
             break
-        sign += math.copysign(1, hub.motion.accelerometer(filtered=False)[0])
+        sign += math.copysign(1, hub.motion_sensor.acceleration(True)[0])
         yield parent
 
     threshold = math.copysign(threshold, sign)
 
     while True:
-        v = hub.motion.accelerometer(filtered=False)[0]
+        v = hub.motion_sensor.acceleration(True)[0]
         if (v > threshold) if threshold > 0 else (v < threshold):
             break
         yield next(during)
@@ -99,14 +99,14 @@ def pickup(during: Condition, threshold: int | float = 500, min: int = 50) -> Co
             break
         gs_cnt += 1
         gs_avg = (
-            gs_avg * (gs_cnt - 1) + hub.motion.accelerometer(filtered=False)[2]
+            gs_avg * (gs_cnt - 1) + hub.motion_sensor.acceleration(True)[2]
         ) / gs_cnt
         yield parent
 
     threshold += gs_avg
 
     while True:
-        v = hub.motion.accelerometer(filtered=False)[2]
+        v = hub.motion_sensor.acceleration(True)[2]
         if v > threshold:
             break
         yield next(during)
