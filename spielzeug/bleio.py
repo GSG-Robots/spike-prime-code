@@ -102,7 +102,9 @@ class BLEUART:
         self.rx = micropython.RingIO(rxbuf)
         self._handler = None
         self._payload = advertising_payload(
-            name=name, appearance=_ADV_APPEARANCE_GENERIC_REMOTE_CONTROL
+            # name=name,
+            # appearance=_ADV_APPEARANCE_GENERIC_REMOTE_CONTROL,
+            services=[_UART_UUID],
         )
         self._force_disconnect = False
 
@@ -140,12 +142,12 @@ class BLEUART:
     def close(self):
         if self._connection is not None:
             self._ble.gap_disconnect(self._connection)
-        
+
     def disconnect(self):
         self._force_disconnect = True
         self.close()
 
-    def _advertise(self, interval_us=500000):
+    def _advertise(self, interval_us=500):
         self._ble.gap_advertise(interval_us, adv_data=self._payload)
 
     def start_advertising(self):

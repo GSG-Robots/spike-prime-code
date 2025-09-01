@@ -259,12 +259,12 @@ async def handle_connect_button():
             elif BLE_UART.is_advertising():
                 if time.ticks_ms() % 1350 < 150:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    hub.sound.beep(500, 50)
+                    # hub.sound.beep(500, 50)
                     await asyncio.sleep_ms(50)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
                     await asyncio.sleep_ms(40)
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    hub.sound.beep(500, 60)
+                    # hub.sound.beep(500, 60)
                     await asyncio.sleep_ms(60)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
             else:
