@@ -22,22 +22,30 @@ def run():
     # Set Gyro Origin
     # gyro_wall_align()
     gyro_set_origin()
-    raise RuntimeError
-    for i in range(5):
-        gyro_turn(90, pivot=Pivot.RIGHT_WHEEL)
-        gyro_drive(
-            90,
-            700,
-            cm(30),
-            accelerate=10,
-            decelerate=30,
-        )
-        gyro_turn(-90, pivot=Pivot.RIGHT_WHEEL)
-        gyro_drive(
-            -90,
-            700,
-            cm(30),
-            accelerate=10,
-            decelerate=30,
-        )
+    gyro_drive(
+        0,
+        700,
+        cm(30),
+        accelerate=10,
+        decelerate=30,
+    )
+    # for i in range(5):
+    #     print(1)
+    #     gyro_turn(90, pivot=Pivot.RIGHT_WHEEL)
+    #     print(2)
+    #     gyro_drive(
+    #         90,
+    #         700,
+    #         cm(30),
+    #         accelerate=10,
+    #         decelerate=30,
+    #     )
+    #     gyro_turn(-90, pivot=Pivot.RIGHT_WHEEL)
+    #     gyro_drive(
+    #         -90,
+    #         700,
+    #         cm(30),
+    #         accelerate=10,
+    #         decelerate=30,
+    #     )
     # free_attachments()

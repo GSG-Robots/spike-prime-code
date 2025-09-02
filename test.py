@@ -1,7 +1,13 @@
 import io
 
-a = io.BytesIO()
+class RingIO:
+    def __init__(self, initial_bytes: b""):
+        self._buffer = bytearray(initial_bytes)
 
-a.write(b"hi")
+    def write(self, data: bytes):
+        self._buffer.extend(data)
 
-print(a.read())
+    def read(self, n: int):
+        a = self._buffer[:n]
+        self._buffer = self._buffer[n:]
+        return a

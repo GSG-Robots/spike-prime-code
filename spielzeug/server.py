@@ -23,8 +23,11 @@ off = 0
 important = False
 
 
-def _read_decoded(io, *args):
-    data = io.read(*args)
+async def _read_decoded(io, ln):
+    data = b""
+    while len(data) < ln:
+        await asyncio.sleep_ms(1)
+        data += io.read(ln - len(data))
     if isinstance(data, bytes):
         return data.decode()
     return data
@@ -41,22 +44,24 @@ async def _get_next(
     for stdin, _ in poll.poll(timeout):
         hub.light.color(hub.light.CONNECT, color.YELLOW)
         important = True
-        if _read_decoded(stdin, 1) != ":":
+        if await _read_decoded(stdin, 1) != ":":
             important = False
+            await asyncio.sleep_ms(1)
             continue
 
-        cmd = _read_decoded(stdin, 1)
-        nxt = _read_decoded(stdin, 1)
+        cmd = await _read_decoded(stdin, 1)
+        nxt = await _read_decoded(stdin, 1)
         if nxt == "]":
             hub.light.color(hub.light.CONNECT, color.GREEN)
             off = time.ticks_ms() + 30
             important = False
+            await asyncio.sleep_ms(1)
             return (cmd, None)
         else:
             hub.light.color(hub.light.CONNECT, color.ORANGE)
             try:
-                ln = int(nxt + _read_decoded(stdin, 3))
-                arg = _read_decoded(stdin, ln)  
+                ln = int(nxt + await _read_decoded(stdin, 3))
+                arg = await _read_decoded(stdin, ln)
                 decoded_arg = binascii.a2b_base64(arg)
                 if not bin:
                     decoded_arg = decoded_arg.decode()
@@ -66,11 +71,14 @@ async def _get_next(
                 hub.sound.beep(300, 225)
                 off = time.ticks_ms() + 225
                 important = False
+                await asyncio.sleep_ms(1)
                 return None
             hub.light.color(hub.light.CONNECT, color.GREEN)
             off = time.ticks_ms() + 30
             important = False
+            await asyncio.sleep_ms(1)
             return cmd, decoded_arg
+    await asyncio.sleep_ms(1)
     return None
 
 
@@ -149,6 +157,7 @@ def remove(path: str):
 async def read_file(file_name):
     with open("/flash/src" + file_name, "wb+") as f:
         while True:
+            await asyncio.sleep_ms(1)
             cmd, args = await get_next(True)
             if cmd == "C":
                 f.write(args)
@@ -259,12 +268,12 @@ async def handle_connect_button():
             elif BLE_UART.is_advertising():
                 if time.ticks_ms() % 1350 < 150:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    # hub.sound.beep(500, 50)
+                    hub.sound.beep(500, 50)
                     await asyncio.sleep_ms(50)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
                     await asyncio.sleep_ms(40)
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    # hub.sound.beep(500, 60)
+                    hub.sound.beep(500, 60)
                     await asyncio.sleep_ms(60)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
             else:
@@ -330,7 +339,7 @@ async def main():
     builtins.print = remote_print
     hub.light.color(hub.light.POWER, color.WHITE)
     task = asyncio.create_task(handle_connect_button())
-    await run_program()
+    # await run_program()
     await server()
     task.cancel()
     builtins.print = _print

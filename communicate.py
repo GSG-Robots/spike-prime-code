@@ -1,12 +1,9 @@
-from ast import Call
 import asyncio
 import binascii
 import contextlib
 import hashlib
-import io
 import json
 import os
-import select
 import subprocess
 import sys
 import time
@@ -30,22 +27,41 @@ import bleak
 class ForceReconnect(BaseException): ...
 
 
+class RingIO:
+    def __init__(self, initial_bytes=b""):
+        self._buffer = bytearray(initial_bytes)
+
+    def write(self, data: bytes):
+        self._buffer.extend(data)
+
+    def read(self, n: int):
+        a = self._buffer[:n]
+        self._buffer = self._buffer[n:]
+        return bytes(a)
+
+
 class IOStore:
     def __init__(self):
-        self.BTIN = io.BytesIO()
-        self.BTOUT = io.BytesIO()
+        self.BTIN = RingIO()
+        self.BTOUT = RingIO()
         self.in_waiting = 0
         self.out_waiting = 0
+        self._in_lock = asyncio.Lock()
+        self._out_lock = asyncio.Lock()
 
     async def read(self, length: int):
         while self.in_waiting < length:
             await asyncio.sleep(0.001)
+        await self._in_lock.acquire()
         self.in_waiting -= length
+        self._in_lock.release()
         return self.BTIN.read(length)
 
-    def write(self, data: bytes):
+    async def write(self, data: bytes):
         self.BTOUT.write(data)
+        await self._out_lock.acquire()
         self.out_waiting += len(data)
+        self._out_lock.release()
 
 
 debug = True
@@ -73,13 +89,17 @@ UART_RX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
 
 async def handle_bleio(address, ios: IOStore, finished_callback):
-    def handle_rx(
+    async def handle_rx(
         _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray
     ):
         ios.BTIN.write(data)
+        await ios._in_lock.acquire()
         ios.in_waiting += len(data)
+        ios._in_lock.release()
 
-    async with bleak.BleakClient(address, services=[UART_SERVICE_UUID], use_cached_services=True) as client:
+    async with bleak.BleakClient(
+        address, services=[UART_SERVICE_UUID], use_cached_services=True
+    ) as client:
         print("Connected.")
         # paired = await client.pair()
         # if not paired:
@@ -90,10 +110,13 @@ async def handle_bleio(address, ios: IOStore, finished_callback):
         await client.start_notify(UART_RX_CHAR_UUID.lower(), handle_rx)
         while True:
             if ios.out_waiting:
-                data = ios.BTOUT.getvalue()
-                print("SENDING DATA", data, ios.out_waiting, ios.BTOUT.getvalue(), ios.BTIN.getvalue())
+                data = ios.BTOUT.read(min(ios.out_waiting, 60))
+                await ios._out_lock.acquire()
                 ios.out_waiting -= len(data)
+                ios._out_lock.release()
                 await client.write_gatt_char(UART_TX_CHAR_UUID.lower(), data)
+                await asyncio.sleep(0.001)
+                continue
             await asyncio.sleep(0.001)
 
 
@@ -150,7 +173,7 @@ async def _get_next(
         if debug:
             print()
 
-        cmd = await read(1).decode()
+        cmd = (await read(1)).decode()
         nxt = await read(1)
         if nxt == b"]":
             return cmd, None
@@ -173,7 +196,7 @@ async def _get_next(
     return None
 
 
-def write(cmd, args=None):
+async def write(cmd, args=None):
     if debug:
         print("write", cmd, args)
     msg = b":" + cmd.encode()
@@ -187,23 +210,23 @@ def write(cmd, args=None):
     if SERIAL is not None:
         SERIAL.write(msg)
     if BT_IOS is not None:
-        BT_IOS.write(msg)
+        await BT_IOS.write(msg)
 
 
 @overload
 async def get_next(
-    max_retries: int, /, *, ignore_errors: bool = False
+    max_retries: int, /, *, ignore_errors: bool = False, exclude_sync: bool = True
 ) -> tuple[str, str | None] | None: ...
 @overload
-async def get_next(*, ignore_errors: bool = False) -> tuple[str, str | None]: ...
+async def get_next(*, ignore_errors: bool = False, exclude_sync: bool = True) -> tuple[str, str | None]: ...
 
 
-async def get_next(max_retries=None, /, *, ignore_errors=False):
+async def get_next(max_retries=None, /, *, ignore_errors=False, exclude_sync=True):
     retries = 0
     while True:
+        await asyncio.sleep(0.001)
         result = await _get_next(0)
         if not result:
-            await asyncio.sleep(0.1)
             if max_retries:
                 retries += 1
                 if retries >= max_retries:
@@ -222,32 +245,36 @@ async def get_next(max_retries=None, /, *, ignore_errors=False):
         elif result[0] == "E":
             assert result[1]
             print(colorama.Fore.RED + result[1] + colorama.Fore.RESET, file=sys.stderr)
+        elif exclude_sync and result[0] == "=":
+            continue
         else:
             return result
 
 
 async def expect_OK():
     while True:
+        await asyncio.sleep(0.001)
         nxt, _ = await get_next()
         if nxt in "BD":
             continue
         if nxt != "K":
             print(f"Expecting OK, Invalid response {nxt}, resetting connection")
-            write("$")
+            await write("$")
             raise ForceReconnect()
         return True
 
 
 async def send_file(file, cb=None):
     while True:
+        await asyncio.sleep(0.001)
         chunk = file.read(192)
         if not chunk:
             break
-        write("C", chunk)
+        await write("C", chunk)
         await expect_OK()
         if cb is not None:
-            cb()
-    write("E")
+            cb(len(chunk))
+    await write("E")
 
 
 def build_py(src: Path, dest: Path):
@@ -308,14 +335,15 @@ async def sync_path(file: Path):
     if path == ".":
         return
     if not file.exists():
-        write("R", "/" + path)
+        await write("R", "/" + path)
     if file.is_dir():
-        write("D", "/" + path)
+        await write("D", "/" + path)
         await expect_OK()
     else:
         hashv = hashlib.sha256(file.read_bytes()).hexdigest()
-        write("F", "/" + path + " " + hashv)
+        await write("F", "/" + path + " " + hashv)
         while True:
+            await asyncio.sleep(0.001)
             nxt, _ = await get_next()
             if nxt == "B":
                 return True
@@ -327,7 +355,7 @@ async def sync_path(file: Path):
                 print(
                     f"Expecting OK or U, Invalid response {nxt}, resetting connection"
                 )
-                write("$")
+                await write("$")
                 raise ForceReconnect()
             with tqdm(
                 total=file.stat().st_size,
@@ -336,8 +364,8 @@ async def sync_path(file: Path):
                 desc=f"Uploading {file.name}",
             ) as bar:
 
-                def tqdmcb():
-                    bar.update(192)
+                def tqdmcb(size: int):
+                    bar.update(size)
 
                 with file.open("rb") as f:
                     await send_file(f, tqdmcb)
@@ -347,13 +375,13 @@ async def sync_path(file: Path):
 
 
 async def sync_build_files():
-    write("Y")
+    await write("Y")
     await expect_OK()
 
     for file in BUILD_DIR.glob("**"):
         await sync_path(file)
 
-    write("N")
+    await write("N")
     await expect_OK()
 
 
@@ -436,11 +464,13 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
 
 async def sync_stream(timeout=10):
     otm = time.time()
-    write("=", str(otm))
+    await write("=", str(otm))
     while time.time() < otm + timeout:
-        resp = await get_next(10, ignore_errors=True)
+        await asyncio.sleep(0.001)
+        resp = await get_next(10, ignore_errors=True, exclude_sync=False)
         if resp is None:
-            write("=", str(otm))
+            await write("=", str(otm))
+            await asyncio.sleep(1)
             continue
         nxt, tm = resp
         if nxt == "=" and tm == str(otm):
@@ -469,7 +499,7 @@ async def main():
     print("Initial file synchronization...")
     await sync_build_files()
     print("Restarting program...")
-    write("P")
+    await write("P")
     await expect_OK()
 
     observer = watchdog.observers.Observer()
@@ -481,10 +511,15 @@ async def main():
     blocked = False
     try:
         while True:
-            await asyncio.sleep(0.1)
-            if SERIAL_IN.closed:
+            await asyncio.sleep(0.01)
+            if SERIAL is not None and SERIAL.closed:
                 raise ConnectionAbortedError
-            if SERIAL_IN.in_waiting:
+            if (
+                SERIAL is not None
+                and SERIAL.in_waiting
+                or BT_IOS is not None
+                and BT_IOS.in_waiting
+            ):
                 cmd = await get_next(1)
                 if cmd is not None:
                     nxt, args = cmd
@@ -507,7 +542,7 @@ async def main():
 
                     print("Build done.")
             with file_uploader.lock():
-                if len(file_uploader.modified) > 0:
+                if file_uploader.modified:
                     if blocked:
                         continue
                     print("> Updating...")
@@ -524,8 +559,9 @@ async def main():
                         await asyncio.sleep(0.001)
                     else:
                         print("> Restarting...")
-                        write("P")
-                        await expect_OK()
+                        if not file_uploader.modified:
+                            await write("P")
+                            await expect_OK()
 
     except KeyboardInterrupt:
         observer.stop()
