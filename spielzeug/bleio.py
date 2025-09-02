@@ -89,7 +89,7 @@ STATE_CONNECTED = 2
 
 
 class BLEUART:
-    def __init__(self, ble, name, rxbuf=100):
+    def __init__(self, ble, name, rxbuf=300):
         self._ble = ble
         self._state = STATE_IDLE
         self._ble.active(True)

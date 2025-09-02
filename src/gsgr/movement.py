@@ -188,12 +188,12 @@ def gyro_set_origin():
 
 
 def gyro_wall_align(backwards=False, wall_align_duration: int | float = 1):
-    speed = -30 if backwards else 30
-    cfg.DRIVING_MOTORS.run_at_speed(speed, -speed)
+    speed = -300 if backwards else 300
+    motor_pair.move_tank(cfg.DRIVING_MOTORS, -speed, -speed)
     time.sleep(wall_align_duration / 2)
-    hub.motion.yaw_pitch_roll(0)
+    hub.motion_sensor.reset_yaw(0)
     time.sleep(wall_align_duration / 2)
-    cfg.DRIVING_MOTORS.float()
+    motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.COAST)
 
 
 def gyro_turn(
