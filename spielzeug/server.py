@@ -12,7 +12,7 @@ import time
 import machine
 import color
 import hub
-from bleio import BLE_UART
+from bleio import BLEIO, BLEIOConnector
 
 try:
     os.mkdir("/flash/src")
@@ -39,7 +39,7 @@ async def _get_next(
 ) -> tuple[str, str | bytes | None] | None:
     global off, important
     poll = select.poll()
-    poll.register(BLE_UART.rx, select.POLLIN)
+    poll.register(BLEIOConnector.rx, select.POLLIN)
     poll.register(sys.stdin, select.POLLIN)
     for stdin, _ in poll.poll(timeout):
         hub.light.color(hub.light.CONNECT, color.YELLOW)
@@ -99,7 +99,7 @@ def write(cmd, args=None):
     else:
         msg += "]"
     sys.stdout.write(msg)
-    BLE_UART.write(msg)
+    BLEIOConnector.write(msg)
 
 
 class Remote:
@@ -177,6 +177,7 @@ async def read_file(file_name):
 prog_task = None
 has_stopped = asyncio.Event()
 has_stopped.set()
+
 
 async def program_wrapper(program):
     has_stopped.clear()
@@ -263,9 +264,9 @@ async def handle_connect_button():
             hub.light.color(hub.light.CONNECT, color.BLACK)
             off = 0
         elif not off and not important:
-            if BLE_UART.is_connected():
+            if BLEIOConnector.is_connected():
                 hub.light.color(hub.light.CONNECT, color.BLUE)
-            elif BLE_UART.is_advertising():
+            elif BLEIOConnector.is_advertising():
                 if time.ticks_ms() % 1350 < 150:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
                     hub.sound.beep(500, 50)
@@ -281,7 +282,7 @@ async def handle_connect_button():
         if hub.button.pressed(hub.button.CONNECT):
             hub.sound.beep(500, 100)
             if not important:
-                if BLE_UART.is_connected():
+                if BLEIOConnector.is_connected():
                     hub.light.color(hub.light.CONNECT, color.AZURE)
                 else:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
@@ -294,12 +295,12 @@ async def handle_connect_button():
             else:
                 if not important:
                     hub.light.color(hub.light.CONNECT, color.BLACK)
-                if BLE_UART.is_advertising():
-                    BLE_UART.stop_advertising()
-                elif BLE_UART.is_connected():
-                    BLE_UART.disconnect()
+                if BLEIOConnector.is_advertising():
+                    BLEIOConnector.stop_advertising()
+                elif BLEIOConnector.is_connected():
+                    BLEIOConnector.disconnect()
                 else:
-                    BLE_UART.start_advertising()
+                    BLEIOConnector.start_advertising()
                 await asyncio.sleep_ms(160)
                 continue
             hub.sound.beep(700, 50)
@@ -345,73 +346,109 @@ async def main():
     builtins.print = _print
 
 
-async def server():
+# async def server():
+#     all_paths = []
+#     global off
+
+#     while True:
+#         try:
+#             cmd, args = await get_next()
+
+#             elif cmd == "P":
+#                 await run_program()
+#                 OK()
+#             elif cmd == "X":
+#                 await kill_program()
+#                 OK()
+
+#             elif cmd == "=":
+#                 write("=", args)
+
+#             else:
+#                 hub.light.color(hub.light.CONNECT, color.RED)
+#                 hub.sound.beep(350, 225)
+#                 off = time.ticks_ms() + 225
+#                 write("!", f"Unkown command {cmd}")
+#         except Exception as e:
+#             write_error(e)
+
+
+def register_packets():
     all_paths = []
-    global off
+    read_chunks_into = None
 
-    while True:
+    @BLEIO.handles(b"Y")
+    def start_sync(data: bytes):
+        nonlocal all_paths
+        all_paths = list(a[10:] for a in recursive_listdir("/flash/src"))
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"$")
+    def cancel_sync(data: bytes):
+        nonlocal all_paths
+        all_paths.clear()
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"N")
+    def finish_sync(data: bytes):
+        nonlocal all_paths
+        for path in all_paths:
+            remove(path)
+        all_paths.clear()
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"D")
+    def sync_directory(data: bytes):
+        args = data.decode()
+        if args not in all_paths:
+            try:
+                os.mkdir("/flash/src" + args)
+            except OSError:
+                pass
+        if args in all_paths:
+            all_paths.remove(args)
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"F")
+    def sync_file(data: bytes):
+        nonlocal read_chunks_into
+        args = data.decode()
+        name, hash = args.split(" ", 1)
+        assert name[0] == "/"
         try:
-            cmd, args = await get_next()
-            if cmd == "Y":
-                all_paths = list(a[10:] for a in recursive_listdir("/flash/src"))
-                OK()
-            elif cmd == "F":
-                assert args is not None
-                name, hash = args.split(" ")
-                assert name[0] == "/"
-                try:
-                    with open("/flash/src" + name, "rb") as f:
-                        old_hash = binascii.hexlify(
-                            hashlib.sha256(f.read()).digest()
-                        ).decode()
-                except OSError:
-                    old_hash = None
+            with open("/flash/src" + name, "rb") as f:
+                old_hash = binascii.hexlify(hashlib.sha256(f.read()).digest()).decode()
+        except OSError:
+            old_hash = None
 
-                if old_hash != hash:
-                    write("U")
-                    await read_file(name)
-                if name in all_paths:
-                    all_paths.remove(name)
-                OK()
-            elif cmd == "D":
-                assert args is not None
-                if args not in all_paths:
-                    try:
-                        os.mkdir("/flash/src" + args)
-                    except OSError:
-                        pass
-                if args in all_paths:
-                    all_paths.remove(args)
-                OK()
-            elif cmd == "N":
-                for path in all_paths:
-                    remove(path)
-                all_paths = []
-                OK()
-            elif cmd == "R":
-                assert args is not None
-                remove(args)
-                OK()
-            elif cmd == "P":
-                await run_program()
-                OK()
-            elif cmd == "X":
-                await kill_program()
-                OK()
-            elif cmd == "&":
-                machine.reset()
-                OK()
-            elif cmd == "=":
-                write("=", args)
-            elif cmd == ">":
-                break
-            elif cmd == "$":
-                all_paths = []
-                OK()
-            else:
-                hub.light.color(hub.light.CONNECT, color.RED)
-                hub.sound.beep(350, 225)
-                off = time.ticks_ms() + 225
-                write("!", f"Unkown command {cmd}")
-        except Exception as e:
-            write_error(e)
+        if old_hash != hash:
+            if read_chunks_into is not None:
+                read_chunks_into.close()
+            read_chunks_into = open("/flash/src" + name, "wb+")
+            BLEIO.send_packet(b"U")
+        if name in all_paths:
+            all_paths.remove(name)
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"C")
+    def read_file_chunk(data: bytes):
+        if read_chunks_into is None:
+            return
+        read_chunks_into.write(data)
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"E")
+    def close_file(data: bytes):
+        if read_chunks_into is None:
+            return
+        read_chunks_into.close()
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"R")
+    def remove_any(data: bytes):
+        args = data.decode()
+        remove(args)
+
+    @BLEIO.handles(b"&")
+    def reboot(data: bytes):
+        machine.reset()

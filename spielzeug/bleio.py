@@ -4,8 +4,6 @@ import bluetooth
 import micropython
 from micropython import const
 
-btin = micropython.RingIO(1024)
-btout = micropython.RingIO(1024)
 connected = True
 
 _IRQ_CENTRAL_CONNECT = const(1)
@@ -88,28 +86,27 @@ STATE_ADVERTISING = 1
 STATE_CONNECTED = 2
 
 
-class BLEUART:
-    def __init__(self, ble, name, rxbuf=300):
+class BLEIOConnector:
+    def __init__(self, ble, name):
         self._ble = ble
         self._state = STATE_IDLE
+        self._packet = b""
         self._ble.active(True)
         self._ble.irq(self._irq)
         ((self._tx_handle, self._rx_handle),) = self._ble.gatts_register_services(
             (_UART_SERVICE,)
         )
-        self._ble.gatts_set_buffer(self._rx_handle, rxbuf, True)
+        self._ble.gatts_set_buffer(self._rx_handle, 128, True)
         self._connection = None
-        self.rx = micropython.RingIO(rxbuf)
         self._handler = None
         self._payload = advertising_payload(
-            # name=name,
+            name=name,
             # appearance=_ADV_APPEARANCE_GENERIC_REMOTE_CONTROL,
-            services=[_UART_UUID],
+            # services=[_UART_UUID],
         )
         self._force_disconnect = False
-
-    def irq(self, handler):
-        self._handler = handler
+        self._packet_handlers= {}
+        self._error_handler = print
 
     def _irq(self, event, data):
         if event == _IRQ_CENTRAL_CONNECT:
@@ -131,23 +128,55 @@ class BLEUART:
         elif event == _IRQ_GATTS_WRITE:
             conn_handle, value_handle = data
             if conn_handle == self._connection and value_handle == self._rx_handle:
-                self.rx.write(self._ble.gatts_read(self._rx_handle))
-                if self._handler:
-                    self._handler()
+                self._rx_handler(self._ble.gatts_read(self._rx_handle))
+
+    def _rx_handler(self, data: bytes):
+        self._packet += data
+        if b"\x1a" in data:
+            if len(self._packet) > 1:
+                self._handle_packet(self._packet[: self._packet.index(b"\x1a")])
+            self._packet = b""
+
+    def _handle_packet(self, packet: bytes):
+        packet_handler = self._packet_handlers.get(packet[0])
+        if packet_handler is None:
+            self._error_handler(packet)
+            return
+        arguments = packet[1:]
+        packet_handler(arguments)
+
+    def set_handler(self, packet_id: int | bytes, handler):
+        if isinstance(packet_id, bytes):
+            packet_id = packet_id[0]
+        self._packet_handlers[packet_id] = handler
+
+    def handles(self, packet_id: int | bytes):
+        if isinstance(packet_id, bytes):
+            packet_id = packet_id[0]
+        def wrapper(handler):
+            self._packet_handlers[packet_id] = handler
+        return wrapper
 
     def write(self, data):
         if self._connection is not None:
             self._ble.gatts_notify(self._connection, self._tx_handle, data)
 
-    def close(self):
+    def send_packet(self, packet_id: int | bytes, data : bytes | None = None):
+        if isinstance(packet_id, int):
+            packet_id = packet_id.to_bytes()
+        if data is None:
+            data = b""
+        self.write(packet_id + data)
+
+    def _close(self):
         if self._connection is not None:
             self._ble.gap_disconnect(self._connection)
 
     def disconnect(self):
         self._force_disconnect = True
-        self.close()
+        self._close()
 
-    def _advertise(self, interval_us=500):
+    def _advertise(self, interval_us: int | None = 500):
         self._ble.gap_advertise(interval_us, adv_data=self._payload)
 
     def start_advertising(self):
@@ -173,6 +202,6 @@ class BLEUART:
     def is_advertising(self):
         return self._state == STATE_ADVERTISING
 
+BLEIO = BLEIOConnector(bluetooth.BLE(), "GSG-Robots")
 
-BLE = bluetooth.BLE()
-BLE_UART = BLEUART(BLE, "GSG-Robots")
+__all__ = ["BLEIO"]
