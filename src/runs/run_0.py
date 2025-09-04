@@ -1,8 +1,10 @@
+import color as col
+
 from src.gsgr.config import cfg
 from src.gsgr.interpolators import linear
+
 from ..gsgr.conditions import cm, impact, pickup, sec
 from ..gsgr.enums import Attachment, Pivot
-import color as col
 from ..gsgr.movement import (
     free_attachments,
     gyro_drive,

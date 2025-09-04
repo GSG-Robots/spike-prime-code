@@ -1,9 +1,11 @@
 import time
 
+import color as col
+
 from src import hub
 
-from ..gsgr.config import cfg
 from ..gsgr.conditions import cm, impact, pickup
+from ..gsgr.config import cfg
 from ..gsgr.enums import Attachment, Pivot
 from ..gsgr.movement import (
     gyro_drive,
@@ -13,8 +15,6 @@ from ..gsgr.movement import (
     hold_attachment,
     run_attachment,
 )
-
-import color as col
 
 display_as = 3
 color = col.RED

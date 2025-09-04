@@ -4,6 +4,7 @@ import contextlib
 import hashlib
 import json
 import os
+from struct import pack
 import subprocess
 import sys
 import time
@@ -12,14 +13,16 @@ from pathlib import Path
 from typing import Any, Callable, Coroutine, Iterator, overload
 
 import bleak
+import bleak.backends.characteristic
 import colorama
 import mpy_cross
 import serial.tools.list_ports
 import watchdog.events
 import watchdog.observers
 import yaml
-from serial import Serial
 from tqdm import tqdm
+
+from .spielzeug.bleio import BLEIO
 
 
 class ForceReconnect(BaseException): ...
@@ -38,14 +41,6 @@ class RingIO:
         return bytes(a)
 
 
-debug = True
-SRC_DIR = Path("src").absolute()
-BUILD_DIR = Path("build").absolute()
-SERIAL: Serial | None = None
-BT_IOS: IOStore | None = None
-mpy_cross.set_version("1.20", 6)
-
-
 def clean_dir(dir: Path):
     for file in dir.glob("**"):
         if file == dir:
@@ -62,15 +57,18 @@ UART_TX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_RX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
 
-class BLEIO:
+class BLEIOConnector:
     async def __init__(self, device):
         self._ble = bleak.BleakClient(
             device, services=[UART_SERVICE_UUID], use_cached_services=True
         )
         self._packet = b""
         self._packet_handlers = {}
-        self._error_handler = print
+        self._error_handler = self._async_print
         await self._ble.connect()
+
+    async def _async_print(self, data: bytes):
+        print("Invalid Packet", data)
 
     async def _handle_packet(self, packet: bytes):
         packet_handler = self._packet_handlers.get(packet[0])
@@ -89,32 +87,18 @@ class BLEIO:
                 await self._handle_packet(self._packet[: self._packet.index(b"\x1a")])
             self._packet = b""
 
+    async def send_packet(self, packet_id: int | bytes, data: bytes | None = None):
+        if isinstance(packet_id, int):
+            packet_id = packet_id.to_bytes()
+        if data is None:
+            data = b""
+        await self._ble.write_gatt_char(UART_TX_CHAR_UUID.lower(), packet_id + data)
 
-async def handle_bleio(address, ios: IOStore, finished_callback):
-    async def handle_rx(
-        _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray
-    ):
-        ios.BTIN.write(data)
-        await ios._in_lock.acquire()
-        ios.in_waiting += len(data)
-        ios._in_lock.release()
 
-    async with bleak.BleakClient(
-        address, services=[UART_SERVICE_UUID], use_cached_services=True
-    ) as client:
-        print("Connected.")
-        finished_callback()
-        await client.start_notify(UART_RX_CHAR_UUID.lower(), handle_rx)
-        while True:
-            if ios.out_waiting:
-                data = ios.BTOUT.read(min(ios.out_waiting, 60))
-                await ios._out_lock.acquire()
-                ios.out_waiting -= len(data)
-                ios._out_lock.release()
-                await client.write_gatt_char(UART_TX_CHAR_UUID.lower(), data)
-                await asyncio.sleep(0.001)
-                continue
-            await asyncio.sleep(0.001)
+SRC_DIR = Path("src").absolute()
+BUILD_DIR = Path("build").absolute()
+mpy_cross.set_version("1.20", 6)
+
 
 
 async def get_device():
@@ -124,130 +108,11 @@ async def get_device():
     #     if device.name != "GSG-Robots":
     #         continue
     device = "34:08:E1:8A:87:0D"
-    ios = IOStore()
-    finished = asyncio.Event()
-    asyncio.create_task(handle_bleio(device, ios, finished.set))
-    print(1)
-    await finished.wait()
-    print("Connection established")
-    return None, ios
-    devices = serial.tools.list_ports.comports()
-    if len(devices) == 0:
-        print("Error: No devices found")
-        return
-    if len(devices) == 1:
-        device_choice = devices[0]
-    else:
-        for index, device in enumerate(devices):
-            print(f"{index + 1:>2}. {device.device}")
-        device_choice = devices[int(input("Device: ")) - 1]
-
-    print(f"> Connecting to {device_choice}...")
-    return serial.Serial(device_choice.device, 115200), None
-
+    return BLEIOConnector(device)
 
 def handle_error(error):
     print(error, file=sys.stderr)
     sys.exit(1)
-
-
-async def _get_next(
-    timeout=-1,
-) -> tuple[str, str | None] | None:
-    READ_FROM: list[Callable[[int], Coroutine[Any, Any, bytes]]] = []
-    if SERIAL is not None and SERIAL.in_waiting:
-
-        async def read(n: int) -> bytes:
-            return SERIAL.read(n)
-
-        READ_FROM.append(read)
-    if BT_IOS is not None and BT_IOS.in_waiting:
-        READ_FROM.append(BT_IOS.read)
-    for read in READ_FROM:
-        while (a := await read(1)) != b":":
-            if debug:
-                print(a.decode(), end="")
-        if debug:
-            print()
-
-        cmd = (await read(1)).decode()
-        nxt = await read(1)
-        if nxt == b"]":
-            return cmd, None
-        else:
-            lns = nxt + await read(3)
-            try:
-                ln = int(lns)
-            except ValueError:
-                print(f"Failed {lns} {cmd}")
-                ln = 0
-            arg = await read(ln)
-            try:
-                decoded_arg = binascii.a2b_base64(arg).decode()
-            except Exception as e:
-                traceback.print_exception(e)
-                print("Failed to handle packet, resetting connection")
-                write("$")
-                raise ForceReconnect()
-            return cmd, decoded_arg
-    return None
-
-
-async def write(cmd, args=None):
-    if debug:
-        print("write", cmd, args)
-    msg = b":" + cmd.encode()
-    if args is not None:
-        if not isinstance(args, bytes):
-            args = args.encode()
-        encoded_args = binascii.b2a_base64(args, newline=False)
-        msg += ("0000" + str(len(encoded_args)))[-4:].encode() + encoded_args
-    else:
-        msg += b"]"
-    if SERIAL is not None:
-        SERIAL.write(msg)
-    if BT_IOS is not None:
-        await BT_IOS.write(msg)
-
-
-@overload
-async def get_next(
-    max_retries: int, /, *, ignore_errors: bool = False, exclude_sync: bool = True
-) -> tuple[str, str | None] | None: ...
-@overload
-async def get_next(
-    *, ignore_errors: bool = False, exclude_sync: bool = True
-) -> tuple[str, str | None]: ...
-
-
-async def get_next(max_retries=None, /, *, ignore_errors=False, exclude_sync=True):
-    retries = 0
-    while True:
-        await asyncio.sleep(0.001)
-        result = await _get_next(0)
-        if not result:
-            if max_retries:
-                retries += 1
-                if retries >= max_retries:
-                    return None
-            continue
-        if debug:
-            print("read", *result)
-        if result[0] == "!" and not ignore_errors:
-            handle_error(result[1])
-            return result
-        elif result[0] == "P":
-            assert result[1]
-            args, kwargs = json.loads(result[1])
-            kwargs["file"] = None
-            print("|", *args, **kwargs)
-        elif result[0] == "E":
-            assert result[1]
-            print(colorama.Fore.RED + result[1] + colorama.Fore.RESET, file=sys.stderr)
-        elif exclude_sync and result[0] == "=":
-            continue
-        else:
-            return result
 
 
 async def expect_OK():
@@ -329,18 +194,18 @@ def build(files: Iterator[Path]):
             continue
 
 
-async def sync_path(file: Path):
+async def sync_path(BLEIO: BLEIOConnector, file: Path):
     path = file.relative_to(BUILD_DIR).as_posix()
     if path == ".":
         return
     if not file.exists():
-        await write("R", "/" + path)
+        await BLEIO.send_packet(b"R", ("/" + path).encode())
     if file.is_dir():
-        await write("D", "/" + path)
+        await BLEIO.send_packet(b"D", ("/" + path).encode())
         await expect_OK()
     else:
         hashv = hashlib.sha256(file.read_bytes()).hexdigest()
-        await write("F", "/" + path + " " + hashv)
+        await BLEIO.send_packet(b"F", ("/" + path + " " + hashv).encode())
         while True:
             await asyncio.sleep(0.001)
             nxt, _ = await get_next()
