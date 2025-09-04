@@ -180,7 +180,6 @@ class ActionMenu(Menu):
         # hw.right_color_sensor.light_up_all(0)
 
         result: ActionMenuItem = await self.choose(exit_on_charge=exit_on_charge)
-        remote.block()
         show_image(result.display_as, border_right=True, border_left=True, bright=False)
         result.prepare()
         try:
@@ -196,7 +195,6 @@ class ActionMenu(Menu):
             raise e
         finally:
             result.cleanup()
-            remote.unblock()
         while hub.button.pressed(hub.button.POWER):
             pass
 

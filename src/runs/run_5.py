@@ -15,6 +15,6 @@ from ..gsgr.movement import (
 )
 
 display_as = 5
-
+color = col.RED
 
 def run(): ...

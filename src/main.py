@@ -1,4 +1,3 @@
-import asyncio
 import gc
 import os
 import time

@@ -1,28 +1,24 @@
 import asyncio
-import binascii
 import contextlib
 import hashlib
 import json
 import os
-from struct import pack
+import shutil
 import subprocess
 import sys
 import time
-import traceback
+from collections import deque
 from pathlib import Path
-from typing import Any, Callable, Coroutine, Iterator, overload
+from typing import Iterator
 
 import bleak
 import bleak.backends.characteristic
 import colorama
 import mpy_cross
-import serial.tools.list_ports
 import watchdog.events
 import watchdog.observers
 import yaml
 from tqdm import tqdm
-
-from .spielzeug.bleio import BLEIO
 
 
 class ForceReconnect(BaseException): ...
@@ -58,33 +54,57 @@ UART_RX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
 
 class BLEIOConnector:
-    async def __init__(self, device):
+    def __init__(self, device):
         self._ble = bleak.BleakClient(
             device, services=[UART_SERVICE_UUID], use_cached_services=True
         )
         self._packet = b""
         self._packet_handlers = {}
         self._error_handler = self._async_print
+        self._pending_packets = deque()
+
+    async def connect(self):
         await self._ble.connect()
+        await self._ble.start_notify(UART_RX_CHAR_UUID.lower(), self._handle_rx)
 
     async def _async_print(self, data: bytes):
         print("Invalid Packet", data)
 
-    async def _handle_packet(self, packet: bytes):
-        packet_handler = self._packet_handlers.get(packet[0])
-        if packet_handler is None:
-            await self._error_handler(packet)
-            return
-        arguments = packet[1:]
-        await packet_handler(arguments)
+    def get_packet(self):
+        if self._pending_packets:
+            packet = self._pending_packets.popleft()
+            # print(22, packet)
+            return packet
+        return None
 
-    async def handle_rx(
+    async def _handle_rx(
         self, _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray
     ):
         self._packet += data
-        if b"\x1a" in data:
+        if b"\x1a" in self._packet:
             if len(self._packet) > 1:
-                await self._handle_packet(self._packet[: self._packet.index(b"\x1a")])
+                packet = self._packet[: self._packet.index(b"\x1a")]
+                # print("<<", packet)
+                packet_id = packet[:1]
+                arguments = packet[1:]
+                if packet_id == b"P":
+                    print("|", arguments.decode(errors="replace"))
+                elif packet_id == b"E":
+                    print(
+                        colorama.Fore.YELLOW
+                        + arguments.decode(errors="replace")
+                        + colorama.Fore.RESET,
+                        file=sys.stderr,
+                    )
+                elif packet_id == b"!":
+                    print(
+                        colorama.Fore.RED
+                        + arguments.decode(errors="replace")
+                        + colorama.Fore.RESET,
+                        file=sys.stderr,
+                    )
+                else:
+                    self._pending_packets.append((packet_id, arguments))
             self._packet = b""
 
     async def send_packet(self, packet_id: int | bytes, data: bytes | None = None):
@@ -92,13 +112,15 @@ class BLEIOConnector:
             packet_id = packet_id.to_bytes()
         if data is None:
             data = b""
-        await self._ble.write_gatt_char(UART_TX_CHAR_UUID.lower(), packet_id + data)
+        # print(">>", packet_id + data)
+        await self._ble.write_gatt_char(
+            UART_TX_CHAR_UUID.lower(), packet_id + data + b"\x1a"
+        )
 
 
 SRC_DIR = Path("src").absolute()
 BUILD_DIR = Path("build").absolute()
 mpy_cross.set_version("1.20", 6)
-
 
 
 async def get_device():
@@ -108,37 +130,44 @@ async def get_device():
     #     if device.name != "GSG-Robots":
     #         continue
     device = "34:08:E1:8A:87:0D"
-    return BLEIOConnector(device)
+    # device = "38:0B:3C:A2:27:91"
+    ble = BLEIOConnector(device)
+    await ble.connect()
+    return ble
+
 
 def handle_error(error):
     print(error, file=sys.stderr)
     sys.exit(1)
 
 
-async def expect_OK():
+async def expect_OK(BLEIO: BLEIOConnector, ignore=b"="):
     while True:
         await asyncio.sleep(0.001)
-        nxt, _ = await get_next()
-        if nxt in "BD":
+        packet = BLEIO.get_packet()
+        if not packet:
             continue
-        if nxt != "K":
+        nxt, _ = packet
+        if nxt in ignore:
+            continue
+        if nxt != b"K":
             print(f"Expecting OK, Invalid response {nxt}, resetting connection")
-            await write("$")
+            await BLEIO.send_packet(b"$")
             raise ForceReconnect()
         return True
 
 
-async def send_file(file, cb=None):
+async def send_file(BLEIO: BLEIOConnector, file, cb=None):
     while True:
         await asyncio.sleep(0.001)
-        chunk = file.read(192)
+        chunk = file.read(100)
         if not chunk:
             break
-        await write("C", chunk)
-        await expect_OK()
+        await BLEIO.send_packet(b"C", chunk)
+        await expect_OK(BLEIO)
         if cb is not None:
             cb(len(chunk))
-    await write("E")
+    await BLEIO.send_packet(b"E")
 
 
 def build_py(src: Path, dest: Path):
@@ -150,6 +179,10 @@ def build_py(src: Path, dest: Path):
     if result.returncode != 0:
         print(result.stderr.decode("utf-8"))
         return False
+    return True
+
+def copy_py(src: Path, dest: Path):
+    shutil.copy(src, dest)
     return True
 
 
@@ -202,24 +235,25 @@ async def sync_path(BLEIO: BLEIOConnector, file: Path):
         await BLEIO.send_packet(b"R", ("/" + path).encode())
     if file.is_dir():
         await BLEIO.send_packet(b"D", ("/" + path).encode())
-        await expect_OK()
+        await expect_OK(BLEIO)
     else:
         hashv = hashlib.sha256(file.read_bytes()).hexdigest()
         await BLEIO.send_packet(b"F", ("/" + path + " " + hashv).encode())
         while True:
             await asyncio.sleep(0.001)
-            nxt, _ = await get_next()
-            if nxt == "B":
-                return True
-            if nxt == "D":
+            packet = BLEIO.get_packet()
+            if packet is None:
                 continue
-            if nxt == "K":
+            nxt, _ = packet
+            if nxt == b"=":
+                continue
+            if nxt == b"K":
                 break
-            elif nxt != "U":
+            elif nxt != b"U":
                 print(
                     f"Expecting OK or U, Invalid response {nxt}, resetting connection"
                 )
-                await write("$")
+                await BLEIO.send_packet(b"$")
                 raise ForceReconnect()
             with tqdm(
                 total=file.stat().st_size,
@@ -232,21 +266,19 @@ async def sync_path(BLEIO: BLEIOConnector, file: Path):
                     bar.update(size)
 
                 with file.open("rb") as f:
-                    await send_file(f, tqdmcb)
-                await expect_OK()
-                break
+                    await send_file(BLEIO, f, tqdmcb)
     return False
 
 
-async def sync_build_files():
-    await write("Y")
-    await expect_OK()
+async def sync_build_files(BLEIO):
+    await BLEIO.send_packet(b"Y")
+    await expect_OK(BLEIO)
 
     for file in BUILD_DIR.glob("**"):
-        await sync_path(file)
+        await sync_path(BLEIO, file)
 
-    await write("N")
-    await expect_OK()
+    await BLEIO.send_packet(b"N")
+    await expect_OK(BLEIO)
 
 
 class FileUploader(watchdog.events.FileSystemEventHandler):
@@ -326,30 +358,28 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
             self.backlog.append(Path(event.dest_path))
 
 
-async def sync_stream(timeout=10):
+async def sync_stream(BLEIO: BLEIOConnector, timeout=10):
     otm = time.time()
-    await write("=", str(otm))
+    otm_packet = str(otm).encode()
+    await BLEIO.send_packet(b"=", otm_packet)
     while time.time() < otm + timeout:
         await asyncio.sleep(0.001)
-        resp = await get_next(10, ignore_errors=True, exclude_sync=False)
+        resp = BLEIO.get_packet()
+        # print(22, resp)
         if resp is None:
-            await write("=", str(otm))
+            await BLEIO.send_packet(b"=", otm_packet)
             await asyncio.sleep(1)
             continue
         nxt, tm = resp
-        if nxt == "=" and tm == str(otm):
+        if nxt == b"=" and tm == otm_packet:
             return
     raise TimeoutError(f"Hub failed to sync after {timeout} seconds.")
 
 
 async def main():
-    global SERIAL, BT_IOS
-    ser = await get_device()
-    if ser is None:
-        return
-    SERIAL, BT_IOS = ser
+    BLEIO = await get_device()
     # time.sleep(1)
-    await sync_stream()
+    await sync_stream(BLEIO)
     print("Connected to device.")
     print("Preparing environment...")
     if not SRC_DIR.exists():
@@ -361,10 +391,10 @@ async def main():
     print("Building...")
     build(SRC_DIR.glob("**"))
     print("Initial file synchronization...")
-    await sync_build_files()
+    await sync_build_files(BLEIO)
     print("Restarting program...")
-    await write("P")
-    await expect_OK()
+    await BLEIO.send_packet(b"P")
+    await expect_OK(BLEIO)
 
     observer = watchdog.observers.Observer()
     file_builder = FileBuilder()
@@ -376,21 +406,12 @@ async def main():
     try:
         while True:
             await asyncio.sleep(0.01)
-            if SERIAL is not None and SERIAL.closed:
+            if not BLEIO._ble.is_connected:
                 raise ConnectionAbortedError
-            if (
-                SERIAL is not None
-                and SERIAL.in_waiting
-                or BT_IOS is not None
-                and BT_IOS.in_waiting
-            ):
-                cmd = await get_next(1)
-                if cmd is not None:
-                    nxt, args = cmd
-                    if nxt == "B":
-                        blocked = True
-                    elif nxt == "D":
-                        blocked = False
+            packet = BLEIO.get_packet()
+            if packet is not None:
+                nxt, args = packet
+                print("Unexpected Packet")
             with file_builder.lock():
                 if len(file_builder.backlog) > 0:
                     print("Rebuilding...")
@@ -416,7 +437,7 @@ async def main():
                         if task in done:
                             continue
                         done.append(task)
-                        undermined = await sync_path(task)
+                        undermined = await sync_path(BLEIO, task)
                         if undermined:
                             file_uploader.modified.append(task)
                             break
@@ -424,8 +445,8 @@ async def main():
                     else:
                         print("> Restarting...")
                         if not file_uploader.modified:
-                            await write("P")
-                            await expect_OK()
+                            await BLEIO.send_packet(b"P")
+                            await expect_OK(BLEIO)
 
     except KeyboardInterrupt:
         observer.stop()

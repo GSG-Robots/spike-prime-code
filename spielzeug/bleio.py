@@ -139,10 +139,13 @@ class BLEIOConnector:
     def _handle_packet(self, packet: bytes):
         packet_handler = self._packet_handlers.get(packet[0])
         if packet_handler is None:
-            self._error_handler(packet)
+            self._error_handler(packet, None)
             return
         arguments = packet[1:]
-        packet_handler(arguments)
+        try:
+            packet_handler(arguments)
+        except Exception as e:
+            self._error_handler(packet, e)
 
     def set_handler(self, packet_id: int | bytes, handler):
         if isinstance(packet_id, bytes):
@@ -167,7 +170,7 @@ class BLEIOConnector:
             packet_id = packet_id.to_bytes()
         if data is None:
             data = b""
-        self.write(packet_id + data)
+        self.write(packet_id + data + b"\x1a")
 
     def _close(self):
         if self._connection is not None:

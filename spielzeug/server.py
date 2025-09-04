@@ -47,12 +47,6 @@ class Remote:
             data = data.encode()
         BLEIO.send_packet(packet_id, data)
 
-    def block(self):
-        BLEIO.send_packet(b"B")
-
-    def unblock(self):
-        BLEIO.send_packet(b"D")
-
     def error(self, e):
         send_error(e, b"E")
 
@@ -81,12 +75,13 @@ def recursive_listdir(path: str):
 
 def remove(path: str):
     path = "/flash/src" + path
+    print(path)
     typ = os.stat(path)[0]
     if typ == 32768:
         os.remove(path)
     elif typ == 16384:
         for p in recursive_listdir(path):
-            remove(p)
+            remove(p[10:])
         os.rmdir(path)
     else:
         assert False
@@ -166,19 +161,11 @@ async def kill_program():
         await has_stopped.wait()
 
 
-def remote_print(*args, **kwargs):
-    remote.send(
-        b"P",
-        json.dumps(
-            (
-                tuple(a if isinstance(a, str) else repr(a) for a in args),
-                {
-                    key: a if isinstance(a, str) else repr(a)
-                    for key, a in kwargs.items()
-                },
-            )
-        ),
-    )
+def remote_print(*args, sep=" "):
+    data = sep.join(x if isinstance(x, str) else repr(x) for x in args).encode()
+    while data:
+        remote.send(b"P", data[:100])
+        data = data[100:]
 
 
 async def handle_connect_button():
@@ -192,12 +179,12 @@ async def handle_connect_button():
             elif BLEIO.is_advertising():
                 if time.ticks_ms() % 1350 < 150:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    hub.sound.beep(500, 50)
+                    # hub.sound.beep(500, 50)
                     await asyncio.sleep_ms(50)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
                     await asyncio.sleep_ms(40)
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    hub.sound.beep(500, 60)
+                    # hub.sound.beep(500, 60)
                     await asyncio.sleep_ms(60)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
             else:
@@ -241,7 +228,7 @@ async def handle_connect_button():
                     hub.light.color(hub.light.CONNECT, color.GREEN)
                     hub.sound.beep(800, 400)
                     time.sleep(0.4)
-                    machine.soft_reset()
+                    sys.exit()
                     break
                 if hub.button.pressed(hub.button.POWER):
                     hub.light.color(hub.light.CONNECT, color.GREEN)
@@ -260,7 +247,7 @@ async def handle_connect_button():
 
 async def main():
     # Modify builtins
-    _print = builtins.print
+    builtins.oprint = builtins.print
     builtins.print = remote_print
     builtins.remote = remote
 
@@ -271,7 +258,7 @@ async def main():
     except OSError:
         pass
     setup_ble_server()
-    await start_program()
+    # await start_program()
 
     # Initialized, start main loop
     hub.light.color(hub.light.POWER, color.WHITE)
@@ -280,11 +267,13 @@ async def main():
     # Deinit
     builtins.print = _print
     del builtins.remote
+    del builtins.oprint
 
 
 def setup_ble_server():
     all_paths = []
-    read_chunks_into = None
+    current_file = None
+    current_buffer = b""
 
     def handle_packet():
         hub.light.color(hub.light.CONNECT, color.GREEN)
@@ -295,6 +284,7 @@ def setup_ble_server():
         nonlocal all_paths
         handle_packet()
         all_paths = list(a[10:] for a in recursive_listdir("/flash/src"))
+        print(all_paths)
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"$")
@@ -308,6 +298,7 @@ def setup_ble_server():
     def finish_sync(data: bytes):
         nonlocal all_paths
         handle_packet()
+        print(all_paths)
         for path in all_paths:
             remove(path)
         all_paths.clear()
@@ -328,7 +319,7 @@ def setup_ble_server():
 
     @BLEIO.handles(b"F")
     def sync_file(data: bytes):
-        nonlocal read_chunks_into
+        nonlocal current_file, current_buffer
         handle_packet()
         args = data.decode()
         name, hash = args.split(" ", 1)
@@ -339,29 +330,33 @@ def setup_ble_server():
         except OSError:
             old_hash = None
 
-        if old_hash != hash:
-            if read_chunks_into is not None:
-                read_chunks_into.close()
-            read_chunks_into = open("/flash/src" + name, "wb+")
-            BLEIO.send_packet(b"U")
         if name in all_paths:
             all_paths.remove(name)
-        BLEIO.send_packet(b"K")
+        oprint(old_hash, "vs", hash, "from", args)
+        if old_hash != hash:
+            current_file = "/flash/src" + name
+            current_buffer = b""
+            BLEIO.send_packet(b"U")
+        else:
+            BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"C")
     def read_file_chunk(data: bytes):
+        nonlocal current_buffer
         handle_packet()
-        if read_chunks_into is None:
-            return
-        read_chunks_into.write(data)
+        current_buffer += data
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"E")
     def close_file(data: bytes):
+        nonlocal current_buffer, current_file
         handle_packet()
-        if read_chunks_into is None:
+        if current_file is None:
             return
-        read_chunks_into.close()
+        with open(current_file, "wb") as f:
+            f.write(current_buffer)
+        current_buffer = b""
+        current_file = None
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"R")
@@ -392,10 +387,14 @@ def setup_ble_server():
         handle_packet()
         machine.reset()
 
-    def handle_error(cmd):
+    def handle_error(cmd, cause=None) -> None:
         hub.light.color(hub.light.CONNECT, color.RED)
         hub.sound.beep(350, 225)
         light.delay_override(225)
-        BLEIO.send_packet(b"!", f"Unkown command {cmd}".encode())
+        if cause is None:
+            BLEIO.send_packet(b"!", f"Unkown command {cmd}".encode())
+        else:
+            BLEIO.send_packet(b"!", f"Could not handle command {cmd}".encode())
+            remote.error(cause)
 
     BLEIO._error_handler = handle_error

@@ -2,7 +2,7 @@ import time
 
 import color as col
 
-from src import hub
+import hub
 
 from ..gsgr.conditions import cm, impact, pickup
 from ..gsgr.config import cfg
