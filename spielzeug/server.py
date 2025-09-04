@@ -5,128 +5,66 @@ import hashlib
 import io
 import json
 import os
-import select
 import sys
 import time
 
-import machine
 import color
+import machine
+from bleio import BLEIO
+
 import hub
-from bleio import BLEIO, BLEIOConnector
-
-try:
-    os.mkdir("/flash/src")
-except OSError:
-    pass
-
-off = 0
-important = False
 
 
-async def _read_decoded(io, ln):
-    data = b""
-    while len(data) < ln:
-        await asyncio.sleep_ms(1)
-        data += io.read(ln - len(data))
-    if isinstance(data, bytes):
-        return data.decode()
-    return data
+class Light:
+    def __init__(self):
+        self._turn_off_at = 0
+        self._is_important = False
 
+    def set_important(self):
+        self._is_important = True
 
-async def _get_next(
-    timeout=-1,
-    bin=False,
-) -> tuple[str, str | bytes | None] | None:
-    global off, important
-    poll = select.poll()
-    poll.register(BLEIOConnector.rx, select.POLLIN)
-    poll.register(sys.stdin, select.POLLIN)
-    for stdin, _ in poll.poll(timeout):
-        hub.light.color(hub.light.CONNECT, color.YELLOW)
-        important = True
-        if await _read_decoded(stdin, 1) != ":":
-            important = False
-            await asyncio.sleep_ms(1)
-            continue
+    def unset_important(self):
+        self._is_important = False
 
-        cmd = await _read_decoded(stdin, 1)
-        nxt = await _read_decoded(stdin, 1)
-        if nxt == "]":
-            hub.light.color(hub.light.CONNECT, color.GREEN)
-            off = time.ticks_ms() + 30
-            important = False
-            await asyncio.sleep_ms(1)
-            return (cmd, None)
-        else:
-            hub.light.color(hub.light.CONNECT, color.ORANGE)
-            try:
-                ln = int(nxt + await _read_decoded(stdin, 3))
-                arg = await _read_decoded(stdin, ln)
-                decoded_arg = binascii.a2b_base64(arg)
-                if not bin:
-                    decoded_arg = decoded_arg.decode()
-            except Exception as e:
-                write_error(e)
-                hub.light.color(hub.light.CONNECT, color.RED)
-                hub.sound.beep(300, 225)
-                off = time.ticks_ms() + 225
-                important = False
-                await asyncio.sleep_ms(1)
-                return None
-            hub.light.color(hub.light.CONNECT, color.GREEN)
-            off = time.ticks_ms() + 30
-            important = False
-            await asyncio.sleep_ms(1)
-            return cmd, decoded_arg
-    await asyncio.sleep_ms(1)
-    return None
+    def delay_override(self, by_ms: int):
+        self._turn_off_at = time.ticks_ms() + by_ms
 
+    def should_turn_off(self):
+        if self._turn_off_at and self._turn_off_at < time.ticks_ms():
+            self._turn_off_at = 0
+            return True
+        return False
 
-async def get_next(bin=False):
-    while True:
-        result = await _get_next(0, bin)
-        if not result:
-            await asyncio.sleep_ms(100)
-            continue
-        return result
-
-
-def write(cmd, args=None):
-    msg = ":" + cmd
-    if args is not None:
-        encoded_args = binascii.b2a_base64(args, newline=False)
-        msg += ("0000" + str(len(encoded_args)))[-4:] + encoded_args.decode()
-    else:
-        msg += "]"
-    sys.stdout.write(msg)
-    BLEIOConnector.write(msg)
+    def should_not_use(self):
+        if self._turn_off_at and self._turn_off_at < time.ticks_ms():
+            self._turn_off_at = 0
+        return self._is_important or self._turn_off_at
 
 
 class Remote:
-    def send(self, *args, **kwargs):
-        write(*args, **kwargs)
+    def send(self, packet_id: int | bytes, data: str | bytes):
+        if not isinstance(data, bytes):
+            data = data.encode()
+        BLEIO.send_packet(packet_id, data)
 
     def block(self):
-        write("B")
+        BLEIO.send_packet(b"B")
 
     def unblock(self):
-        write("D")
+        BLEIO.send_packet(b"D")
 
     def error(self, e):
-        write_error(e, "E")
+        send_error(e, b"E")
 
 
-builtins.remote = Remote()
+light = Light()
+remote = Remote()
 
 
-def write_error(e: Exception, symbol="!"):
+def send_error(e: Exception, symbol=b"!"):
     buf = io.StringIO()
     sys.print_exception(e, buf)
-    write(symbol, buf.getvalue())
-
-
-def OK():
-    write("K")
+    BLEIO.send_packet(symbol, buf.getvalue())
 
 
 def recursive_listdir(path: str):
@@ -154,26 +92,6 @@ def remove(path: str):
         assert False
 
 
-async def read_file(file_name):
-    with open("/flash/src" + file_name, "wb+") as f:
-        while True:
-            await asyncio.sleep_ms(1)
-            cmd, args = await get_next(True)
-            if cmd == "C":
-                f.write(args)
-                OK()
-            elif cmd == "E":
-                break
-            elif cmd == ">":
-                sys.exit()
-            elif cmd == "$":
-                return
-            elif cmd == "=":
-                return
-            else:
-                write("!", "Unkown command %s" % cmd)
-
-
 prog_task = None
 has_stopped = asyncio.Event()
 has_stopped.set()
@@ -184,13 +102,15 @@ async def program_wrapper(program):
     try:
         await program
     except Exception as e:
-        write_error(e, "E")
+        send_error(e, b"E")
+        hub.light.color(hub.light.CONNECT, color.RED)
+        light.delay_override(1000)
         hub.light.color(hub.light.POWER, color.RED)
-        await asyncio.sleep_ms(50)
+        await asyncio.sleep_ms(100)
         hub.light.color(hub.light.POWER, color.BLACK)
         await asyncio.sleep_ms(50)
         hub.light.color(hub.light.POWER, color.RED)
-        await asyncio.sleep_ms(50)
+        await asyncio.sleep_ms(100)
         hub.light.color(hub.light.POWER, color.BLACK)
         await asyncio.sleep_ms(50)
     finally:
@@ -199,7 +119,7 @@ async def program_wrapper(program):
         has_stopped.set()
 
 
-async def run_program():
+async def start_program():
     global prog_task
     if prog_task:
         prog_task.cancel()
@@ -211,26 +131,30 @@ async def run_program():
     try:
         module = __import__("src")
     except Exception as e:
-        write_error(e, "E")
+        send_error(e, b"E")
+        hub.light.color(hub.light.CONNECT, color.MAGENTA)
+        light.delay_override(1000)
         hub.light.color(hub.light.POWER, color.MAGENTA)
-        await asyncio.sleep_ms(50)
+        await asyncio.sleep_ms(100)
         hub.light.color(hub.light.POWER, color.BLACK)
         await asyncio.sleep_ms(50)
         hub.light.color(hub.light.POWER, color.MAGENTA)
-        await asyncio.sleep_ms(50)
+        await asyncio.sleep_ms(100)
         hub.light.color(hub.light.POWER, color.BLACK)
         await asyncio.sleep_ms(50)
         hub.light.color(hub.light.POWER, color.WHITE)
     if hasattr(module, "loop"):
         prog_task = asyncio.create_task(program_wrapper(module.loop()))
     else:
-        write("E", "You must define a function called 'loop' in '__init__.py'!")
+        remote.send(b"E", "You must define a function called 'loop' in '__init__.py'!")
+        hub.light.color(hub.light.CONNECT, color.PURPLE)
+        light.delay_override(1000)
         hub.light.color(hub.light.POWER, color.PURPLE)
-        await asyncio.sleep_ms(50)
+        await asyncio.sleep_ms(100)
         hub.light.color(hub.light.POWER, color.BLACK)
         await asyncio.sleep_ms(50)
-        hub.light.color(hub.light.POWER, color.MAGENTA)
-        await asyncio.sleep_ms(50)
+        hub.light.color(hub.light.POWER, color.PURPLE)
+        await asyncio.sleep_ms(100)
         hub.light.color(hub.light.POWER, color.BLACK)
         await asyncio.sleep_ms(50)
         hub.light.color(hub.light.POWER, color.WHITE)
@@ -243,8 +167,8 @@ async def kill_program():
 
 
 def remote_print(*args, **kwargs):
-    write(
-        "P",
+    remote.send(
+        b"P",
         json.dumps(
             (
                 tuple(a if isinstance(a, str) else repr(a) for a in args),
@@ -260,13 +184,12 @@ def remote_print(*args, **kwargs):
 async def handle_connect_button():
     global off
     while True:
-        if off and time.ticks_ms() > off:
+        if light.should_turn_off():
             hub.light.color(hub.light.CONNECT, color.BLACK)
-            off = 0
-        elif not off and not important:
-            if BLEIOConnector.is_connected():
+        elif not light.should_not_use():
+            if BLEIO.is_connected():
                 hub.light.color(hub.light.CONNECT, color.BLUE)
-            elif BLEIOConnector.is_advertising():
+            elif BLEIO.is_advertising():
                 if time.ticks_ms() % 1350 < 150:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
                     hub.sound.beep(500, 50)
@@ -281,8 +204,8 @@ async def handle_connect_button():
                 hub.light.color(hub.light.CONNECT, color.BLACK)
         if hub.button.pressed(hub.button.CONNECT):
             hub.sound.beep(500, 100)
-            if not important:
-                if BLEIOConnector.is_connected():
+            if not light.should_not_use():
+                if BLEIO.is_connected():
                     hub.light.color(hub.light.CONNECT, color.AZURE)
                 else:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
@@ -293,14 +216,14 @@ async def handle_connect_button():
                 if took > 30:
                     break
             else:
-                if not important:
+                if not light.should_not_use():
                     hub.light.color(hub.light.CONNECT, color.BLACK)
-                if BLEIOConnector.is_advertising():
-                    BLEIOConnector.stop_advertising()
-                elif BLEIOConnector.is_connected():
-                    BLEIOConnector.disconnect()
+                if BLEIO.is_advertising():
+                    BLEIO.stop_advertising()
+                elif BLEIO.is_connected():
+                    BLEIO.disconnect()
                 else:
-                    BLEIOConnector.start_advertising()
+                    BLEIO.start_advertising()
                 await asyncio.sleep_ms(160)
                 continue
             hub.sound.beep(700, 50)
@@ -327,7 +250,7 @@ async def handle_connect_button():
                     if not has_stopped.is_set():
                         hub.sound.beep(400, 1000)
                         break
-                    await run_program()
+                    await start_program()
                     break
             hub.light.color(hub.light.CONNECT, color.BLACK)
             while hub.button.pressed(hub.button.CONNECT):
@@ -336,62 +259,55 @@ async def handle_connect_button():
 
 
 async def main():
+    # Modify builtins
     _print = builtins.print
     builtins.print = remote_print
+    builtins.remote = remote
+
+    # Init
+    hub.light.color(hub.light.POWER, color.ORANGE)
+    try:
+        os.mkdir("/flash/src")
+    except OSError:
+        pass
+    setup_ble_server()
+    await start_program()
+
+    # Initialized, start main loop
     hub.light.color(hub.light.POWER, color.WHITE)
-    task = asyncio.create_task(handle_connect_button())
-    # await run_program()
-    await server()
-    task.cancel()
+    await handle_connect_button()
+
+    # Deinit
     builtins.print = _print
+    del builtins.remote
 
 
-# async def server():
-#     all_paths = []
-#     global off
-
-#     while True:
-#         try:
-#             cmd, args = await get_next()
-
-#             elif cmd == "P":
-#                 await run_program()
-#                 OK()
-#             elif cmd == "X":
-#                 await kill_program()
-#                 OK()
-
-#             elif cmd == "=":
-#                 write("=", args)
-
-#             else:
-#                 hub.light.color(hub.light.CONNECT, color.RED)
-#                 hub.sound.beep(350, 225)
-#                 off = time.ticks_ms() + 225
-#                 write("!", f"Unkown command {cmd}")
-#         except Exception as e:
-#             write_error(e)
-
-
-def register_packets():
+def setup_ble_server():
     all_paths = []
     read_chunks_into = None
+
+    def handle_packet():
+        hub.light.color(hub.light.CONNECT, color.GREEN)
+        light.delay_override(50)
 
     @BLEIO.handles(b"Y")
     def start_sync(data: bytes):
         nonlocal all_paths
+        handle_packet()
         all_paths = list(a[10:] for a in recursive_listdir("/flash/src"))
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"$")
     def cancel_sync(data: bytes):
         nonlocal all_paths
+        handle_packet()
         all_paths.clear()
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"N")
     def finish_sync(data: bytes):
         nonlocal all_paths
+        handle_packet()
         for path in all_paths:
             remove(path)
         all_paths.clear()
@@ -399,6 +315,7 @@ def register_packets():
 
     @BLEIO.handles(b"D")
     def sync_directory(data: bytes):
+        handle_packet()
         args = data.decode()
         if args not in all_paths:
             try:
@@ -412,6 +329,7 @@ def register_packets():
     @BLEIO.handles(b"F")
     def sync_file(data: bytes):
         nonlocal read_chunks_into
+        handle_packet()
         args = data.decode()
         name, hash = args.split(" ", 1)
         assert name[0] == "/"
@@ -432,6 +350,7 @@ def register_packets():
 
     @BLEIO.handles(b"C")
     def read_file_chunk(data: bytes):
+        handle_packet()
         if read_chunks_into is None:
             return
         read_chunks_into.write(data)
@@ -439,6 +358,7 @@ def register_packets():
 
     @BLEIO.handles(b"E")
     def close_file(data: bytes):
+        handle_packet()
         if read_chunks_into is None:
             return
         read_chunks_into.close()
@@ -446,9 +366,36 @@ def register_packets():
 
     @BLEIO.handles(b"R")
     def remove_any(data: bytes):
+        handle_packet()
         args = data.decode()
         remove(args)
 
+    @BLEIO.handles(b"P")
+    def start(data: bytes):
+        handle_packet()
+        asyncio.create_task(start_program())
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"X")
+    def stop(data: bytes):
+        handle_packet()
+        asyncio.create_task(kill_program())
+        BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"=")
+    def echo(data: bytes):
+        handle_packet()
+        BLEIO.send_packet(b"=", data)
+
     @BLEIO.handles(b"&")
     def reboot(data: bytes):
+        handle_packet()
         machine.reset()
+
+    def handle_error(cmd):
+        hub.light.color(hub.light.CONNECT, color.RED)
+        hub.sound.beep(350, 225)
+        light.delay_override(225)
+        BLEIO.send_packet(b"!", f"Unkown command {cmd}".encode())
+
+    BLEIO._error_handler = handle_error

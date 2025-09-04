@@ -1,11 +1,9 @@
-# import hub
 import micropython
-from bleio import BLEIO
-# import uasyncio as asyncio
 import server
+import uasyncio as asyncio
+from bleio import BLEIO
 
 micropython.alloc_emergency_exception_buf(256)
 
 
-server.register_packets()
-BLEIO.start_advertising()
+asyncio.run(server.main())

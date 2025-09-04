@@ -7,21 +7,19 @@ import os
 import subprocess
 import sys
 import time
-from pathlib import Path
 import traceback
+from pathlib import Path
 from typing import Any, Callable, Coroutine, Iterator, overload
 
-import bleak.backends
-import bleak.backends.characteristic
+import bleak
 import colorama
 import mpy_cross
-from serial import Serial
 import serial.tools.list_ports
 import watchdog.events
 import watchdog.observers
 import yaml
+from serial import Serial
 from tqdm import tqdm
-import bleak
 
 
 class ForceReconnect(BaseException): ...
@@ -38,30 +36,6 @@ class RingIO:
         a = self._buffer[:n]
         self._buffer = self._buffer[n:]
         return bytes(a)
-
-
-class IOStore:
-    def __init__(self):
-        self.BTIN = RingIO()
-        self.BTOUT = RingIO()
-        self.in_waiting = 0
-        self.out_waiting = 0
-        self._in_lock = asyncio.Lock()
-        self._out_lock = asyncio.Lock()
-
-    async def read(self, length: int):
-        while self.in_waiting < length:
-            await asyncio.sleep(0.001)
-        await self._in_lock.acquire()
-        self.in_waiting -= length
-        self._in_lock.release()
-        return self.BTIN.read(length)
-
-    async def write(self, data: bytes):
-        self.BTOUT.write(data)
-        await self._out_lock.acquire()
-        self.out_waiting += len(data)
-        self._out_lock.release()
 
 
 debug = True
@@ -88,6 +62,34 @@ UART_TX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_RX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
 
+class BLEIO:
+    async def __init__(self, device):
+        self._ble = bleak.BleakClient(
+            device, services=[UART_SERVICE_UUID], use_cached_services=True
+        )
+        self._packet = b""
+        self._packet_handlers = {}
+        self._error_handler = print
+        await self._ble.connect()
+
+    async def _handle_packet(self, packet: bytes):
+        packet_handler = self._packet_handlers.get(packet[0])
+        if packet_handler is None:
+            await self._error_handler(packet)
+            return
+        arguments = packet[1:]
+        await packet_handler(arguments)
+
+    async def handle_rx(
+        self, _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray
+    ):
+        self._packet += data
+        if b"\x1a" in data:
+            if len(self._packet) > 1:
+                await self._handle_packet(self._packet[: self._packet.index(b"\x1a")])
+            self._packet = b""
+
+
 async def handle_bleio(address, ios: IOStore, finished_callback):
     async def handle_rx(
         _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray
@@ -101,11 +103,6 @@ async def handle_bleio(address, ios: IOStore, finished_callback):
         address, services=[UART_SERVICE_UUID], use_cached_services=True
     ) as client:
         print("Connected.")
-        # paired = await client.pair()
-        # if not paired:
-        #     print("Failed to pair.")
-        #     sys.exit(1)
-        # print("Paired.")
         finished_callback()
         await client.start_notify(UART_RX_CHAR_UUID.lower(), handle_rx)
         while True:
@@ -218,7 +215,9 @@ async def get_next(
     max_retries: int, /, *, ignore_errors: bool = False, exclude_sync: bool = True
 ) -> tuple[str, str | None] | None: ...
 @overload
-async def get_next(*, ignore_errors: bool = False, exclude_sync: bool = True) -> tuple[str, str | None]: ...
+async def get_next(
+    *, ignore_errors: bool = False, exclude_sync: bool = True
+) -> tuple[str, str | None]: ...
 
 
 async def get_next(max_retries=None, /, *, ignore_errors=False, exclude_sync=True):

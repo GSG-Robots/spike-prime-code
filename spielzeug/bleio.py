@@ -98,14 +98,13 @@ class BLEIOConnector:
         )
         self._ble.gatts_set_buffer(self._rx_handle, 128, True)
         self._connection = None
-        self._handler = None
         self._payload = advertising_payload(
             name=name,
             # appearance=_ADV_APPEARANCE_GENERIC_REMOTE_CONTROL,
             # services=[_UART_UUID],
         )
         self._force_disconnect = False
-        self._packet_handlers= {}
+        self._packet_handlers = {}
         self._error_handler = print
 
     def _irq(self, event, data):
@@ -153,15 +152,17 @@ class BLEIOConnector:
     def handles(self, packet_id: int | bytes):
         if isinstance(packet_id, bytes):
             packet_id = packet_id[0]
+
         def wrapper(handler):
             self._packet_handlers[packet_id] = handler
+
         return wrapper
 
     def write(self, data):
         if self._connection is not None:
             self._ble.gatts_notify(self._connection, self._tx_handle, data)
 
-    def send_packet(self, packet_id: int | bytes, data : bytes | None = None):
+    def send_packet(self, packet_id: int | bytes, data: bytes | None = None):
         if isinstance(packet_id, int):
             packet_id = packet_id.to_bytes()
         if data is None:
@@ -201,6 +202,7 @@ class BLEIOConnector:
 
     def is_advertising(self):
         return self._state == STATE_ADVERTISING
+
 
 BLEIO = BLEIOConnector(bluetooth.BLE(), "GSG-Robots")
 
