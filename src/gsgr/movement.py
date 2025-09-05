@@ -150,7 +150,7 @@ def run_attachment(
         # cfg.GEAR_SHAFT.pwm(speed)
         # time.sleep(duration)
         # cfg.GEAR_SHAFT.brake()
-        motor.run_for_time(cfg.GEAR_SHAFT, int(duration * 1000), speed)
+        motor.run_for_time(cfg.GEAR_SHAFT, int(duration * 1000), speed, stop=motor.HOLD)
         # cfg.GEAR_SHAFT.run_for_time(
         #     duration * 1000, stop=cfg.GEAR_SHAFT.STOP_BRAKE, speed=speed, stall=stall
         # )
@@ -174,10 +174,10 @@ def stop_attachment(
     """
     if await_completion:
         _wait_until_not_busy(cfg.GEAR_SHAFT)
-    motor.stop(cfg.GEAR_SHAFT, stop=motor.BRAKE)
+    motor.stop(cfg.GEAR_SHAFT, stop=motor.HOLD)
     if untension:
         motor.run_for_degrees(
-            cfg.GEAR_SHAFT, -math.copysign(untension, _LAST_SHAFT_SPEED), speed=1000
+            cfg.GEAR_SHAFT, -math.copysign(untension, _LAST_SHAFT_SPEED), 1000
         )
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
@@ -187,7 +187,7 @@ def gyro_set_origin():
     hub.motion_sensor.reset_yaw(0)
 
 
-def gyro_wall_align(backwards=False, wall_align_duration: int | float = 1):
+def gyro_wall_align(wall_align_duration: int | float = 1, backwards=False):
     speed = -300 if backwards else 300
     motor_pair.move_tank(cfg.DRIVING_MOTORS, -speed, -speed)
     time.sleep(wall_align_duration / 2)
@@ -206,6 +206,7 @@ def gyro_turn(
     tolerance: int | None = None,
     timeout: int = 0,
     brake: bool = True,
+    premature_ending_condition=None,
 ):
     """Drehe mithilfe des Gyrosensors in eine bestimmte Richtung
 
@@ -242,7 +243,7 @@ def gyro_turn(
     speed_error_sum = 0
 
     buttons.pressed(hub.button.POWER)
-    while True:
+    while (premature_ending_condition is None) or (next(premature_ending_condition) != 100):
         if buttons.pressed(hub.button.POWER):
             raise StopRun
         degree_error = target_angle - hub.motion_sensor.tilt_angles()[0] // 10
@@ -356,17 +357,19 @@ def gyro_drive(
 
         last_error = error
         # time.sleep(cfg.LOOP_THROTTLE)
-    if brake:
+    if brake == 2:
+        motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.HOLD)
+    elif brake:
         motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.BRAKE)
 
 
 def start_with_naR(alpha, radius):
-    assert (
-        cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
-    ), "naR: left sensor must be the integrated light sensor"
-    assert (
-        cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT
-    ), "naR: right sensor must be the integrated light sensor"
+    assert cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, (
+        "naR: left sensor must be the integrated light sensor"
+    )
+    assert cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, (
+        "naR: right sensor must be the integrated light sensor"
+    )
 
     cfg.LEFT_SENSOR.mode(4)
     cfg.RIGHT_SENSOR.mode(4)

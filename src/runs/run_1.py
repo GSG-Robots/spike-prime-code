@@ -16,8 +16,8 @@ color = col.RED
 
 def run():
     # Set Gyro Origin
-    # gyro_wall_align()
-    gyro_set_origin()
+    gyro_wall_align(0.3)
+    # gyro_set_origin()
     hold_attachment(Attachment.FRONT_RIGHT, await_completion=False)
     gyro_drive(
         0,
@@ -28,9 +28,15 @@ def run():
     )
     run_attachment(Attachment.FRONT_RIGHT, 1000, 0.9, untension=25, stall=True)
     gyro_drive(
-        0,
+        10,
         -1000,
-        pickup(cm(96)),
+        cm(46),
         accelerate=10,
+    )
+    gyro_drive(
+        45,
+        -1000,
+        pickup(cm(50)),
+        brake=False,
         decelerate=40,
     )

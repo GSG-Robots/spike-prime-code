@@ -3,7 +3,7 @@ import time
 import color as col
 
 import hub
-
+import motor
 from ..gsgr.conditions import cm, impact, pickup
 from ..gsgr.config import cfg
 from ..gsgr.enums import Attachment, Pivot
@@ -27,35 +27,34 @@ def run():
     hold_attachment(Attachment.FRONT_LEFT, await_completion=False)
     gyro_drive(
         0,
-        80,
+        800,
         cm(75.84),
         accelerate=10,
         decelerate=40,
     )
-    gyro_turn(-90)
+    gyro_turn(90)
     gyro_drive(
-        -90,
-        80,
+        90,
+        800,
         cm(9.6),
         accelerate=30,
         decelerate=60,
     )
     time.sleep(0.1)
-    # TODO
-    cfg.DRIVING_MOTORS.run_for_degrees(35, speed_0=0, speed_1=30)
-    run_attachment(Attachment.FRONT_LEFT, -100, 2)
-    gyro_turn(-90)
+    motor.run_for_degrees(cfg.LEFT_MOTOR, 35, 300)
+    run_attachment(Attachment.FRONT_LEFT, -1000, 2)
+    gyro_turn(90)
     gyro_drive(
-        -90,
-        -90,
+        90,
+        -900,
         cm(4.8),
         accelerate=10,
         decelerate=40,
     )
-    gyro_turn(-45)
+    gyro_turn(45)
     gyro_drive(
-        -45,
-        -90,
+        45,
+        -900,
         cm(14.4),
         accelerate=10,
         decelerate=70,
@@ -63,15 +62,15 @@ def run():
     gyro_turn(0, pivot=Pivot.RIGHT_WHEEL)
     gyro_drive(
         0,
-        90,
-        cm(67.2),
+        1000,
+        cm(65.2),
         accelerate=10,
         decelerate=0,
     )
-    cfg.DRIVING_MOTORS.run_for_degrees(90, speed_0=0, speed_1=100)
+    motor.run_for_degrees(cfg.LEFT_MOTOR, 90, 100)
     gyro_drive(
-        -45,
-        100,
+        45,
+        1000,
         pickup(cm(50)),
         accelerate=0,
         decelerate=0,

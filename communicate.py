@@ -193,7 +193,7 @@ def build_yaml(src: Path, dest: Path):
     return True
 
 
-file_builders = {".py": (build_py, ".mpy"), ".yaml": (build_yaml, ".json")}
+file_builders = {".py": (copy_py, ".py"), ".yaml": (build_yaml, ".json")}
 
 
 def build(files: Iterator[Path]):
@@ -231,9 +231,10 @@ async def sync_path(BLEIO: BLEIOConnector, file: Path):
     path = file.relative_to(BUILD_DIR).as_posix()
     if path == ".":
         return
+
     if not file.exists():
         await BLEIO.send_packet(b"R", ("/" + path).encode())
-    if file.is_dir():
+    elif file.is_dir():
         await BLEIO.send_packet(b"D", ("/" + path).encode())
         await expect_OK(BLEIO)
     else:

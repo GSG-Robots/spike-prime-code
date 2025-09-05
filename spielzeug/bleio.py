@@ -1,7 +1,6 @@
 import struct
 
 import bluetooth
-import micropython
 from micropython import const
 
 connected = True
@@ -163,7 +162,9 @@ class BLEIOConnector:
 
     def write(self, data):
         if self._connection is not None:
-            self._ble.gatts_notify(self._connection, self._tx_handle, data)
+            while data:
+                self._ble.gatts_notify(self._connection, self._tx_handle, data[:100])
+                data = data[100:]
 
     def send_packet(self, packet_id: int | bytes, data: bytes | None = None):
         if isinstance(packet_id, int):
