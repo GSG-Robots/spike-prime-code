@@ -242,7 +242,6 @@ async def handle_connect_button():
                 await asyncio.sleep_ms(100)
         await asyncio.sleep_ms(10)
 
-
 async def main():
     # Modify builtins
     builtins.oprint = builtins.print
@@ -256,7 +255,9 @@ async def main():
     except OSError:
         pass
     setup_ble_server()
-    # await start_program()
+    if not (hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT)):
+        await asyncio.sleep_ms(1500)
+        await start_program()
 
     # Initialized, start main loop
     hub.light.color(hub.light.POWER, color.WHITE)
