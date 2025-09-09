@@ -25,7 +25,7 @@ def run():
     gyro_drive(
         0,
         800,
-        cm(75.84),
+        cm(72),
         accelerate=10,
         decelerate=40,
     )
@@ -41,34 +41,38 @@ def run():
     motor.run_for_degrees(cfg.LEFT_MOTOR, 35, 300)
     run_attachment(Attachment.FRONT_LEFT, -1000, 2)
     gyro_turn(90)
-    gyro_drive(
-        90,
-        -900,
-        cm(4.8),
-        accelerate=10,
-        decelerate=40,
-    )
-    gyro_turn(45)
-    gyro_drive(
-        45,
-        -900,
-        cm(14.4),
-        accelerate=10,
-        decelerate=70,
-    )
-    gyro_turn(0, pivot=Pivot.RIGHT_WHEEL)
-    gyro_drive(
-        0,
-        1000,
-        cm(65.2),
-        accelerate=10,
-        decelerate=0,
-    )
-    motor.run_for_degrees(cfg.LEFT_MOTOR, 90, 100)
-    gyro_drive(
-        45,
-        1000,
-        pickup(cm(50)),
-        accelerate=0,
-        decelerate=0,
-    )
+    gyro_drive(90, -900, cm(77), accelerate=10, decelerate=40)
+    # gyro_turn(45)
+    # gyro_drive(
+    #     45,
+    #     -900,
+    #     cm(14.4),
+    #     accelerate=10,
+    #     decelerate=70,
+    # )
+    # gyro_turn(0, pivot=Pivot.RIGHT_WHEEL)
+    # gyro_drive(
+    #     0,
+    #     1000,
+    #     cm(65.2),
+    #     accelerate=10,
+    #     decelerate=0,
+    # )
+    # motor.run_for_degrees(cfg.LEFT_MOTOR, 90, 100)
+    # gyro_drive(
+    #     45,
+    #     1000,
+    #     pickup(cm(50)),
+    #     accelerate=0,
+    #     decelerate=0,
+    # )
+    run_attachment(Attachment.BACK_RIGHT, -700, 2)
+    # run_attachment(Attachment.BACK_RIGHT, )
+    gyro_drive(90, 900, cm(58), accelerate=10, decelerate=40)
+    run_attachment(Attachment.BACK_LEFT, -500, 1)
+    gyro_drive(90, 500, cm(8), accelerate=10)
+    gyro_drive(90, -500, cm(6), accelerate=10)
+    gyro_turn(-12, 70, Pivot.CENTER)
+    gyro_drive(-12, 900, cm(10))
+    gyro_turn(20, 70, Pivot.CENTER)
+    gyro_drive(20, 900, pickup(cm(80)))

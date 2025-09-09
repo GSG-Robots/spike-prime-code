@@ -7,11 +7,12 @@ from ..gsgr.movement import (
 )
 
 display_as = 7
-color = col.GREEN
+color = col.PURPLE
 
 
 def run():
     # Set Gyro Origin
     gyro_set_origin()
-    gyro_drive(0, 700, cm(60), accelerate=10, decelerate=30)
+    gyro_drive(0, 500, cm(48), accelerate=10, decelerate=30)
     gyro_drive(0, -700, cm(15), accelerate=10, decelerate=30)
+

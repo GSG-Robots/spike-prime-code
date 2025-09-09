@@ -5,10 +5,10 @@ from ..gsgr.config import PID, configure
 from ..gsgr.enums import Attachment
 from ..gsgr.movement import (
     gyro_drive,
+    run_attachment,
     gyro_turn,
     gyro_wall_align,
     hold_attachment,
-    run_attachment,
 )
 
 display_as = 6
@@ -28,7 +28,7 @@ def run():
     gyro_drive(0, 500, cm(4.2), accelerate=10, decelerate=30)
     run_attachment(Attachment.FRONT_LEFT, 250, 1, stall=True)
     gyro_drive(0, 500, cm(4), accelerate=10, decelerate=30)
-    run_attachment(Attachment.FRONT_LEFT, 300, 1, stall=True)
+    run_attachment(Attachment.FRONT_LEFT, 300, 0.6, stall=True)
     gyro_drive(0, 500, cm(5), accelerate=10, decelerate=30)
     gyro_drive(0, 1000, sec(0.5), pid=PID(0, 0, 0))
     run_attachment(Attachment.FRONT_RIGHT, 1000, 5)
@@ -36,8 +36,8 @@ def run():
     hold_attachment(Attachment.FRONT_LEFT)
     gyro_drive(0, -500, cm(16.5), accelerate=10, decelerate=30)
     run_attachment(Attachment.BACK_RIGHT, 600, 1.3, stall=True)
-    gyro_drive(0, 800, cm(3.5))
+    gyro_drive(0, 1000, cm(3.5))
     gyro_turn(90)
-    gyro_drive(90, 800, cm(30))
+    gyro_drive(90, 1000, cm(30))
     gyro_turn(0)
-    gyro_drive(0, -800, cm(79))
+    gyro_drive(0, -1000, cm(79))
