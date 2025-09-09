@@ -2,9 +2,10 @@ import gc
 import os
 import time
 
-import hub
-import orientation
 import color as col
+import orientation
+
+import hub
 from src.gsgr import buttons
 
 from .gsgr import movement
@@ -13,6 +14,7 @@ from .gsgr.enums import Attachment
 from .gsgr.exceptions import StopRun
 from .gsgr.menu import ActionMenu, ActionMenuItem
 from .gsgr.run import Run
+
 
 def run_motorcontrol():
     """Motorcontrol"""
@@ -130,7 +132,6 @@ async def main():
     mem_perc = gc.mem_alloc() / (gc.mem_free() + gc.mem_alloc()) * 100
     print(f"{mem_perc}% of memory used")
     print("Voltage:", hub.battery_voltage(), "mV")
-
     # Align display depending on config
     if cfg.LANDSCAPE:
         hub.light_matrix.set_orientation(orientation.RIGHT)
@@ -148,24 +149,10 @@ async def main():
         run_action = run.run
         left_sensor = run.left_sensor if hasattr(run, "left_sensor") else None
         right_sensor = run.right_sensor if hasattr(run, "right_sensor") else None
-        assert isinstance(display_as, int) or isinstance(display_as, str), (
-            "RunDef: display_as must be str or int"
-        )
+        assert isinstance(display_as, int) or isinstance(display_as, str), "RunDef: display_as must be str or int"
         assert isinstance(color, int), "RunDef: color must be int"
-        assert (
-            left_sensor is None
-            or isinstance(left_sensor, tuple)
-            and len(left_sensor) == 2
-            and isinstance(left_sensor[0], int)
-            and isinstance(left_sensor[1], int)
-        ), "RunDef: left_sensor must be None or tuple of two ints"
-        assert (
-            right_sensor is None
-            or isinstance(right_sensor, tuple)
-            and len(right_sensor) == 2
-            and isinstance(right_sensor[0], int)
-            and isinstance(right_sensor[1], int)
-        ), "RunDef: right_sensor must be None or tuple of two ints"
+        assert left_sensor is None or isinstance(left_sensor, tuple) and len(left_sensor) == 2 and isinstance(left_sensor[0], int) and isinstance(left_sensor[1], int), "RunDef: left_sensor must be None or tuple of two ints"
+        assert right_sensor is None or isinstance(right_sensor, tuple) and len(right_sensor) == 2 and isinstance(right_sensor[0], int) and isinstance(right_sensor[1], int), "RunDef: right_sensor must be None or tuple of two ints"
         assert callable(run_action), "RunDef: run must be callable"
         menu.add_item(
             Run(
