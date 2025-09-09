@@ -2,16 +2,14 @@ import time
 
 import color as col
 
-import hub
 import motor
-from ..gsgr.conditions import cm, impact, pickup
+from ..gsgr.conditions import cm, pickup
 from ..gsgr.config import cfg
 from ..gsgr.enums import Attachment, Pivot
 from ..gsgr.movement import (
     gyro_drive,
     gyro_set_origin,
     gyro_turn,
-    gyro_wall_align,
     hold_attachment,
     run_attachment,
 )
@@ -22,7 +20,6 @@ color = col.RED
 
 def run():
     # Set Gyro Origin
-    # gyro_wall_align()
     gyro_set_origin()
     hold_attachment(Attachment.FRONT_LEFT, await_completion=False)
     gyro_drive(

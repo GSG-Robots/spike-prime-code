@@ -4,7 +4,6 @@ from ..gsgr.conditions import cm, impact, pickup
 from ..gsgr.enums import Attachment
 from ..gsgr.movement import (
     gyro_drive,
-    gyro_set_origin,
     gyro_wall_align,
     hold_attachment,
     run_attachment,
@@ -17,7 +16,6 @@ color = col.RED
 def run():
     # Set Gyro Origin
     gyro_wall_align(0.3)
-    # gyro_set_origin()
     hold_attachment(Attachment.FRONT_RIGHT, await_completion=False)
     gyro_drive(
         0,

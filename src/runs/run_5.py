@@ -4,7 +4,6 @@ from ..gsgr.conditions import cm, pickup
 from ..gsgr.enums import Attachment
 from ..gsgr.movement import (
     gyro_drive,
-    gyro_set_origin,
     gyro_turn,
     gyro_wall_align,
     run_attachment,
@@ -17,7 +16,6 @@ color = col.GREEN
 def run():
     # Set Gyro Origin
     gyro_wall_align()
-    # gyro_set_origin()
     gyro_drive(0, 500, cm(52.5), accelerate=10, decelerate=30)
     gyro_turn(5)
     gyro_drive(5, 500, cm(19), accelerate=10, decelerate=30)

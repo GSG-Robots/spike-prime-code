@@ -187,7 +187,7 @@ def gyro_set_origin():
     hub.motion_sensor.reset_yaw(0)
 
 
-def gyro_wall_align(wall_align_duration: int | float = 1, backwards=False):
+def gyro_wall_align(wall_align_duration: int | float = 1, backwards: bool = False):
     speed = -300 if backwards else 300
     motor_pair.move_tank(cfg.DRIVING_MOTORS, -speed, -speed)
     time.sleep(wall_align_duration / 2)
@@ -243,7 +243,9 @@ def gyro_turn(
     speed_error_sum = 0
 
     buttons.pressed(hub.button.POWER)
-    while (premature_ending_condition is None) or (next(premature_ending_condition) != 100):
+    while (premature_ending_condition is None) or (
+        next(premature_ending_condition) != 100
+    ):
         if buttons.pressed(hub.button.POWER):
             raise StopRun
         degree_error = target_angle - hub.motion_sensor.tilt_angles()[0] // 10
@@ -322,12 +324,12 @@ def gyro_drive(
                 ...
             raise StopRun
         error = target_angle * 10 - hub.motion_sensor.tilt_angles()[0]
-        if abs(error) < cfg.GYRO_TOLERANCE:
-            # error = 0
-            error_sum = 0
-            last_error = 0
+        # if abs(error) < cfg.GYRO_TOLERANCE:
+        #     # error = 0
+        #     error_sum = 0
+        #     last_error = 0
         now = time.ticks_us()
-        error_sum += error * (time.ticks_diff(now, last) / 1000)
+        error_sum += error * (time.ticks_diff(now, last) / 1000000)
         last = now
         correction = clamp(
             round(pid.p * error + pid.i * error_sum + pid.d * (error - last_error)),
@@ -337,7 +339,7 @@ def gyro_drive(
 
         if sign(error) != sign(error_sum):
             error_sum = 0
-            last_error = 0
+            # last_error = 0
 
         left_speed, right_speed = speed - correction // 2, speed + correction // 2
         if pct < accelerate:
