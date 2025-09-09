@@ -333,8 +333,8 @@ def gyro_drive(
         last = now
         correction = clamp(
             round(pid.p * error + pid.i * error_sum + pid.d * (error - last_error)),
-            -1000,
-            1000,
+            -1500,
+            1500,
         )
 
         if sign(error) != sign(error_sum):
