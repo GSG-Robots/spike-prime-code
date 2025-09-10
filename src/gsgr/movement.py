@@ -277,7 +277,7 @@ def gyro_turn(
 
         speed_last_error = speed_error
     if brake:
-        motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.BRAKE)
+        motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.HOLD)
 
 
 def sign(n):
@@ -359,10 +359,8 @@ def gyro_drive(
 
         last_error = error
         # time.sleep(cfg.LOOP_THROTTLE)
-    if brake == 2:
+    if brake:
         motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.HOLD)
-    elif brake:
-        motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.BRAKE)
 
 
 def start_with_naR(alpha, radius):
