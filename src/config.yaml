@@ -38,5 +38,5 @@ competition: no
 debugging:
     no_autoscroll: yes
     initial_focus: 0
-    require_battery_full: no
+    require_battery_full: yes
     display_errors: no
