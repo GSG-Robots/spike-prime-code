@@ -5,14 +5,15 @@ from ..gsgr.config import PID, configure
 from ..gsgr.enums import Attachment
 from ..gsgr.movement import (
     gyro_drive,
-    run_attachment,
     gyro_turn,
     gyro_wall_align,
     hold_attachment,
+    run_attachment,
 )
 
 display_as = 6
 color = col.GREEN
+# TODO: Remove custom PID values
 config = configure().gyro_drive(PID(1.2, 0, -0.2))
 
 
