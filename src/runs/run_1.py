@@ -29,6 +29,7 @@ def run():
         10,
         -1000,
         cm(46),
+        brake=False,
         accelerate=10,
     )
     gyro_drive(

@@ -20,7 +20,7 @@ def run():
     gyro_drive(-1, -700, cm(42), accelerate=10, decelerate=10)
     gyro_drive(1, 400, cm(8), accelerate=10, decelerate=10)
     gyro_turn(0)
-    gyro_drive(1, -400, cm(14), accelerate=10, decelerate=30, brake=2)
+    gyro_drive(1, -400, cm(13), accelerate=10, decelerate=30, brake=2)
     run_attachment(Attachment.BACK_RIGHT, 1000, await_completion=False)
     gyro_turn(-6, premature_ending_condition=sec(1.5))
     stop_attachment()
