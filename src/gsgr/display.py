@@ -1,5 +1,6 @@
 """Display utils"""
 
+import math
 import hub
 
 images = {
@@ -78,7 +79,7 @@ def show_image(
 
     if isinstance(image, str):
         if image == "bat":
-            i = min(max((hub.battery_voltage() - 7850) // (500 // 3), 0), 3)
+            i = min(max(math.ceil((hub.battery_voltage() - 7850) / (500 // 3)), 0), 3)
             image = f"bat{i}"
         if image not in images:
             raise ValueError("No image named '%s'" % image)
