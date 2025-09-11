@@ -33,7 +33,7 @@ def check_battery():
     if not cfg.DEBUG_RAISE_BATTERY:
         return
     # Check if the battery is low and raise an error if it is
-    if hub.battery.voltage() < 7850:
+    if hub.battery_voltage() < 7850:
         raise BatteryLowError
 
 
