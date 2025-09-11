@@ -9,6 +9,7 @@ from ..gsgr.movement import (
     gyro_wall_align,
     hold_attachment,
     run_attachment,
+    stop_attachment,
 )
 
 display_as = 6
@@ -20,7 +21,9 @@ config = configure().gyro_drive(PID(1.2, 0, -0.2))
 def run():
     # Set Gyro Origin
     gyro_wall_align(0.2)
+    run_attachment(Attachment.FRONT_LEFT, 200, stall=True, await_completion=False)
     gyro_drive(0, 700, cm(67), accelerate=10, decelerate=30)
+    stop_attachment(Attachment.FRONT_LEFT)
     gyro_turn(-90)
     gyro_drive(-90, 700, cm(34.5), accelerate=10, decelerate=30)
     gyro_turn(0)
