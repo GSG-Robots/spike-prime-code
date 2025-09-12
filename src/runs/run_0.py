@@ -15,6 +15,6 @@ color = col.RED
 
 def run():
     # Set Gyro Origin
-    gyro_wall_align(0.3)
+    gyro_wall_align(0.5)
     gyro_drive(0, 800, cm(20))
-    gyro_turn(90, pivot=Pivot.CENTER)
+    gyro_turn(90, pivot=Pivot.LEFT_WHEEL)
