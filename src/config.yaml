@@ -2,7 +2,7 @@ tire_diameter: 6.24
 loop_throttle: 0.025
 landscape: yes
 gyro_tolerance: 1
-gyro_off: 0
+gyro_off: -4
 
 gearbox:
     drive_shaft: A
