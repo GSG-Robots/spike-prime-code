@@ -27,7 +27,7 @@ def run():
     gyro_drive(
         0,
         900,
-        cm(64),
+        cm(62),
         accelerate=10,
         decelerate=40,
     )
@@ -47,7 +47,7 @@ def run():
     run_attachment(Attachment.BACK_RIGHT, -700, 1.2)
     gyro_drive(90, 800, cm(5), accelerate=10, decelerate=40)
     run_attachment(Attachment.BACK_RIGHT, 700, 1.3, untension=90)
-    gyro_drive(90, 900, cm(52), accelerate=10, decelerate=40)
+    gyro_drive(90, 900, cm(50.5), accelerate=10, decelerate=40)
     run_attachment(Attachment.BACK_LEFT, -500, 1)
     gyro_turn(45, 100, Pivot.RIGHT_WHEEL)
     gyro_turn(-17, 100, Pivot.LEFT_WHEEL)

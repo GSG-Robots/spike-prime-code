@@ -1,6 +1,7 @@
 import time
 
 import color as col
+from ..gsgr.config import PID
 
 from ..gsgr.conditions import cm, impact, pickup
 from ..gsgr.enums import Attachment
@@ -27,12 +28,13 @@ def run():
         accelerate=10,
         decelerate=40,
     )
-    run_attachment(Attachment.FRONT_LEFT, 600, 0.7, stall=True)
+    gyro_drive(0, -75, cm(0.25), pid=PID(0, 0, 0))
+    run_attachment(Attachment.FRONT_LEFT, 1000, 235, stall=True, when_i_say_duration_i_mean_degrees=True)
     time.sleep(0.2)
     gyro_drive(
         0,
         -600,
-        cm(15),
+        cm(15.75),
         accelerate=30,
         decelerate=40,
         brake=False,
