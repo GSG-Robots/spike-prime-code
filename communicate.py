@@ -55,9 +55,7 @@ UART_RX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
 class BLEIOConnector:
     def __init__(self, device):
-        self._ble = bleak.BleakClient(
-            device, services=[UART_SERVICE_UUID], use_cached_services=True
-        )
+        self._ble = bleak.BleakClient(device, services=[UART_SERVICE_UUID], use_cached_services=True)
         self._packet = b""
         self._packet_handlers = {}
         self._error_handler = self._async_print
@@ -77,9 +75,7 @@ class BLEIOConnector:
             return packet
         return None
 
-    async def _handle_rx(
-        self, _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray
-    ):
+    async def _handle_rx(self, _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray):
         self._packet += data
         if b"\x1a" in self._packet:
             if len(self._packet) > 1:
@@ -91,16 +87,12 @@ class BLEIOConnector:
                     print("|", arguments.decode(errors="replace"))
                 elif packet_id == b"E":
                     print(
-                        colorama.Fore.YELLOW
-                        + arguments.decode(errors="replace")
-                        + colorama.Fore.RESET,
+                        colorama.Fore.YELLOW + arguments.decode(errors="replace") + colorama.Fore.RESET,
                         file=sys.stderr,
                     )
                 elif packet_id == b"!":
                     print(
-                        colorama.Fore.RED
-                        + arguments.decode(errors="replace")
-                        + colorama.Fore.RESET,
+                        colorama.Fore.RED + arguments.decode(errors="replace") + colorama.Fore.RESET,
                         file=sys.stderr,
                     )
                 else:
@@ -113,9 +105,7 @@ class BLEIOConnector:
         if data is None:
             data = b""
         # print(">>", packet_id + data)
-        await self._ble.write_gatt_char(
-            UART_TX_CHAR_UUID.lower(), packet_id + data + b"\x1a"
-        )
+        await self._ble.write_gatt_char(UART_TX_CHAR_UUID.lower(), packet_id + data + b"\x1a")
 
 
 SRC_DIR = Path("src").absolute()
@@ -125,12 +115,20 @@ mpy_cross.set_version("1.20", 6)
 
 async def get_device():
     print("> Searching for devices...")
-    # ble_devices = devices = await bleak.BleakScanner.discover(10)
-    # for device in ble_devices:
-    #     if device.name != "GSG-Robots":
-    #         continue
-    device = "34:08:E1:8A:87:0D"
-    # device = "38:0B:3C:A2:27:91"
+    ble_devices = await bleak.BleakScanner.discover(10)
+    consider = [device for device in ble_devices if device.name is not None and device.name.startswith("GSG")]
+    if len(consider) == 0:
+        raise RuntimeError(f"No devices found: {', '.join(device.name or '?' for device in ble_devices)}")
+    elif len(consider) == 1:
+        print("Only one device found")
+        device = consider[0]
+    else:
+        print("Multiple devices foung:")
+        for idx, device in enumerate(consider):
+            print(f"  {idx + 1}. {device.name}")
+        device_idx = int(input("Device: ")) - 1
+        device = consider[device_idx]
+    print(f"Connecting to {device.name}...")
     ble = BLEIOConnector(device)
     await ble.connect()
     return ble
@@ -180,6 +178,7 @@ def build_py(src: Path, dest: Path):
         print(result.stderr.decode("utf-8"))
         return False
     return True
+
 
 def copy_py(src: Path, dest: Path):
     shutil.copy(src, dest)
@@ -251,9 +250,7 @@ async def sync_path(BLEIO: BLEIOConnector, file: Path):
             if nxt == b"K":
                 break
             elif nxt != b"U":
-                print(
-                    f"Expecting OK or U, Invalid response {nxt}, resetting connection"
-                )
+                print(f"Expecting OK or U, Invalid response {nxt}, resetting connection")
                 await BLEIO.send_packet(b"$")
                 raise ForceReconnect()
             with tqdm(
@@ -294,9 +291,7 @@ class FileUploader(watchdog.events.FileSystemEventHandler):
         yield
         self._lock = False
 
-    def on_created(
-        self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent
-    ):
+    def on_created(self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent):
         with self.lock():
             self.modified.append(Path(event.src_path))
 
@@ -307,15 +302,11 @@ class FileUploader(watchdog.events.FileSystemEventHandler):
         with self.lock():
             self.modified.append(Path(event.src_path))
 
-    def on_deleted(
-        self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent
-    ):
+    def on_deleted(self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent):
         with self.lock():
             self.modified.append(Path(event.src_path))
 
-    def on_moved(
-        self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent
-    ):
+    def on_moved(self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent):
         with self.lock():
             self.modified.append(Path(event.src_path))
 
@@ -332,9 +323,7 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
         yield
         self._lock = False
 
-    def on_created(
-        self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent
-    ):
+    def on_created(self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent):
         with self.lock():
             self.backlog.append(Path(event.src_path))
 
@@ -345,15 +334,11 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
         with self.lock():
             self.backlog.append(Path(event.src_path))
 
-    def on_deleted(
-        self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent
-    ):
+    def on_deleted(self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent):
         with self.lock():
             self.backlog.append(Path(event.src_path))
 
-    def on_moved(
-        self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent
-    ):
+    def on_moved(self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent):
         with self.lock():
             self.backlog.append(Path(event.src_path))
             self.backlog.append(Path(event.dest_path))

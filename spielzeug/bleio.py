@@ -44,9 +44,7 @@ _ADV_TYPE_APPEARANCE = const(0x19)
 _ADV_MAX_PAYLOAD = const(31)
 
 
-def advertising_payload(
-    limited_disc=False, br_edr=False, name=None, services=None, appearance=0
-):
+def advertising_payload(limited_disc=False, br_edr=False, name=None, services=None, appearance=0):
     payload = bytearray()
 
     def _append(adv_type, value):
@@ -92,9 +90,7 @@ class BLEIOConnector:
         self._packet = b""
         self._ble.active(True)
         self._ble.irq(self._irq)
-        ((self._tx_handle, self._rx_handle),) = self._ble.gatts_register_services(
-            (_UART_SERVICE,)
-        )
+        ((self._tx_handle, self._rx_handle),) = self._ble.gatts_register_services((_UART_SERVICE,))
         self._ble.gatts_set_buffer(self._rx_handle, 128, True)
         self._connection = None
         self._payload = advertising_payload(
@@ -189,9 +185,7 @@ class BLEIOConnector:
             self._state = STATE_ADVERTISING
             self._advertise()
         else:
-            raise RuntimeError(
-                "Cannot start advertising from state {}".format(self._state)
-            )
+            raise RuntimeError("Cannot start advertising from state {}".format(self._state))
 
     def stop_advertising(self):
         if self._state == STATE_ADVERTISING:
@@ -208,6 +202,12 @@ class BLEIOConnector:
         return self._state == STATE_ADVERTISING
 
 
-BLEIO = BLEIOConnector(bluetooth.BLE(), "GSG-Robots")
+try:
+    with open("/flash/config/hubname", "r") as f:
+        NAME = f.read()
+except:
+    NAME = "GSG-Unknown"
+
+BLEIO = BLEIOConnector(bluetooth.BLE(), NAME)
 
 __all__ = ["BLEIO"]
