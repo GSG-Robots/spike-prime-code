@@ -55,6 +55,7 @@ def wheels_blocked(chunk_size=100, threshold=10):
 
         yield 0
 
+
 def sec(duration: int | float) -> Condition:
     """... bis eine bestimmte Zeit vergangen ist.
 

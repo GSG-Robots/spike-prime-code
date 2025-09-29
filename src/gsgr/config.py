@@ -32,9 +32,7 @@ class configure:
         self.changes["GYRO_DRIVE_PID"] = pid
         return self
 
-    def gyro_turn(
-        self, pid: PID | None = None, minmax_speed: tuple[int, int] | None = None
-    ) -> Self:
+    def gyro_turn(self, pid: PID | None = None, minmax_speed: tuple[int, int] | None = None) -> Self:
         if pid is not None:
             self.changes["GYRO_TURN_PID"] = pid
         if minmax_speed is not None:
@@ -98,12 +96,8 @@ class Config:
         allow_debug = not _config_dict["competition"]
         self.DEBUG_NOSCROLL = allow_debug and _config_dict["debugging"]["no_autoscroll"]
         self.DEBUG_FOCUS = allow_debug and _config_dict["debugging"]["initial_focus"]
-        self.DEBUG_RAISE_BATTERY = (
-            allow_debug and _config_dict["debugging"]["require_battery_full"]
-        )
-        self.DEBUG_DISPLAY_ERRORS = (
-            allow_debug and _config_dict["debugging"]["display_errors"]
-        )
+        self.DEBUG_RAISE_BATTERY = allow_debug and _config_dict["debugging"]["require_battery_full"]
+        self.DEBUG_DISPLAY_ERRORS = allow_debug and _config_dict["debugging"]["display_errors"]
         self.LOOP_THROTTLE = _config_dict["loop_throttle"]
         self.GYRO_TOLERANCE = _config_dict["gyro_tolerance"]
         self.GYRO_DRIVE_PID = PID(

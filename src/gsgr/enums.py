@@ -1,5 +1,6 @@
 """Statische Enums"""
 
+
 class Attachment:
     """Zahnrad-Positionen zur Anseuerung der entsprechenden Ausgänge"""
 

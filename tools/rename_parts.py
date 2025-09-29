@@ -10,10 +10,7 @@ with open(
 ) as f:
     mapping_raw = f.read()
 
-    mapping = {
-        re.compile(x[0]): x[1]
-        for x in (y.split(" => ") for y in mapping_raw.split("\n") if y.strip() != "")
-    }
+    mapping = {re.compile(x[0]): x[1] for x in (y.split(" => ") for y in mapping_raw.split("\n") if y.strip() != "")}
 
 with open(
     r"C:\Users\Anwender\Documents\GitHub\internalWorkspace\tools\id_rename.weiredformat",
@@ -23,12 +20,7 @@ with open(
 ) as f:
     id_mapping_raw = f.read()
 
-    id_mapping = {
-        x[0]: x[1]
-        for x in (
-            y.split(" => ") for y in id_mapping_raw.split("\n") if y.strip() != ""
-        )
-    }
+    id_mapping = {x[0]: x[1] for x in (y.split(" => ") for y in id_mapping_raw.split("\n") if y.strip() != "")}
 
 with open(
     r"C:\Program Files\Studio 2.0\data\StudioPartDefinition2.txt",
@@ -38,9 +30,7 @@ with open(
 ) as f:
     file_content = f.read()
 
-if not os.path.exists(
-    r"C:\Program Files\Studio 2.0\data\StudioPartDefinition2.txt.original"
-):
+if not os.path.exists(r"C:\Program Files\Studio 2.0\data\StudioPartDefinition2.txt.original"):
     with open(
         r"C:\Program Files\Studio 2.0\data\StudioPartDefinition2.txt.original",
         "w",

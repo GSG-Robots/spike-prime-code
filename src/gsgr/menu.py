@@ -62,9 +62,7 @@ class ActionMenuItem(MenuItem):
     def prepare(self) -> None:
         """Wird direkt vor :py:attr:`action` ausgeführt."""
 
-    def set_action(
-        self, func: Callable[[], None] | None = None
-    ) -> Callable[[], None] | Callable[..., Callable[[], None]]:
+    def set_action(self, func: Callable[[], None] | None = None) -> Callable[[], None] | Callable[..., Callable[[], None]]:
         """Setter-Funktion für :py:attr:`action`.
 
         :param func: Funktion, die als Callback festgelegt werden soll. Falls nicht angegeben, wird eine decorator-Funktion zurückgegeben.
@@ -101,9 +99,7 @@ class Menu:
     position: int
     """Position des aktuell ausgewählten :py:class:`~gsgr.menu.MenuItem` s"""
 
-    def __init__(
-        self, items: list | None = None, swap_buttons=False, focus: int = 0
-    ) -> None:
+    def __init__(self, items: list | None = None, swap_buttons=False, focus: int = 0) -> None:
         """
         :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
         :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:const:`False`.

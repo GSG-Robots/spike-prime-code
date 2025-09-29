@@ -6,6 +6,7 @@ import hub
 from .menu import ActionMenuItem
 import motor
 
+
 class Run(ActionMenuItem):
     """A context manager in which the run is being executed.
 
@@ -69,7 +70,7 @@ class Run(ActionMenuItem):
         if left_con and right_con:
             hub.led(self.color)
         else:
-            hub.led(9) # hub.led(int(scale * 256), 0, 0)
+            hub.led(9)  # hub.led(int(scale * 256), 0, 0)
 
     def cleanup(self):
         """Patched verison of :py:meth:`MenuItem.cleanup` to stop all motors."""

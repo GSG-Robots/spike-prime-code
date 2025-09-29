@@ -49,7 +49,7 @@ def get_device():
         device_choice = devices[0]
     else:
         for index, device in enumerate(devices):
-            print(f"{index+1:>2}. {device.device}")
+            print(f"{index + 1:>2}. {device.device}")
         device_choice = devices[int(input("Device: ")) - 1]
 
     print(f"> Connecting to {device_choice}...")
@@ -170,9 +170,7 @@ class FileUploader(watchdog.events.FileSystemEventHandler):
         yield
         self._lock = False
 
-    def on_created(
-        self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent
-    ):
+    def on_created(self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent):
         with self.lock():
             if event.is_directory:
                 self.tasks.append(("mkdir", Path(event.src_path)))
@@ -188,18 +186,14 @@ class FileUploader(watchdog.events.FileSystemEventHandler):
                 return
             self.tasks.append(("write", Path(event.src_path)))
 
-    def on_deleted(
-        self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent
-    ):
+    def on_deleted(self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent):
         with self.lock():
             if event.is_directory:
                 self.tasks.append(("rmdir", Path(event.src_path)))
             else:
                 self.tasks.append(("rm", Path(event.src_path)))
 
-    def on_moved(
-        self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent
-    ):
+    def on_moved(self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent):
         with self.lock():
             if event.is_directory:
                 self.tasks.append(("mvdir", Path(event.src_path)))
@@ -219,9 +213,7 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
         yield
         self._lock = False
 
-    def on_created(
-        self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent
-    ):
+    def on_created(self, event: watchdog.events.DirCreatedEvent | watchdog.events.FileCreatedEvent):
         with self.lock():
             self.backlog.append(Path(event.src_path))
 
@@ -232,15 +224,11 @@ class FileBuilder(watchdog.events.FileSystemEventHandler):
         with self.lock():
             self.backlog.append(Path(event.src_path))
 
-    def on_deleted(
-        self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent
-    ):
+    def on_deleted(self, event: watchdog.events.DirDeletedEvent | watchdog.events.FileDeletedEvent):
         with self.lock():
             self.backlog.append(Path(event.src_path))
 
-    def on_moved(
-        self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent
-    ):
+    def on_moved(self, event: watchdog.events.DirMovedEvent | watchdog.events.FileMovedEvent):
         with self.lock():
             self.backlog.append(Path(event.src_path))
             self.backlog.append(Path(event.dest_path))

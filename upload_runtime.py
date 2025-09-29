@@ -18,7 +18,7 @@ def get_device():
         device_choice = devices[0]
     else:
         for index, device in enumerate(devices):
-            print(f"{index+1:>2}. {device.device}")
+            print(f"{index + 1:>2}. {device.device}")
         device_choice = devices[int(input("Device: ")) - 1]
 
     print(f"> Connecting to {device_choice}...")
@@ -39,9 +39,7 @@ def wait_for_prompt(ser):
         if buf == b"\n=== ":
             return
         elapsed = time.time() - start_time
-    raise ConnectionError(
-        "failed to get to the command prompt (last characters: %s)" % buf
-    )
+    raise ConnectionError("failed to get to the command prompt (last characters: %s)" % buf)
 
 
 def write_command(ser, cmd, no_wait=False):

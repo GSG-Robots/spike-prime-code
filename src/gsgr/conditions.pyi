@@ -20,12 +20,8 @@ def sec(duration: int | float, /) -> Condition:
     :param duration: Die Dauer, die gewartet werden soll, in Sekunden.
     """
 
-def impact(
-    during: Condition, /, threshold: int | float = 500, min: int = 50
-) -> Condition: ...
-def pickup(
-    during: Condition, /, threshold: int | float = 500, min: int = 50
-) -> Condition: ...
+def impact(during: Condition, /, threshold: int | float = 500, min: int = 50) -> Condition: ...
+def pickup(during: Condition, /, threshold: int | float = 500, min: int = 50) -> Condition: ...
 def deg(angle: int, /) -> Condition:
     """... bis der Roboter in eine bestimmte Richtung gedreht hat.
 
