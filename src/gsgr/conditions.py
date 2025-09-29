@@ -34,19 +34,26 @@ def cm(distance: int | float) -> Condition:
     )
 
     while True:
-        yield math.floor(
-            (
-                (
-                    abs(motor.relative_position(cfg.RIGHT_MOTOR) - start_degrees[1])
-                    + abs(motor.relative_position(cfg.LEFT_MOTOR) - start_degrees[0])
-                )
-                / 720
-                * cfg.TIRE_CIRCUMFRENCE
-            )
-            / distance
-            * 100
-        )
+        yield math.floor(((abs(motor.relative_position(cfg.RIGHT_MOTOR) - start_degrees[1]) + abs(motor.relative_position(cfg.LEFT_MOTOR) - start_degrees[0])) / 720 * cfg.TIRE_CIRCUMFRENCE) / distance * 100)
 
+
+def wheels_blocked(chunk_size=100, threshold=10):
+    la, lb = motor.relative_position(cfg.RIGHT_MOTOR), motor.relative_position(cfg.LEFT_MOTOR)
+    since = time.ticks_ms() + 1000
+
+    while True:
+        if since + chunk_size < time.ticks_ms():
+            a = motor.relative_position(cfg.RIGHT_MOTOR)
+            b = motor.relative_position(cfg.LEFT_MOTOR)
+
+            since = time.ticks_ms()
+            difference = abs(la - a) + abs(lb - b)
+            if difference < threshold:
+                yield 100
+
+            la, lb = a, b
+
+        yield 0
 
 def sec(duration: int | float) -> Condition:
     """... bis eine bestimmte Zeit vergangen ist.
@@ -98,9 +105,7 @@ def pickup(during: Condition, threshold: int | float = 500, min: int = 50) -> Co
         if parent >= min:
             break
         gs_cnt += 1
-        gs_avg = (
-            gs_avg * (gs_cnt - 1) + hub.motion_sensor.acceleration(True)[2]
-        ) / gs_cnt
+        gs_avg = (gs_avg * (gs_cnt - 1) + hub.motion_sensor.acceleration(True)[2]) / gs_cnt
         yield parent
 
     threshold += gs_avg
@@ -124,15 +129,7 @@ def deg(angle: int) -> Condition:
     yield 0
 
     while True:
-        yield (
-            100
-            if (
-                angle - cfg.GYRO_TOLERANCE
-                <= hub.motion.yaw_pitch_roll()[0]
-                <= angle + cfg.GYRO_TOLERANCE
-            )
-            else 0
-        )
+        yield (100 if (angle - cfg.GYRO_TOLERANCE <= hub.motion.yaw_pitch_roll()[0] <= angle + cfg.GYRO_TOLERANCE) else 0)
 
 
 def light_left(threshold: float, below: bool = False):
