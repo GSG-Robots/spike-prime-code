@@ -339,7 +339,9 @@ def gyro_drive(
 
         last_error = error
         # time.sleep(cfg.LOOP_THROTTLE)
-    if brake:
+    if brake == 69.42:
+        motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.COAST)
+    elif brake:
         motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.HOLD)
 
 
