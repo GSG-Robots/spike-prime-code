@@ -5,6 +5,7 @@ from .enums import SWSensor
 import hub
 from .menu import ActionMenuItem
 import motor
+import color
 
 
 class Run(ActionMenuItem):
@@ -36,6 +37,7 @@ class Run(ActionMenuItem):
     def prepare(self) -> None:
         cfg.LEFT_SW_SENSOR = self.left_sensor[1] if self.left_sensor is not None else -1
         cfg.RIGHT_SW_SENSOR = self.right_sensor[1] if self.right_sensor is not None else -1
+        hub.light.color(hub.light.POWER, color.BLACK)
         return super().prepare()
 
     def update(self, first=False) -> None:
@@ -62,15 +64,15 @@ class Run(ActionMenuItem):
         tm = 750
         scale = abs(tm - time.ticks_ms() % (2 * tm)) / tm
         if cfg.LANDSCAPE:
-            hub.display.pixel(4, 4, int((not left_con) * 9 * overlap * scale))
-            hub.display.pixel(4, 0, int((not right_con) * 9 * overlap * scale))
+            hub.light_matrix.set_pixel(4, 4, int((not left_con) * 9 * overlap * scale))
+            hub.light_matrix.set_pixel(4, 0, int((not right_con) * 9 * overlap * scale))
         else:
-            hub.display.pixel(4, 4, int((not left_con) * 9 * overlap * scale))
-            hub.display.pixel(0, 4, int((not right_con) * 9 * overlap * scale))
+            hub.light_matrix.set_pixel(4, 4, int((not left_con) * 9 * overlap * scale))
+            hub.light_matrix.set_pixel(0, 4, int((not right_con) * 9 * overlap * scale))
         if left_con and right_con:
-            hub.led(self.color)
+            hub.light.color(hub.light.POWER, self.color)
         else:
-            hub.led(9)  # hub.led(int(scale * 256), 0, 0)
+            hub.light.color(hub.light.POWER, 9)  # hub.led(int(scale * 256), 0, 0)
 
     def cleanup(self):
         """Patched verison of :py:meth:`MenuItem.cleanup` to stop all motors."""
