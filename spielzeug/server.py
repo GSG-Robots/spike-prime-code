@@ -75,7 +75,6 @@ def recursive_listdir(path: str):
 
 def remove(path: str):
     path = "/flash/src" + path
-    print(path)
     typ = os.stat(path)[0]
     if typ == 32768:
         os.remove(path)
@@ -98,16 +97,15 @@ async def program_wrapper(program):
         await program
     except Exception as e:
         send_error(e, b"E")
+        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 30, 100, 0, 0, 0, 100, 100, 100, 100, 0, 0])
         hub.light.color(hub.light.CONNECT, color.RED)
         light.delay_override(1000)
-        hub.light.color(hub.light.POWER, color.RED)
-        await asyncio.sleep_ms(100)
-        hub.light.color(hub.light.POWER, color.BLACK)
-        await asyncio.sleep_ms(50)
-        hub.light.color(hub.light.POWER, color.RED)
-        await asyncio.sleep_ms(100)
-        hub.light.color(hub.light.POWER, color.BLACK)
-        await asyncio.sleep_ms(50)
+        for i in range(5):
+            hub.sound.beep(200, 25)
+            hub.light.color(hub.light.POWER, color.RED)
+            await asyncio.sleep_ms(100)
+            hub.light.color(hub.light.POWER, color.BLACK)
+            await asyncio.sleep_ms(50)
     finally:
         hub.light_matrix.clear()
         hub.light.color(hub.light.POWER, color.WHITE)
@@ -127,31 +125,34 @@ async def start_program():
         module = __import__("src")
     except Exception as e:
         send_error(e, b"E")
+        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 100, 100, 100, 0, 0, 30, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0])
         hub.light.color(hub.light.CONNECT, color.MAGENTA)
         light.delay_override(1000)
-        hub.light.color(hub.light.POWER, color.MAGENTA)
-        await asyncio.sleep_ms(100)
-        hub.light.color(hub.light.POWER, color.BLACK)
-        await asyncio.sleep_ms(50)
-        hub.light.color(hub.light.POWER, color.MAGENTA)
-        await asyncio.sleep_ms(100)
-        hub.light.color(hub.light.POWER, color.BLACK)
-        await asyncio.sleep_ms(50)
+        for i in range(5):
+            hub.sound.beep(400, 90)
+            hub.light.color(hub.light.POWER, color.MAGENTA)
+            await asyncio.sleep_ms(100)
+            hub.sound.beep(400, 40)
+            hub.light.color(hub.light.POWER, color.BLACK)
+            await asyncio.sleep_ms(50)
+
         hub.light.color(hub.light.POWER, color.WHITE)
+        return
     if hasattr(module, "loop"):
         prog_task = asyncio.create_task(program_wrapper(module.loop()))
     else:
         remote.send(b"E", "You must define a function called 'loop' in '__init__.py'!")
+        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 100, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0])
         hub.light.color(hub.light.CONNECT, color.PURPLE)
         light.delay_override(1000)
-        hub.light.color(hub.light.POWER, color.PURPLE)
-        await asyncio.sleep_ms(100)
-        hub.light.color(hub.light.POWER, color.BLACK)
-        await asyncio.sleep_ms(50)
-        hub.light.color(hub.light.POWER, color.PURPLE)
-        await asyncio.sleep_ms(100)
-        hub.light.color(hub.light.POWER, color.BLACK)
-        await asyncio.sleep_ms(50)
+        for i in range(5):
+            hub.sound.beep(475, 100)
+            hub.light.color(hub.light.POWER, color.PURPLE)
+            await asyncio.sleep_ms(100)
+            hub.sound.beep(600, 50)
+            hub.light.color(hub.light.POWER, color.BLACK)
+            await asyncio.sleep_ms(50)
+
         hub.light.color(hub.light.POWER, color.WHITE)
 
 
@@ -242,6 +243,7 @@ async def handle_connect_button():
                 await asyncio.sleep_ms(100)
         await asyncio.sleep_ms(10)
 
+
 async def main():
     # Modify builtins
     builtins.oprint = builtins.print
@@ -250,6 +252,7 @@ async def main():
 
     # Init
     hub.light.color(hub.light.POWER, color.ORANGE)
+    hub.light_matrix.show([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     try:
         os.mkdir("/flash/src")
     except OSError:
@@ -283,7 +286,6 @@ def setup_ble_server():
         nonlocal all_paths
         handle_packet()
         all_paths = list(a[10:] for a in recursive_listdir("/flash/src"))
-        print(all_paths)
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"$")
@@ -297,7 +299,6 @@ def setup_ble_server():
     def finish_sync(data: bytes):
         nonlocal all_paths
         handle_packet()
-        print(all_paths)
         for path in all_paths:
             remove(path)
         all_paths.clear()
@@ -331,7 +332,6 @@ def setup_ble_server():
 
         if name in all_paths:
             all_paths.remove(name)
-        oprint(old_hash, "vs", hash, "from", args)
         if old_hash != hash:
             current_file = "/flash/src" + name
             current_buffer = b""
