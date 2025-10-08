@@ -1,6 +1,9 @@
 Fahren und Drehen
 =================
 
+.. warning::
+    Document may be out of date.
+    
 Geradeaus Fahren
 ----------------
 
@@ -120,7 +123,7 @@ Dann wird diese auf beide Radgeschwindigkeiten angewandt:
 
 Dadurch dreht das eine Rad dann langsamer und das andere schneller, wodurch sich der Roboter wieder zuer Wunschrichtung ausrichtet.
 
-Für weitere Details zum wählen der richtigen Korrekturwerte, siehe auch :ref:`Fahrprobleme <driving-problems>`
+Für weitere Details zum wählen der richtigen Korrekturwerte, siehe auch :ref:`problem-hw`
 
 .. _endingconditions:
 

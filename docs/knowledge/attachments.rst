@@ -1,6 +1,9 @@
 Ausgänge (Attachments) steuern
 ==============================
 
+.. warning::
+    Document may be out of date.
+
 .. note::
     Obwohl du wahrscheinlich nur hier bist um eine bestimmte Sache nachzulesen,
     könnte es Sinn ergeben, die ganze Seite von Beginn an zu lesen,
