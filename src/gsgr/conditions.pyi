@@ -8,7 +8,7 @@ def static(value: bool | int, /) -> Condition:
     :param value: :py:obj:`True` bedeutet, dass die Bedingung dauerhaft erfüllt ist, :py:obj:`False` das Gegenteil.
     """
 
-def cm(distance: int, /) -> Condition:
+def cm(distance: int | float, /) -> Condition:
     """... bis sich die Räder um eine Bestimmte Strecke bewegt haben.
 
     :param distance: Die Strecke, die zurückgelegt werden soll, in cm.
@@ -20,12 +20,8 @@ def sec(duration: int | float, /) -> Condition:
     :param duration: Die Dauer, die gewartet werden soll, in Sekunden.
     """
 
-def impact(
-    during: Condition, /, threshold: int | float = 500, min: int = 50
-) -> Condition: ...
-def pickup(
-    during: Condition, /, threshold: int | float = 500, min: int = 50
-) -> Condition: ...
+def impact(during: Condition, /, threshold: int | float = 500, min: int = 50) -> Condition: ...
+def pickup(during: Condition, /, threshold: int | float = 500, min: int = 50) -> Condition: ...
 def deg(angle: int, /) -> Condition:
     """... bis der Roboter in eine bestimmte Richtung gedreht hat.
 

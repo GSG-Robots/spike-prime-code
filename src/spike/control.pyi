@@ -19,7 +19,6 @@ def wait_for_seconds(seconds):
     ValueError : seconds is not at least 0.
     """
 
-
 def wait_until(get_value_function, operator_function=None, target_value=True):
     """
     Waits until the condition is True before continuing with the program.
@@ -54,7 +53,6 @@ def wait_until(get_value_function, operator_function=None, target_value=True):
     ----------------
     TypeError : get_value_function or operator_function is not callable or operator_function does not compare two arguments.
     """
-
 
 class Timer:
     """Timer to time things"""

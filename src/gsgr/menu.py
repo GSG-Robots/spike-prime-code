@@ -4,12 +4,13 @@ Also supplies run class, being a menu item.
 """
 
 import time
-from typing import Callable, NoReturn
+
+import color
+import uasyncio as asyncio
 
 import hub
-from gsgr.config import cfg
-from gsgr.enums import Color
 
+from .config import cfg
 from .display import show_image
 from .exceptions import ExitMenu, StopRun
 from .math import clamp
@@ -21,7 +22,7 @@ class MenuItem:
     color: int
     """Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist."""
 
-    def __init__(self, display_as: int | str, color: int = Color.WHITE) -> None:
+    def __init__(self, display_as: int | str, color: int = color.WHITE) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
         :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
@@ -41,7 +42,7 @@ class ActionMenuItem(MenuItem):
         self,
         action: Callable | None,
         display_as: int | str,
-        color: int = Color.WHITE,
+        color: int = color.WHITE,
     ) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
@@ -61,9 +62,7 @@ class ActionMenuItem(MenuItem):
     def prepare(self) -> None:
         """Wird direkt vor :py:attr:`action` ausgeführt."""
 
-    def set_action(
-        self, func: Callable[[], None] | None = None
-    ) -> Callable[[], None] | Callable[..., Callable[[], None]]:
+    def set_action(self, func: Callable[[], None] | None = None) -> Callable[[], None] | Callable[..., Callable[[], None]]:
         """Setter-Funktion für :py:attr:`action`.
 
         :param func: Funktion, die als Callback festgelegt werden soll. Falls nicht angegeben, wird eine decorator-Funktion zurückgegeben.
@@ -88,10 +87,10 @@ class ActionMenuItem(MenuItem):
         raise StopRun
 
 
-class Menu[T: MenuItem]:
+class Menu:
     """Ein geerellen Menü, welches :py:class:`~gsgr.menu.MenuItem` s enthält"""
 
-    items: list[T]
+    items: list
     """Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s im Menü"""
 
     swap_buttons: bool
@@ -100,52 +99,40 @@ class Menu[T: MenuItem]:
     position: int
     """Position des aktuell ausgewählten :py:class:`~gsgr.menu.MenuItem` s"""
 
-    def __init__(self, items: list[T] | None = None, swap_buttons=False) -> None:
+    def __init__(self, items: list | None = None, swap_buttons=False, focus: int = 0) -> None:
         """
         :param items: Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s die bereits im Menü sein sollen. Wenn nicht angegeben, keine.
         :param swap_buttons: Ob die Funktionen der beiden Buttons getauscht werden sollen. Wenn nicht angegeben, :py:const:`False`.
         """
         self.items = items or []
         self.swap_buttons = swap_buttons
-        self.position = 0
+        self.position = focus
 
-    def add_item(self, item: T) -> None:
+    def add_item(self, item) -> None:
         """Ein Element zum Menü hinzufügen
 
         :param item: Hinzuzufügendes Element
         """
         self.items.append(item)
 
-    def choose(self, exit_on_charge=False) -> T:
+    async def choose(self, exit_on_charge=False):
         """Menü zeigen und ein Menü-Element wählen lassen.
 
         :returns: Das gewählte Menü-Element
         """
         last_position = -1
-        # Reset button presses
-        hub.button.left.was_pressed()
-        hub.button.right.was_pressed()
-        hub.button.center.was_pressed()
 
-        selected: T = self.items[self.position]
+        selected = self.items[self.position]
 
-        while not hub.button.center.was_pressed():
-            # if hub.motion.gesture() == 1:
-            #     hub.display.show(hub.Image("90909:09090:90909:09090:90909"))
-            #     hub.sound.beep(500, 50, 1)
-            #     cfg.GEAR_SELECTOR.run_to_position(0)
-            if hub.button.left.was_pressed():
+        while not hub.button.pressed(hub.button.POWER):
+            if hub.button.pressed(hub.button.LEFT):
+                while hub.button.pressed(hub.button.LEFT):
+                    ...
                 self.position = self.position - (-1 if self.swap_buttons else 1)
-            if hub.button.right.was_pressed():
+            if hub.button.pressed(hub.button.RIGHT):
+                while hub.button.pressed(hub.button.RIGHT):
+                    ...
                 self.position = self.position + (-1 if self.swap_buttons else 1)
-            if exit_on_charge and hub.battery.charger_detect() in [
-                hub.battery.CHARGER_STATE_CHARGING_COMPLETED,
-                hub.battery.CHARGER_STATE_CHARGING_ONGOING,
-            ]:
-                if hub.button.connect.is_pressed():
-                    exit_on_charge = False
-                else:
-                    self.exit()
 
             self.position = int(clamp(self.position, 0, len(self.items) - 1))
             selected = self.items[self.position]
@@ -153,20 +140,22 @@ class Menu[T: MenuItem]:
             if last_position != self.position:
                 show_image(
                     selected.display_as,
-                    border_right=self.position == 0,
                     border_left=self.position == (len(self.items) - 1),
+                    border_right=self.position == 0,
                     bright=True,
                 )
-                hub.led(selected.color)
+                hub.light.color(hub.light.POWER, selected.color)
                 last_position: int = self.position
-                selected.update(first = True)
+                selected.update(first=True)
             selected.update()
+            await asyncio.sleep(cfg.LOOP_THROTTLE)
+            await asyncio.sleep_ms(10)
 
-            time.sleep(cfg.LOOP_THROTTLE)
-
+        while hub.button.pressed(hub.button.POWER):
+            ...
         return selected
 
-    def exit(self) -> NoReturn:
+    def exit(self):
         """Funktion um :py:meth:`~gsgr.menu.Menu.choose` vorzeitig zu beenden.
 
         :raises: ExitMenu
@@ -178,7 +167,7 @@ class ActionMenu(Menu):
     items: list[ActionMenuItem]
     """Eine List aller :py:class:`~gsgr.menu.ActionMenuItem` s im Menü"""
 
-    def choose_and_run(self, exit_on_charge=False) -> None:
+    async def choose_and_run(self, exit_on_charge=False) -> None:
         """Menü zeigen und ein Menü-Element wählen lassen, wessen Callback dann ausgeführt wird
 
         :returns: Das gewählte Element
@@ -186,7 +175,7 @@ class ActionMenu(Menu):
         # hw.left_color_sensor.light_up_all(0)
         # hw.right_color_sensor.light_up_all(0)
 
-        result: ActionMenuItem = self.choose(exit_on_charge=exit_on_charge)
+        result: ActionMenuItem = await self.choose(exit_on_charge=exit_on_charge)
         show_image(result.display_as, border_right=True, border_left=True, bright=False)
         result.prepare()
         try:
@@ -197,20 +186,22 @@ class ActionMenu(Menu):
         except StopRun as e:
             raise e
         except Exception as e:
-            if cfg.DEBUG_MODE:
-                hub.display.show(repr(e))
+            if cfg.DEBUG_DISPLAY_ERRORS:
+                hub.light_matrix.write(repr(e))
             raise e
         finally:
             result.cleanup()
+        while hub.button.pressed(hub.button.POWER):
+            pass
 
-    def loop(self, autoscroll=False, exit_on_charge=False) -> None:
+    async def loop(self, autoscroll=False, exit_on_charge=False) -> None:
         """Endlos immer wieder Menü zeigen und ein Menü-Element wählen lassen, welches dann ausgeführt wird.
 
         :param autoscroll: Ob nach dem erfolgreichen Ausführen eines Callbacks automatisch weitergeblättert werden soll.
         """
         while True:
             try:
-                self.choose_and_run(exit_on_charge=exit_on_charge)
+                await self.choose_and_run(exit_on_charge=exit_on_charge)
             except StopRun:
                 continue
             except ExitMenu:

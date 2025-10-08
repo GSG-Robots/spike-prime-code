@@ -34,10 +34,10 @@ counter = 0
 hub.display.show(hub.Image("33333:33333:33333:33333:33333"))
 hub.led(7)
 
-hub.button.center.was_pressed()
+buttons.pressed(hub.button.POWER)
 hub.button.left.was_pressed()
 
-while not hub.button.center.was_pressed():
+while not buttons.pressed(hub.button.POWER):
     brightness, color, r, g, b = color_sensor.get()
     # print(brightness, color, r, g, b)
     _current_state = current_state(r, g, b)
@@ -74,7 +74,7 @@ while not hub.button.center.was_pressed():
 
 
 hub.display.show(hub.Image("33333:39393:33933:39393:33333"))
-while not hub.button.center.was_pressed():
+while not buttons.pressed(hub.button.POWER):
     ...
 hub.button.center.callback(cb)
 

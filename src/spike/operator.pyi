@@ -29,7 +29,6 @@ def greater_than(a, b):  # pylint: disable=unused-argument
     Values : True if a > b, otherwise False.
     """
 
-
 def equal_to(a, b):  # pylint: disable=unused-argument
     """
     Tests whether value a is equal to value b.

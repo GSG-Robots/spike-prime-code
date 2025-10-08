@@ -1,5 +1,4 @@
 __pycache__
-*.cpyd.py
-*.cpyd.mpy
+build
 docs/_build
 .venv

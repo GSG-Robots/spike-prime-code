@@ -3,7 +3,6 @@
 SPIKE Prime Python Classes
 """
 
-
 class App:
     def __init__(self):
         pass
@@ -71,7 +70,6 @@ class App:
 
         RuntimeError : The SPIKE App has been disconnected from the Hub.
         """
-
 
 class DistanceSensor:
     def __init__(self, port):
@@ -319,7 +317,6 @@ class DistanceSensor:
         RuntimeError: The sensor has been disconnected from the Port.
         """
 
-
 class ForceSensor:
     def __init__(self, port):
         """
@@ -401,7 +398,6 @@ class ForceSensor:
         ---------
         RuntimeError : The sensor has been disconnected from the Port.
         """
-
 
 class LightMatrix:
     def __init__(self):
@@ -495,7 +491,6 @@ class LightMatrix:
         """
         Turns off all the pixels on the Light Matrix.
         """
-
 
 class MotionSensor:
     def __init__(self):
@@ -619,7 +614,6 @@ class MotionSensor:
         Type : string (text)
         Values : 'front', 'back', 'up', 'down', 'left side', 'right side'
         """
-
 
 class Motor:
     def __init__(self, port):
@@ -1037,7 +1031,6 @@ class Motor:
         RuntimeError : The motor has been disconnected from the Port.
         """
 
-
 class MotorPair:
     def __init__(self, port1, port2):
         """
@@ -1415,7 +1408,6 @@ class MotorPair:
         RuntimeError : One or both of the Ports do not have a motor connected or the motors could not be paired.
         """
 
-
 class Speaker:
     def __init__(self):
         """
@@ -1512,7 +1504,6 @@ class Speaker:
         TypeError : volume is not an integer.
         """
 
-
 class StatusLight:
     def __init__(self):
         """
@@ -1544,7 +1535,6 @@ class StatusLight:
         """
         Turns the status light off
         """
-
 
 class Buttons:
     def __init__(self, location):
@@ -1584,7 +1574,6 @@ class Buttons:
 
         Values : True or False
         """
-
 
 class ColorSensor:
     def __init__(self, port):
@@ -1813,7 +1802,6 @@ class ColorSensor:
 
         RuntimeError : The sensor has been disconnected from the Port.
         """
-
 
 class PrimeHub:
     speaker = Speaker()

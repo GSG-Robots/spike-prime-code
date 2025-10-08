@@ -185,9 +185,7 @@ def led(color: tuple[int, int, int]) -> None:
             * Tuple mode. This works just like RGB mode, but you can provide all three values in a single tuple.
     """
 
-def file_transfer(
-    filename: str, filesize: int, packetsize: int = 1000, timeout: int = 2000, mode=None
-) -> None:
+def file_transfer(filename: str, filesize: int, packetsize: int = 1000, timeout: int = 2000, mode=None) -> None:
     """
     Prepares a file transfer to the hub.
 

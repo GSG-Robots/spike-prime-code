@@ -1,16 +1,19 @@
-debug_mode: on
-tire_diameter: 6.5
-gyro_tolerance: 1
+tire_diameter: 6.24
 loop_throttle: 0.025
 landscape: yes
+gyro_tolerance: 1
+gyro_off: -4
 
 gearbox:
     drive_shaft: A
     gear_selector: B
 
+    # "Dieses Problem ist softwaretechnisch zu lösen" - danke
+    offset: -7
+
 driving_motors:
-    left: C
-    right: D
+    left: D
+    right: C
 
 sensors:
     left: E
@@ -18,36 +21,22 @@ sensors:
 
 correctors:
     gyro_turn:
-        p: 0.8
+        p: 1.6
         i: 0
-        d: -0.1
+        d: -1
 
         # In deg/s:
-        min_speed: 2
+        min_speed: 5
         max_speed: 90
 
     gyro_drive:
-        p: 1.7
-        i: 0
-        d: -0.2
+        p: 1.3
+        i: 0.001
+        d: -1
 
-    motors:
-        driving_power:
-            p: 100
-            i: 2
-            d: 5
-
-        driving_differential:
-            p: 20
-            i: 4
-            d: 6
-
-        shaft_power:
-            p: 10
-            i: 3
-            d: 5
-
-        selector_power:
-            p: 10
-            i: 3
-            d: 1
+competition: no
+debugging:
+    no_autoscroll: yes
+    initial_focus: 0
+    require_battery_full: no
+    display_errors: no

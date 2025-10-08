@@ -1,75 +1,95 @@
-# LEGO type:standard slot:8 autostart
-"""Short run to show battery show"""
-
 import time
-
-import hub  # type: ignore # pylint: disable=import-error
-
-
-def main():
-    LOW = 8000
-    HIGH = 8350  # actually unreachable 8360
-    WAVEFORM = 1
-    # Use 0 for "ah, ok", 1 for "oh, ok", 2 for "huh?" and 3 for "we are going to die"
-
-    images = (
-        hub.Image("00000:00000:00000:00000:00000"),  #   0 %
-        hub.Image("00300:00000:00000:00000:00000"),  #  10 %
-        hub.Image("00600:00000:00000:00000:00000"),  #  20 %
-        hub.Image("00600:00300:00000:00000:00000"),  #  30 %
-        hub.Image("00600:00600:00000:00000:00000"),  #  40 %
-        hub.Image("00600:00600:00300:00000:00000"),  #  50 %
-        hub.Image("00600:00600:00600:00000:00000"),  #  60 %
-        hub.Image("00600:00600:00600:00300:00000"),  #  70 %
-        hub.Image("00600:00600:00600:00600:00000"),  #  80 %
-        hub.Image("00600:00600:00600:00600:00300"),  #  90 %
-        hub.Image("00600:00600:00600:00600:00600"),  # 100 %
-    )
-
-    hub.sound.volume(100)
-    hub.display.align(hub.FRONT)
-
-    # Reset
-    hub.button.center.was_pressed()
-
-    while not hub.button.center.was_pressed():
-        total_capacity = hub.battery.capacity_left()
-        usable_capacity = round((hub.battery.voltage() - LOW) / (HIGH - LOW) * 100)
-        height = usable_capacity // 10
-        if usable_capacity <= 0:
-            height = total_capacity // 10
-            hub.led(9)
-        elif usable_capacity < 100:
-            hub.led(7)
-        else:
-            hub.led(6)
-        is_charging = hub.battery.charger_detect()
-        is_actively_charging = is_charging and usable_capacity < 100
-
-        if is_actively_charging:
-            for image in images[: height + 1]:
-                hub.display.show(image)
-                time.sleep(0.1)
-                if hub.button.center.was_pressed():
-                    raise SystemExit
-        else:
-            hub.display.show(images[height])
-
-        time.sleep(2)
-
-        if usable_capacity >= 100 and is_charging:
-            hub.sound.beep(440, 500, WAVEFORM)
-            time.sleep(0.5)
-            hub.sound.beep(770, 875, WAVEFORM)
-            time.sleep(0.75)
+import hub
+import asyncio
+import color
 
 
-# <DISABLE BUTTON FOR INTERRUPT>
-callback = hub.button.center.callback()
-hub.button.center.callback(lambda i: None)
-try:
-    main()
-finally:
-    # Reactivate button callback
-    hub.button.center.callback(callback)
-raise SystemExit
+async def battery():
+    intensity: int = 100
+    lvl: int | float = 0
+    last_used = {"time": time.ticks_ms()}
+
+    while hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT):
+        return
+
+    async def watch_button():
+        while True:
+            if hub.button.pressed(hub.button.POWER) or hub.button.pressed(hub.button.LEFT) or hub.button.pressed(hub.button.RIGHT):
+                last_used["time"] = time.ticks_ms()
+
+            await asyncio.sleep_ms(100)
+
+    task = asyncio.create_task(watch_button())
+    try:
+        while not (hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT)):
+            vt = hub.battery_voltage()
+            if vt < 7850:
+                lvl = (vt / 7850) * 100
+                intensity = 50
+            else:
+                lvl = ((vt - 7850) / 450) * 100
+                intensity = 100
+
+            if last_used["time"] + 10000 > time.ticks_ms() or lvl >= 99:
+                if intensity == 50:
+                    hub.light.color(hub.light.POWER, color.RED)
+
+                if intensity == 100:
+                    hub.light.color(hub.light.POWER, color.YELLOW)
+                    if lvl >= 99:
+                        hub.light.color(hub.light.POWER, color.GREEN)
+                        hub.sound.beep(400, 100, 90)
+
+                if lvl > 9:
+                    hub.light_matrix.set_pixel(2, 0, intensity // 2)
+                await asyncio.sleep_ms(100)
+                if lvl > 19:
+                    hub.light_matrix.set_pixel(2, 0, intensity)
+                await asyncio.sleep_ms(100)
+                if lvl > 29:
+                    hub.light_matrix.set_pixel(2, 1, intensity // 2)
+                await asyncio.sleep_ms(100)
+                if lvl > 39:
+                    hub.light_matrix.set_pixel(2, 1, intensity)
+                await asyncio.sleep_ms(100)
+                if lvl > 49:
+                    hub.light_matrix.set_pixel(2, 2, intensity // 2)
+                await asyncio.sleep_ms(100)
+                if lvl > 59:
+                    hub.light_matrix.set_pixel(2, 2, intensity)
+                await asyncio.sleep_ms(100)
+                if lvl > 69:
+                    hub.light_matrix.set_pixel(2, 3, intensity // 2)
+                await asyncio.sleep_ms(100)
+                if lvl > 79:
+                    hub.light_matrix.set_pixel(2, 3, intensity)
+                await asyncio.sleep_ms(100)
+                if lvl > 89:
+                    hub.light_matrix.set_pixel(2, 4, intensity // 2)
+                await asyncio.sleep_ms(100)
+                if lvl > 99:
+                    hub.light_matrix.set_pixel(2, 4, intensity)
+                await asyncio.sleep_ms(100)
+                if lvl <= 89:
+                    hub.light_matrix.set_pixel(2, 4, 0)
+                if lvl <= 69:
+                    hub.light_matrix.set_pixel(2, 3, 0)
+                if lvl <= 49:
+                    hub.light_matrix.set_pixel(2, 2, 0)
+                if lvl <= 29:
+                    hub.light_matrix.set_pixel(2, 1, 0)
+                if lvl <= 9:
+                    hub.light_matrix.set_pixel(2, 0, 10)
+            else:
+                hub.light_matrix.clear()
+                hub.light.color(hub.light.POWER, color.BLACK)
+
+            while hub.usb_charge_current() < 10:
+                if hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT):
+                    return
+                await asyncio.sleep_ms(100)
+
+            await asyncio.sleep_ms(100)
+    finally:
+        task.cancel()
+    hub.light_matrix.clear()

@@ -42,7 +42,7 @@ exclude_patterns = []
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path("..", "src").resolve()))
+sys.path.insert(0, str(Path(__file__, "..", "..", "src").resolve()))
 
 
 # -- Options for HTML output -------------------------------------------------
