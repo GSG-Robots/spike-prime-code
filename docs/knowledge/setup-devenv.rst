@@ -56,6 +56,7 @@ Schritt 5: VSCode konfigurieren
 
   - `reStructuredText <vscode:extension/lextudio.restructuredtext>`_
   - `reStructuredText Syntax Highlighting <vscode:extension/trond-snekvik.simple-rst>`_
+  - `Esbonio <vscode:extension/swyddfa.esbonio>`_
 
 - Drücke :code:`Strg + Shift + P` und suche nach "Python: Select Interpreter" ein.
 - Wähle :code:`3.13.x ('.venv')`.
