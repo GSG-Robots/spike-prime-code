@@ -227,7 +227,8 @@ async def handle_connect_button():
                     hub.light.color(hub.light.CONNECT, color.GREEN)
                     hub.sound.beep(800, 400)
                     time.sleep(0.4)
-                    sys.exit()
+                    import _system.default
+                    del sys.modules["_system.default"]
                     break
                 if hub.button.pressed(hub.button.POWER):
                     hub.light.color(hub.light.CONNECT, color.GREEN)
