@@ -73,7 +73,7 @@ Die Fehlernachricht gibt Auskunft darüber, welcher Wert in welchem Run fehlerha
 .. _import-error:
 
 Fehler beim Laden der Menüsoftware oder Runs
--------------------------------------------
+--------------------------------------------
 
 Beim Laden der Menüsoftware oder den Runs ist ein Fehler aufgetreten
 
