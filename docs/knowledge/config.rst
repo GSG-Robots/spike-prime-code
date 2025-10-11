@@ -30,11 +30,12 @@ Die folgenden Optionen können in der Konfigurationsdatei eingestellt werden:
     * :code:`initial_focus`: Der wievielte Run beim Start ausgewählt sein soll. Zählt ab 0, dh. 0 -> erster Run, 1 -> zweiter Run, etc.
     * :code:`require_full_battery`: Aktiviert, dass der Hub den Akkustand überprüft und die Arbeit bei zu niedrigem verweigert.
     * :code:`display_errors`: Aktiviert, dass Fehlernachrichten auf dem Display des Hubs angezeigt werden. Bei bestehender Bluetooth-Verbindung unnötig.
-  * :code:`competition`: Wenn ja werden Einstellungen aus :code:`debugging` ignoriert und stattdessen für den Wettbewerb optimierte Einstellungen verwendet.
+* :code:`competition`: Wenn ja werden Einstellungen aus :code:`debugging` ignoriert und stattdessen für den Wettbewerb optimierte Einstellungen verwendet.
 
 Hier ein Beispiel für eine Konfigurationsdatei:
 
 .. code-block:: yaml
+
     tire_diameter: 6.24
     loop_throttle: 0.025
     landscape: yes
