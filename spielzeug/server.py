@@ -3,7 +3,6 @@ import binascii
 import builtins
 import hashlib
 import io
-import json
 import os
 import sys
 import time
@@ -227,7 +226,6 @@ async def handle_connect_button():
                     hub.light.color(hub.light.CONNECT, color.GREEN)
                     hub.sound.beep(800, 400)
                     time.sleep(0.4)
-                    import _system.default
                     del sys.modules["_system.default"]
                     break
                 if hub.button.pressed(hub.button.POWER):
@@ -268,7 +266,7 @@ async def main():
     await handle_connect_button()
 
     # Deinit
-    builtins.print = _print
+    builtins.print = builtins.oprint
     del builtins.remote
     del builtins.oprint
 

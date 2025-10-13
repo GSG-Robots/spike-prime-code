@@ -1,11 +1,13 @@
 import time
 
+import color
+import motor
+
+import hub
+
 from .config import cfg
 from .enums import SWSensor
-import hub
 from .menu import ActionMenuItem
-import motor
-import color
 
 
 class Run(ActionMenuItem):
@@ -24,7 +26,7 @@ class Run(ActionMenuItem):
     ):
         """
         :param display_as: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`display_as` initially.
-        :param color: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`color` initially.
+        :param color: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`color` initially. Use :py:mod:`spike3:color`
         :param config: A context manager to execute the run in. Designed for :py:class:`~gsgr.config.cfg` calls. Sets :py:attr:`context` initially.
         :param run: The run's main function / callback.
         """

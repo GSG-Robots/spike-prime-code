@@ -4,14 +4,12 @@ from ..gsgr.conditions import cm, sec
 from ..gsgr.config import PID, configure
 from ..gsgr.enums import Attachment, Pivot
 from ..gsgr.movement import (
-    free_attachment,
     gyro_drive,
     gyro_set_origin,
     gyro_turn,
     gyro_wall_align,
     hold_attachment,
     run_attachment,
-    stop_attachment,
 )
 
 display_as = 6

@@ -1,5 +1,4 @@
 import device
-import sys
 
 
 async def loop():

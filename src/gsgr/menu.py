@@ -3,10 +3,8 @@
 Also supplies run class, being a menu item.
 """
 
-import time
-
 import color
-import uasyncio as asyncio
+import asyncio
 
 import hub
 
@@ -35,21 +33,21 @@ class MenuItem:
 
 
 class ActionMenuItem(MenuItem):
-    action: Callable | None
+    action: None
     """Funktion, die ausgeführt werden soll, falls das Menüelement gewählt wird."""
 
     def __init__(
         self,
-        action: Callable | None,
+        action,
         display_as: int | str,
-        color: int = color.WHITE,
+        color_: int = color.WHITE,
     ) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
         :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
         :param action: Callback, der ausgeführt wird, wenn das Menüelement gewählt wird. Setzt :py:attr:`action`.
         """
-        super().__init__(display_as, color)
+        super().__init__(display_as, color_)
         self.action = action
 
     def run(self) -> None:
@@ -62,13 +60,13 @@ class ActionMenuItem(MenuItem):
     def prepare(self) -> None:
         """Wird direkt vor :py:attr:`action` ausgeführt."""
 
-    def set_action(self, func: Callable[[], None] | None = None) -> Callable[[], None] | Callable[..., Callable[[], None]]:
+    def set_action(self, func=None):
         """Setter-Funktion für :py:attr:`action`.
 
         :param func: Funktion, die als Callback festgelegt werden soll. Falls nicht angegeben, wird eine decorator-Funktion zurückgegeben.
         """
 
-        def decorator(func: Callable[[], None]) -> Callable[[], None]:
+        def decorator(func):
             self.action = func
             return func
 
@@ -79,7 +77,7 @@ class ActionMenuItem(MenuItem):
     def cleanup(self) -> None:
         """Wird direkt nach :py:attr:`action` ausgeführt."""
 
-    def stop(self) -> NoReturn:
+    def stop(self):
         """Hilfsfunktion um die Ausführung der Callback-Funktuion vorzeitig zu stoppen.
 
         :raises: :py:class:`~gsgr.exceptions.StopRun`

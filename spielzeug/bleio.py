@@ -202,12 +202,11 @@ class BLEIOConnector:
         return self._state == STATE_ADVERTISING
 
 
+NAME = "GSG-Unknown"
 try:
-    with open("/flash/config/hubname", "r") as f:
+    with open("/flash/config/hubname", "r", encoding="ascii") as f:
         NAME = f.read()
-except:
-    NAME = "GSG-Unknown"
-
-BLEIO = BLEIOConnector(bluetooth.BLE(), NAME)
+finally:
+    BLEIO = BLEIOConnector(bluetooth.BLE(), NAME)
 
 __all__ = ["BLEIO"]

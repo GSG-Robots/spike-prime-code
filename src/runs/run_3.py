@@ -1,10 +1,9 @@
 import time
 
 import color as col
-
 import motor
-import hub
-from ..gsgr.conditions import OR, cm, pickup, sec
+
+from ..gsgr.conditions import cm, pickup
 from ..gsgr.config import cfg
 from ..gsgr.enums import Attachment, Pivot
 from ..gsgr.movement import (
@@ -13,7 +12,6 @@ from ..gsgr.movement import (
     gyro_turn,
     hold_attachment,
     run_attachment,
-    stop_attachment,
 )
 
 display_as = 3

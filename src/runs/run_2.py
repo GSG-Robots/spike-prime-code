@@ -1,9 +1,8 @@
 import time
 
 import color as col
-from ..gsgr.config import PID
 
-from ..gsgr.conditions import OR, cm, impact, pickup, wheels_blocked
+from ..gsgr.conditions import OR, cm, pickup, wheels_blocked
 from ..gsgr.enums import Attachment
 from ..gsgr.movement import (
     gyro_drive,

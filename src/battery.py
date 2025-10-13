@@ -1,7 +1,9 @@
-import time
-import hub
 import asyncio
+import time
+
 import color
+
+import hub
 
 
 async def battery():

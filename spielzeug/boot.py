@@ -1,4 +1,5 @@
 import micropython
+
 import hub
 
 micropython.alloc_emergency_exception_buf(128)

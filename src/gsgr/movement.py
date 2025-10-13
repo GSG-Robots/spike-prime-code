@@ -3,20 +3,20 @@
 import math
 import time
 
-import machine
 import motor
 import motor_pair
 
 import hub
 
+from . import buttons
 from .config import PID, cfg
 from .enums import Pivot, SWSensor
 
 # from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
-from . import buttons
 from .interpolators import exponential, linear
-from .math import clamp, sigmoid
+from .math import clamp
+from .types import Condition
 
 
 def check_battery():
@@ -157,7 +157,7 @@ def run_attachment(attachment: int, speed: int, duration: int | float | None = N
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
-def stop_attachment(untension: int | Literal[False] = False, await_completion: bool = False):
+def stop_attachment(untension: int = False, await_completion: bool = False):
     """Ausgangsbewegung stoppen.
 
     Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.
@@ -270,7 +270,7 @@ def sign(n):
 def gyro_drive(
     target_angle: int,
     speed: int | float,
-    ending_condition: Generator,
+    ending_condition: Condition,
     pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,

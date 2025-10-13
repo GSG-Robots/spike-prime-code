@@ -3,11 +3,12 @@
 import math
 import time
 
-from .enums import SWSensor
-import hub
 import motor
-from .config import cfg
 
+import hub
+
+from .config import cfg
+from .enums import SWSensor
 from .types import Condition
 
 

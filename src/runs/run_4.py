@@ -1,14 +1,12 @@
 import color as col
 
-from ..gsgr.conditions import cm, pickup, sec
+from ..gsgr.conditions import cm, pickup
 from ..gsgr.enums import Attachment
 from ..gsgr.movement import (
     gyro_drive,
-    gyro_set_origin,
     gyro_turn,
     gyro_wall_align,
     run_attachment,
-    stop_attachment,
 )
 
 display_as = 4
