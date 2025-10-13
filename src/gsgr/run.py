@@ -1,9 +1,8 @@
 import time
 
 import color
-import motor
-
 import hub
+import motor
 
 from .config import cfg
 from .enums import SWSensor

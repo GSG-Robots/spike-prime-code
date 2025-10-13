@@ -20,8 +20,9 @@ if sys.platform == "micropython":
     with open("/flash/src/config.json", "r", encoding="utf-8") as f:
         _config_dict = json.load(f)
 else:
-    import yaml
     import pathlib
+
+    import yaml
 
     with open(pathlib.Path(__file__).parent.parent / "config.yaml", "r", encoding="utf-8") as f:
         _config_dict = yaml.load(f, Loader=yaml.Loader)

@@ -3,9 +3,9 @@
 Also supplies run class, being a menu item.
 """
 
-import color
 import asyncio
 
+import color
 import hub
 
 from .config import cfg
