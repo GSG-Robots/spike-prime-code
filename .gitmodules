@@ -1,0 +1,3 @@
+[submodule "submodules/spike3"]
+	path = submodules/spike3
+	url = https://github.com/GSG-Robots/spike3-stubfiles.git
