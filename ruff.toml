@@ -1,5 +1,6 @@
 line-length = 320
 indent-width = 4
+extend-exclude = ["games/**/*.py"]
 
 [format]
 quote-style = "double"
