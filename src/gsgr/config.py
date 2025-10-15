@@ -57,7 +57,7 @@ class configure:
             self.old[key] = getattr(cfg, key)
             setattr(cfg, key, value)
 
-    def __exit__(self):
+    def __exit__(self, *_):
         for key, value in self.old:
             setattr(cfg, key, value)
 
@@ -175,4 +175,4 @@ class Config:
 cfg = Config()
 
 
-__all__ = ["cfg", "PID", "configure"]
+__all__ = ["PID", "cfg", "configure"]

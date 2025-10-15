@@ -13,7 +13,7 @@ def get_device():
     devices = serial.tools.list_ports.comports()
     if len(devices) == 0:
         print("Error: No devices found")
-        return
+        return None
     if len(devices) == 1:
         device_choice = devices[0]
     else:
@@ -95,16 +95,15 @@ def upload_runtime(from_folder="onboard"):
             no_wait=True,
         )
         wait_for_prompt(serial)
-        with tqdm(total=os.path.getsize(str(file)), unit="B", unit_scale=True) as pbar:
-            with file.absolute().open("rb") as f:
+        with tqdm(total=os.path.getsize(str(file)), unit="B", unit_scale=True) as pbar, file.absolute().open("rb") as f:
+            byte = f.read(192)
+            while len(byte) > 0:
+                write_command(
+                    serial,
+                    f"f.write(ubinascii.a2b_base64('{base64.b64encode(byte).decode()}'))".encode(),
+                )
+                pbar.update(len(byte))
                 byte = f.read(192)
-                while len(byte) > 0:
-                    write_command(
-                        serial,
-                        f"f.write(ubinascii.a2b_base64('{base64.b64encode(byte).decode()}'))".encode(),
-                    )
-                    pbar.update(len(byte))
-                    byte = f.read(192)
         write_command(serial, b"f.close()")
     time.sleep(5)
     write_command(serial, b"machine.reset()", no_wait=True)

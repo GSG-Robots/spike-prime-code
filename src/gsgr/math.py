@@ -11,7 +11,7 @@ def sigmoid(x: float) -> float:
     return (1 + math.tanh(x / 2)) * 0.5
 
 
-def clamp(value: float | int, minimum: float | int, maximum: float | int) -> float:
+def clamp(value: float, minimum: float, maximum: float) -> float:
     """Hilfsfunktion, um sicherzustellen, dass sich eine Zahl in dem angegebenen Bereich befindet.
 
     :param value: Zahl, die ge-min-max-t werden soll.

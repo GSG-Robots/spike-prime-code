@@ -54,9 +54,9 @@ class Run(ActionMenuItem):
         left_con = True
         right_con = True
         if self.left_sensor is not None:
-            left_con = cfg.LEFT_SENSOR_TYPE == self.left_sensor[0]
+            left_con = self.left_sensor[0] == cfg.LEFT_SENSOR_TYPE
         if self.right_sensor is not None:
-            right_con = cfg.RIGHT_SENSOR_TYPE == self.right_sensor[0]
+            right_con = self.right_sensor[0] == cfg.RIGHT_SENSOR_TYPE
         if self.left_req_dcon:
             left_con = False
             if cfg.LEFT_SENSOR_TYPE is None:

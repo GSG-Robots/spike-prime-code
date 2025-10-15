@@ -26,14 +26,14 @@ class Timer:
         return time.ticks_diff(time.ticks_ms(), self.started_at)
 
 
-def zts_to_oeioei(zts: int | float) -> int | float:
+def zts_to_oeioei(zts: float) -> int | float:
     """Helper function to convert 0 to 360deg angle to -180 to 180deg angle."""
     if zts < 0:
         return zts - 360
     return zts
 
 
-def oeioei_to_zts(oeioei: int | float) -> int | float:
+def oeioei_to_zts(oeioei: float) -> int | float:
     """Helper function to convert -180 to 180deg angle to 0 to 360deg angle."""
     if oeioei < 0:
         return oeioei + 360

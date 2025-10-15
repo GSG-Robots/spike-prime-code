@@ -15,6 +15,61 @@ from .gsgr.exceptions import StopRun
 from .gsgr.menu import ActionMenu, ActionMenuItem
 from .gsgr.run import Run
 
+RIGHT_ARROW = [
+    0,
+    100,
+    0,
+    0,
+    0,
+    0,
+    100,
+    100,
+    0,
+    0,
+    0,
+    100,
+    100,
+    100,
+    0,
+    0,
+    100,
+    100,
+    0,
+    0,
+    0,
+    100,
+    0,
+    0,
+    0,
+]
+LEFT_ARROW = [
+    0,
+    0,
+    0,
+    100,
+    0,
+    0,
+    0,
+    100,
+    100,
+    0,
+    0,
+    100,
+    100,
+    100,
+    0,
+    0,
+    0,
+    100,
+    100,
+    0,
+    0,
+    0,
+    0,
+    100,
+    0,
+]
+
 
 def run_motorcontrol():
     """Motorcontrol"""
@@ -57,60 +112,6 @@ def run_motorcontrol():
     speed = 1000
     is_inverted = motor in (Attachment.FRONT_RIGHT, Attachment.BACK_RIGHT)
     hub.light_matrix.clear()
-    RIGHT_ARROW = [
-        0,
-        100,
-        0,
-        0,
-        0,
-        0,
-        100,
-        100,
-        0,
-        0,
-        0,
-        100,
-        100,
-        100,
-        0,
-        0,
-        100,
-        100,
-        0,
-        0,
-        0,
-        100,
-        0,
-        0,
-        0,
-    ]
-    LEFT_ARROW = [
-        0,
-        0,
-        0,
-        100,
-        0,
-        0,
-        0,
-        100,
-        100,
-        0,
-        0,
-        100,
-        100,
-        100,
-        0,
-        0,
-        0,
-        100,
-        100,
-        0,
-        0,
-        0,
-        0,
-        100,
-        0,
-    ]
     hub.light_matrix.show(RIGHT_ARROW if is_inverted else LEFT_ARROW)
     while not buttons.pressed(hub.button.POWER):
         if buttons.pressed(hub.button.RIGHT):
@@ -149,18 +150,16 @@ async def main():
         run_action = run.run
         left_sensor = run.left_sensor if hasattr(run, "left_sensor") else None
         right_sensor = run.right_sensor if hasattr(run, "right_sensor") else None
-        assert isinstance(display_as, int) or isinstance(display_as, str), "RunDef: display_as must be str or int"
+        assert isinstance(display_as, (int, str)), "RunDef: display_as must be str or int"
         assert isinstance(color, int), "RunDef: color must be int"
-        assert (
-            left_sensor is None
-            or isinstance(left_sensor, tuple)
+        assert left_sensor is None or (
+            isinstance(left_sensor, tuple)
             and len(left_sensor) == 2
             and isinstance(left_sensor[0], int)
             and isinstance(left_sensor[1], int)
         ), "RunDef: left_sensor must be None or tuple of two ints"
-        assert (
-            right_sensor is None
-            or isinstance(right_sensor, tuple)
+        assert right_sensor is None or (
+            isinstance(right_sensor, tuple)
             and len(right_sensor) == 2
             and isinstance(right_sensor[0], int)
             and isinstance(right_sensor[1], int)
@@ -173,7 +172,7 @@ async def main():
                 run_action,
                 left_sensor,
                 right_sensor,
-            )
+            ),
         )
 
     # Add motor control

@@ -9,7 +9,7 @@ import motor_pair
 
 from . import buttons
 from .config import PID, cfg
-from .enums import Pivot, SWSensor
+from .enums import Pivot
 from .exceptions import BatteryLowError, StopRun
 from .interpolators import exponential, linear
 from .math import clamp
@@ -113,7 +113,7 @@ def free_attachments(await_completion: bool = True):
 def run_attachment(
     attachment: int,
     speed: int,
-    duration: int | float | None = None,
+    duration: float | None = None,
     stall: bool = False,
     untension: int | None = None,
     await_completion: bool = True,
@@ -180,7 +180,7 @@ def gyro_set_origin():
     hub.motion_sensor.reset_yaw(0)
 
 
-def gyro_wall_align(wall_align_duration: int | float = 1, backwards: bool = False):
+def gyro_wall_align(wall_align_duration: float = 1, backwards: bool = False):
     speed = -300 if backwards else 300
     motor_pair.move_tank(cfg.DRIVING_MOTORS, -speed, -speed)
     time.sleep(wall_align_duration / 2)
@@ -191,7 +191,7 @@ def gyro_wall_align(wall_align_duration: int | float = 1, backwards: bool = Fals
 
 def gyro_turn(
     target_angle: int,
-    step_speed: int | float = 120,
+    step_speed: float = 120,
     pivot: Pivot | int = Pivot.CENTER,
     min_speed: int | None = None,
     max_speed: int | None = None,
@@ -248,7 +248,7 @@ def gyro_turn(
         speed_error = target_speed * 10 - hub.motion_sensor.angular_velocity()[0]
         speed_error_sum += speed_error
         speed_correction = round(
-            pid.p * speed_error + pid.i * speed_error_sum + pid.d * (speed_error - speed_last_error)
+            pid.p * speed_error + pid.i * speed_error_sum + pid.d * (speed_error - speed_last_error),
         )
 
         if -tolerance < degree_error < tolerance:
@@ -270,13 +270,12 @@ def gyro_turn(
 def sign(n):
     if n < 0:
         return -1
-    else:
-        return 1
+    return 1
 
 
 def gyro_drive(
     target_angle: int,
-    speed: int | float,
+    speed: float,
     ending_condition: Condition,
     pid: PID | None = None,
     accelerate: float = 0,
@@ -350,14 +349,3 @@ def gyro_drive(
         motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.COAST)
     elif brake:
         motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.HOLD)
-
-
-def start_with_naR(alpha, radius):
-    assert cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: left sensor must be the integrated light sensor"
-    assert cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: right sensor must be the integrated light sensor"
-
-    cfg.LEFT_SENSOR.mode(4)
-    cfg.RIGHT_SENSOR.mode(4)
-    time.sleep(0.1)
-
-    ...

@@ -21,7 +21,7 @@ def static(value: bool | int) -> Condition:
         yield (100 if value else 0) if isinstance(value, bool) else value
 
 
-def cm(distance: int | float) -> Condition:
+def cm(distance: float) -> Condition:
     """... bis sich die Räder um eine Bestimmte Strecke bewegt haben.
 
     :param distance: Die Strecke, die zurückgelegt werden soll, in cm.
@@ -44,7 +44,7 @@ def cm(distance: int | float) -> Condition:
                 * cfg.TIRE_CIRCUMFRENCE
             )
             / distance
-            * 100
+            * 100,
         )
 
 
@@ -67,7 +67,7 @@ def wheels_blocked(chunk_size=100, threshold=10):
         yield 0
 
 
-def sec(duration: int | float) -> Condition:
+def sec(duration: float) -> Condition:
     """... bis eine bestimmte Zeit vergangen ist.
 
     :param duration: Die Dauer, die gewartet werden soll, in Sekunden.
@@ -80,7 +80,7 @@ def sec(duration: int | float) -> Condition:
         yield math.floor((time.ticks_ms() - start_time) / (duration * 1000) * 100)
 
 
-def impact(during: Condition, threshold: int | float = 500, min: int = 50) -> Condition:
+def impact(during: Condition, threshold: float = 500, min: int = 50) -> Condition:
     yield 0
 
     sign = 0
@@ -106,7 +106,7 @@ def impact(during: Condition, threshold: int | float = 500, min: int = 50) -> Co
         yield 90 + math.floor((time.ticks_ms() - start_time) / 50)
 
 
-def pickup(during: Condition, threshold: int | float = 500, min: int = 50) -> Condition:
+def pickup(during: Condition, threshold: float = 500, min: int = 50) -> Condition:
     yield 0
 
     gs_avg = 981
