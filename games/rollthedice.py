@@ -1,7 +1,8 @@
 import random
 import time
-from spike import PrimeHub
+
 import hub as hb
+from spike import PrimeHub
 
 hub = PrimeHub()
 

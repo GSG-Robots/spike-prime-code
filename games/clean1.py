@@ -1,5 +1,5 @@
 # LEGO type:standard slot:3
-from spike import Motor, PrimeHub, MotorPair
+from spike import Motor, MotorPair, PrimeHub
 
 hub = PrimeHub()
 

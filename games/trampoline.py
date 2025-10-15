@@ -1,5 +1,6 @@
 # LEGO type:standard slot:3 autostart
 from time import sleep
+
 from spike import PrimeHub
 
 hub = PrimeHub()

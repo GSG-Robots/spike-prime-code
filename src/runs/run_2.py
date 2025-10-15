@@ -4,13 +4,7 @@ import color as col
 
 from ..gsgr.conditions import OR, cm, pickup, wheels_blocked
 from ..gsgr.enums import Attachment
-from ..gsgr.movement import (
-    gyro_drive,
-    gyro_set_origin,
-    gyro_turn,
-    hold_attachment,
-    run_attachment,
-)
+from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn, hold_attachment, run_attachment
 
 display_as = 2
 color = col.YELLOW

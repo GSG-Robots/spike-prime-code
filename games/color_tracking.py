@@ -1,5 +1,6 @@
 # LEGO type:standard slot:10 autostart
 import time
+
 import hub
 
 color_sensor = hub.port.A.device

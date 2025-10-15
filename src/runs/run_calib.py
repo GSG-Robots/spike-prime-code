@@ -1,5 +1,4 @@
 import color as col
-
 import hub
 
 display_as = "3x3h"

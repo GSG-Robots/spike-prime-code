@@ -1,7 +1,8 @@
 # LEGO type:standard slot:15 autostart
 
 import time
-from spike import PrimeHub, Motor
+
+from spike import Motor, PrimeHub
 
 spike = PrimeHub()
 motor = Motor("A")

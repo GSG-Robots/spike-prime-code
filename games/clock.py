@@ -1,5 +1,6 @@
 # LEGO type:standard slot:2 autostart
 import time
+
 from spike import Motor
 
 boot_time = (15, 22)

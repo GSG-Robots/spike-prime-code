@@ -3,10 +3,9 @@
 import math
 import time
 
+import hub
 import motor
 import motor_pair
-
-import hub
 
 from . import buttons
 from .config import PID, cfg

@@ -2,9 +2,11 @@
 
 
 import random
-from spike import PrimeHub
-import hub as hb
 import time
+
+import hub as hb
+from spike import PrimeHub
+
 brick = PrimeHub()
 
 def main():

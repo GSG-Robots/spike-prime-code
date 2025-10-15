@@ -1,14 +1,13 @@
 # LEGO type:standard slot:6 autostart
 
-from spike import PrimeHub
-import hub as hb
-import tictactoe2
-import spike_invator
-import howmany
-import rollthedice
 import guessthenumber
+import howmany
+import hub as hb
+import rollthedice
+import spike_invator
+import tictactoe2
 import waahlrooßen
-
+from spike import PrimeHub
 
 hub = PrimeHub()
 

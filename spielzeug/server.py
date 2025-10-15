@@ -8,10 +8,9 @@ import sys
 import time
 
 import color
+import hub
 import machine
 from bleio import BLEIO
-
-import hub
 
 
 class Light:

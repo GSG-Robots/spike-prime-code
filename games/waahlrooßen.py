@@ -1,9 +1,10 @@
 # LEGO type:standard slot:4 autostart
 
-import hub as hb
-import time
-from spike import PrimeHub
 import random
+import time
+
+import hub as hb
+from spike import PrimeHub
 
 hub = PrimeHub()
 

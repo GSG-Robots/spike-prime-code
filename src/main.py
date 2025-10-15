@@ -3,9 +3,9 @@ import os
 import time
 
 import color as col
+import hub
 import orientation
 
-import hub
 from src.gsgr import buttons
 
 from .gsgr import movement

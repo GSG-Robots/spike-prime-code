@@ -2,13 +2,7 @@ import color as col
 
 from ..gsgr.conditions import cm, impact, pickup
 from ..gsgr.enums import Attachment
-from ..gsgr.movement import (
-    gyro_drive,
-    gyro_turn,
-    gyro_wall_align,
-    hold_attachment,
-    run_attachment,
-)
+from ..gsgr.movement import gyro_drive, gyro_turn, gyro_wall_align, hold_attachment, run_attachment
 
 display_as = 1
 color = col.RED

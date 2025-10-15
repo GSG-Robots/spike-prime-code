@@ -1,7 +1,6 @@
 import time
 
 import color as col
-
 import hub
 
 display_as = "bat"

@@ -1,7 +1,9 @@
 # LEGO type:standard slot:5 autostart
 import time
+
 import hub as hb
 from spike import PrimeHub
+
 hub = PrimeHub()
 cb = hb.button.center.callback()
 hb.button.center.callback(lambda _: None)
