@@ -95,7 +95,9 @@ async def program_wrapper(program):
         await program
     except Exception as e:
         send_error(e, b"E")
-        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 30, 100, 0, 0, 0, 100, 100, 100, 100, 0, 0])
+        hub.light_matrix.show(
+            [100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 30, 100, 0, 0, 0, 100, 100, 100, 100, 0, 0]
+        )
         hub.light.color(hub.light.CONNECT, color.RED)
         light.delay_override(1000)
         for i in range(5):
@@ -123,7 +125,9 @@ async def start_program():
         module = __import__("src")
     except Exception as e:
         send_error(e, b"E")
-        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 100, 100, 100, 0, 0, 30, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0])
+        hub.light_matrix.show(
+            [100, 100, 100, 0, 0, 100, 0, 0, 0, 100, 100, 100, 0, 0, 30, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0]
+        )
         hub.light.color(hub.light.CONNECT, color.MAGENTA)
         light.delay_override(1000)
         for i in range(5):
@@ -140,7 +144,9 @@ async def start_program():
         prog_task = asyncio.create_task(program_wrapper(module.loop()))
     else:
         remote.send(b"E", "You must define a function called 'loop' in '__init__.py'!")
-        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 100, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0])
+        hub.light_matrix.show(
+            [100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 100, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0]
+        )
         hub.light.color(hub.light.CONNECT, color.PURPLE)
         light.delay_override(1000)
         for i in range(5):

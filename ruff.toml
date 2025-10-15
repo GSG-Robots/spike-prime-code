@@ -1,4 +1,4 @@
-line-length = 320
+line-length = 120
 indent-width = 4
 extend-exclude = ["games/**/*.py"]
 

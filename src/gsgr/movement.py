@@ -10,8 +10,6 @@ import motor_pair
 from . import buttons
 from .config import PID, cfg
 from .enums import Pivot, SWSensor
-
-# from typing import Iterator
 from .exceptions import BatteryLowError, StopRun
 from .interpolators import exponential, linear
 from .math import clamp
@@ -112,7 +110,15 @@ def free_attachments(await_completion: bool = True):
     hold_attachment(motor.absolute_position(cfg.GEAR_SELECTOR) // 90 * 90 + 45, await_completion)
 
 
-def run_attachment(attachment: int, speed: int, duration: int | float | None = None, stall: bool = False, untension: int | None = None, await_completion: bool = True, when_i_say_duration_i_mean_degrees: bool = False) -> None:
+def run_attachment(
+    attachment: int,
+    speed: int,
+    duration: int | float | None = None,
+    stall: bool = False,
+    untension: int | None = None,
+    await_completion: bool = True,
+    when_i_say_duration_i_mean_degrees: bool = False,
+) -> None:
     """Bewege Ausgang zur angegebenen Zeit oder bis es gestoppt wird
 
     Wenn mit ``duration`` aufgerufen, wird die Funktion ausgeführt, bis die Zeit um ist. Ansonsten wird der Motor nur gestartet.
@@ -241,7 +247,9 @@ def gyro_turn(
             target_speed = math.copysign(max_speed, target_speed)
         speed_error = target_speed * 10 - hub.motion_sensor.angular_velocity()[0]
         speed_error_sum += speed_error
-        speed_correction = round(pid.p * speed_error + pid.i * speed_error_sum + pid.d * (speed_error - speed_last_error))
+        speed_correction = round(
+            pid.p * speed_error + pid.i * speed_error_sum + pid.d * (speed_error - speed_last_error)
+        )
 
         if -tolerance < degree_error < tolerance:
             break

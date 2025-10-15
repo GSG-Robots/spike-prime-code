@@ -15,7 +15,11 @@ async def battery():
 
     async def watch_button():
         while True:
-            if hub.button.pressed(hub.button.POWER) or hub.button.pressed(hub.button.LEFT) or hub.button.pressed(hub.button.RIGHT):
+            if (
+                hub.button.pressed(hub.button.POWER)
+                or hub.button.pressed(hub.button.LEFT)
+                or hub.button.pressed(hub.button.RIGHT)
+            ):
                 last_used["time"] = time.ticks_ms()
 
             await asyncio.sleep_ms(100)

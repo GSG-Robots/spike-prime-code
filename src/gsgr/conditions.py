@@ -34,7 +34,18 @@ def cm(distance: int | float) -> Condition:
     )
 
     while True:
-        yield math.floor(((abs(motor.relative_position(cfg.RIGHT_MOTOR) - start_degrees[1]) + abs(motor.relative_position(cfg.LEFT_MOTOR) - start_degrees[0])) / 720 * cfg.TIRE_CIRCUMFRENCE) / distance * 100)
+        yield math.floor(
+            (
+                (
+                    abs(motor.relative_position(cfg.RIGHT_MOTOR) - start_degrees[1])
+                    + abs(motor.relative_position(cfg.LEFT_MOTOR) - start_degrees[0])
+                )
+                / 720
+                * cfg.TIRE_CIRCUMFRENCE
+            )
+            / distance
+            * 100
+        )
 
 
 def wheels_blocked(chunk_size=100, threshold=10):
@@ -130,7 +141,9 @@ def deg(angle: int) -> Condition:
     yield 0
 
     while True:
-        yield (100 if (angle - cfg.GYRO_TOLERANCE <= hub.motion.yaw_pitch_roll()[0] <= angle + cfg.GYRO_TOLERANCE) else 0)
+        yield (
+            100 if (angle - cfg.GYRO_TOLERANCE <= hub.motion.yaw_pitch_roll()[0] <= angle + cfg.GYRO_TOLERANCE) else 0
+        )
 
 
 def light_left(threshold: float, below: bool = False):
