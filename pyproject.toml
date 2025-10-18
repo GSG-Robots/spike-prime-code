@@ -70,5 +70,4 @@ select = [
     "SIM",
     "FLY",
     "PERF",
-    "DOC",
 ]

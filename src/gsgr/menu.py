@@ -88,7 +88,7 @@ class ActionMenuItem(MenuItem):
 class Menu:
     """Ein geerellen Menü, welches :py:class:`~gsgr.menu.MenuItem` s enthält"""
 
-    items: list
+    items: list[MenuItem]
     """Eine Liste aller :py:class:`~gsgr.menu.MenuItem` s im Menü"""
 
     swap_buttons: bool
@@ -113,7 +113,7 @@ class Menu:
         """
         self.items.append(item)
 
-    async def choose(self, exit_on_charge=False):
+    async def choose(self) -> MenuItem:
         """Menü zeigen und ein Menü-Element wählen lassen.
 
         :returns: Das gewählte Menü-Element

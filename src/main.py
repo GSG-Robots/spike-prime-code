@@ -11,7 +11,6 @@ from src.gsgr import buttons
 from .gsgr import movement
 from .gsgr.config import cfg
 from .gsgr.enums import Attachment
-from .gsgr.exceptions import StopRun
 from .gsgr.menu import ActionMenu, ActionMenuItem
 from .gsgr.run import Run
 
@@ -125,7 +124,6 @@ def run_motorcontrol():
         time.sleep(0.1)
     movement.stop_attachment()
     time.sleep(1.0)
-    raise StopRun
 
 
 async def main():

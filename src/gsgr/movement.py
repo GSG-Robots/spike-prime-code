@@ -33,7 +33,6 @@ def check_battery():
     if hub.battery_voltage() < 7850:
         raise BatteryLowError
 
-
 def _wait_until_not_busy(m):
     while motor.status(m) == motor.RUNNING:
         if buttons.pressed(hub.button.POWER):
@@ -214,6 +213,8 @@ def gyro_turn(
     :param tolerance: Toleranz beim Auslesen des Gyrosensors
                       (Ziel erreicht wenn Gyro-Wert = Ziel-Wert +- Toleranz)
     :param brake: Ob der Roboter nach der Bewegung bremsen soll
+
+    :raises: :py:exc:`~gsgr.exceptions.StopRun`
     """
 
     target_angle = target_angle + cfg.GYRO_OFF / 360 * target_angle
@@ -296,6 +297,8 @@ def gyro_drive(
     :param decelerate: Über welche Stecke der Roboter entschleunigen soll;
                        in Prozent von der :code:`ending_condition`
     :param brake: Ob der Roboter nach der Bewegung bremsen soll
+
+    :raises: :py:exc:`~gsgr.exceptions.StopRun`
     """
     target_angle = target_angle + cfg.GYRO_OFF / 360 * target_angle
 
@@ -305,9 +308,7 @@ def gyro_drive(
     last = time.ticks_us()
 
     while (pct := next(ending_condition)) < 100:
-        if hub.button.pressed(hub.button.POWER):
-            while hub.button.pressed(hub.button.POWER):
-                ...
+        if buttons.pressed(hub.button.POWER):
             raise StopRun
         error = target_angle * 10 - hub.motion_sensor.tilt_angles()[0]
         # if abs(error) < cfg.GYRO_TOLERANCE:

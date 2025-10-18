@@ -4,7 +4,6 @@ import time
 from pathlib import Path
 
 import serial.tools.list_ports
-import serial.tools.list_ports_windows
 from tqdm import tqdm
 
 
