@@ -6,6 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+
+import sys
+from pathlib import Path
+
 project = "gsgr"
 copyright = "2024, GSG Robots"
 author = "GSG Robots"
@@ -23,6 +27,7 @@ extensions = [
     "notfound.extension",
 ]
 
+
 notfound_urls_prefix = "/"
 notfound_context = {
     "title": "Seite nicht gefunden",
@@ -34,16 +39,16 @@ notfound_context = {
     '<a href="mailto:info@gsg-robots.de">kontaktieren Sie uns</a>.</p>',
 }
 
-intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "spike3": ("https://spike3-docs.gsg-robots.de", None),
+}
 
 templates_path = ["_templates"]
 exclude_patterns = []
 
-import sys
-from pathlib import Path
-
 sys.path.insert(0, str(Path(__file__, "..", "..", "src").resolve()))
-
+sys.path.insert(0, str(Path(__file__, "..", "..", "submodules/spike3/stubfiles").resolve()))
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -56,7 +61,6 @@ html_theme_options = {
 
 autodoc_member_order = "bysource"
 autoclass_content = "both"
-
 
 # locale_dirs = ['locale/']
 language = "de"

@@ -104,7 +104,7 @@ class BLEIOConnector:
 
     def _irq(self, event, data):
         if event == _IRQ_CENTRAL_CONNECT:
-            if self._connection or not self._state == STATE_ADVERTISING:
+            if self._connection or self._state != STATE_ADVERTISING:
                 return 1
             conn_handle, _, _ = data
             self._connection = conn_handle
@@ -123,6 +123,7 @@ class BLEIOConnector:
             conn_handle, value_handle = data
             if conn_handle == self._connection and value_handle == self._rx_handle:
                 self._rx_handler(self._ble.gatts_read(self._rx_handle))
+        return None
 
     def _rx_handler(self, data: bytes):
         self._packet += data
@@ -202,12 +203,11 @@ class BLEIOConnector:
         return self._state == STATE_ADVERTISING
 
 
+NAME = "GSG-Unknown"
 try:
-    with open("/flash/config/hubname", "r") as f:
+    with open("/flash/config/hubname", "r", encoding="ascii") as f:
         NAME = f.read()
-except:
-    NAME = "GSG-Unknown"
-
-BLEIO = BLEIOConnector(bluetooth.BLE(), NAME)
+finally:
+    BLEIO = BLEIOConnector(bluetooth.BLE(), NAME)
 
 __all__ = ["BLEIO"]

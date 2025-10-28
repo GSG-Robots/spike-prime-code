@@ -10,6 +10,7 @@ Geradeaus Fahren
 Um geradeaus zu Fahren, wird die Funktion :py:func:`~gsgr.movement.gyro_drive` verwendet.
 
 .. autofunction:: gsgr.movement.gyro_drive
+    :no-index:
 
 Die einfachste Verwendung sieht so aus:
 
@@ -157,6 +158,7 @@ Drehen
 Zum Drehen wird die Funktion :py:func:`~gsgr.movement.gyro_turn` verwendet.
 
 .. autofunction:: gsgr.movement.gyro_turn
+    :no-index:
 
 Die einfachste Verwendung sieht so aus:
 

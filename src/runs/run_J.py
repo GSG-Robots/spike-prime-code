@@ -1,8 +1,6 @@
 import color as col
-from ..gsgr.movement import (
-    gyro_set_origin,
-    run_attachment,
-)
+
+from ..gsgr.movement import gyro_set_origin, run_attachment
 
 display_as = "J"
 color = col.WHITE

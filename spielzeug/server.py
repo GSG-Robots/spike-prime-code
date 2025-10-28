@@ -3,16 +3,14 @@ import binascii
 import builtins
 import hashlib
 import io
-import json
 import os
 import sys
 import time
 
 import color
+import hub
 import machine
 from bleio import BLEIO
-
-import hub
 
 
 class Light:
@@ -70,7 +68,7 @@ def recursive_listdir(path: str):
             yield apth
             yield from recursive_listdir(apth)
         else:
-            assert False
+            raise RuntimeError
 
 
 def remove(path: str):
@@ -83,7 +81,7 @@ def remove(path: str):
             remove(p[10:])
         os.rmdir(path)
     else:
-        assert False
+        raise RuntimeError
 
 
 prog_task = None
@@ -97,10 +95,12 @@ async def program_wrapper(program):
         await program
     except Exception as e:
         send_error(e, b"E")
-        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 30, 100, 0, 0, 0, 100, 100, 100, 100, 0, 0])
+        hub.light_matrix.show(
+            [100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 30, 100, 0, 0, 0, 100, 100, 100, 100, 0, 0],
+        )
         hub.light.color(hub.light.CONNECT, color.RED)
         light.delay_override(1000)
-        for i in range(5):
+        for _ in range(5):
             hub.sound.beep(200, 25)
             hub.light.color(hub.light.POWER, color.RED)
             await asyncio.sleep_ms(100)
@@ -117,7 +117,7 @@ async def start_program():
     if prog_task:
         prog_task.cancel()
         await has_stopped.wait()
-    for module in sys.modules.keys():
+    for module in sys.modules:
         if module == "src" or module.startswith("src."):
             del sys.modules[module]
     hub.light_matrix.clear()
@@ -125,10 +125,12 @@ async def start_program():
         module = __import__("src")
     except Exception as e:
         send_error(e, b"E")
-        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 100, 100, 100, 0, 0, 30, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0])
+        hub.light_matrix.show(
+            [100, 100, 100, 0, 0, 100, 0, 0, 0, 100, 100, 100, 0, 0, 30, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0],
+        )
         hub.light.color(hub.light.CONNECT, color.MAGENTA)
         light.delay_override(1000)
-        for i in range(5):
+        for _ in range(5):
             hub.sound.beep(400, 90)
             hub.light.color(hub.light.POWER, color.MAGENTA)
             await asyncio.sleep_ms(100)
@@ -142,10 +144,12 @@ async def start_program():
         prog_task = asyncio.create_task(program_wrapper(module.loop()))
     else:
         remote.send(b"E", "You must define a function called 'loop' in '__init__.py'!")
-        hub.light_matrix.show([100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 100, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0])
+        hub.light_matrix.show(
+            [100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 100, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0],
+        )
         hub.light.color(hub.light.CONNECT, color.PURPLE)
         light.delay_override(1000)
-        for i in range(5):
+        for _ in range(5):
             hub.sound.beep(475, 100)
             hub.light.color(hub.light.POWER, color.PURPLE)
             await asyncio.sleep_ms(100)
@@ -227,7 +231,6 @@ async def handle_connect_button():
                     hub.light.color(hub.light.CONNECT, color.GREEN)
                     hub.sound.beep(800, 400)
                     time.sleep(0.4)
-                    import _system.default
                     del sys.modules["_system.default"]
                     break
                 if hub.button.pressed(hub.button.POWER):
@@ -268,7 +271,7 @@ async def main():
     await handle_connect_button()
 
     # Deinit
-    builtins.print = _print
+    builtins.print = builtins.oprint
     del builtins.remote
     del builtins.oprint
 

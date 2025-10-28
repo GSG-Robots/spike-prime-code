@@ -3,8 +3,8 @@
 
 import random
 import time
-from spike import PrimeHub, control
 
+from spike import PrimeHub, control
 
 brick = PrimeHub()
 

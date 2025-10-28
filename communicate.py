@@ -70,9 +70,7 @@ class BLEIOConnector:
 
     def get_packet(self):
         if self._pending_packets:
-            packet = self._pending_packets.popleft()
-            # print(22, packet)
-            return packet
+            return self._pending_packets.popleft()
         return None
 
     async def _handle_rx(self, _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray):
@@ -119,7 +117,7 @@ async def get_device():
     consider = [device for device in ble_devices if device.name is not None and device.name.startswith("GSG")]
     if len(consider) == 0:
         raise RuntimeError(f"No devices found: {', '.join(device.name or '?' for device in ble_devices)}")
-    elif len(consider) == 1:
+    if len(consider) == 1:
         print("Only one device found")
         device = consider[0]
     else:
@@ -151,7 +149,7 @@ async def expect_OK(BLEIO: BLEIOConnector, ignore=b"="):
         if nxt != b"K":
             print(f"Expecting OK, Invalid response {nxt}, resetting connection")
             await BLEIO.send_packet(b"$")
-            raise ForceReconnect()
+            raise ForceReconnect
         return True
 
 
@@ -229,7 +227,7 @@ def build(files: Iterator[Path]):
 async def sync_path(BLEIO: BLEIOConnector, file: Path):
     path = file.relative_to(BUILD_DIR).as_posix()
     if path == ".":
-        return
+        return None
 
     if not file.exists():
         await BLEIO.send_packet(b"R", ("/" + path).encode())
@@ -249,10 +247,10 @@ async def sync_path(BLEIO: BLEIOConnector, file: Path):
                 continue
             if nxt == b"K":
                 break
-            elif nxt != b"U":
+            if nxt != b"U":
                 print(f"Expecting OK or U, Invalid response {nxt}, resetting connection")
                 await BLEIO.send_packet(b"$")
-                raise ForceReconnect()
+                raise ForceReconnect
             with tqdm(
                 total=file.stat().st_size,
                 unit="B",

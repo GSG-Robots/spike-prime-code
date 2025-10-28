@@ -2,7 +2,7 @@ Dev Environment einrichten
 ==========================
 
 Schritt 1: VSCode, Git & Python installieren
-------------------------------------
+--------------------------------------------
 
 - VSCode installieren: https://code.visualstudio.com/download
 - Git installieren: https://git-scm.com/downloads
@@ -12,17 +12,18 @@ Schritt 1: VSCode, Git & Python installieren
   - Deaktiviere "Install Python Launcher".
 
 Schritt 2: Poetry installieren
-------------------------------------------------
+------------------------------
 
 Öffne Powershell und führe die folgenden Befehle aus:
 
-.. code::
+.. code-block:: powershell
+
     (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
     poetry config virtualenvs.in-project true
     [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Users\johan\AppData\Roaming\Python\Scripts", "User")
 
 Schritt 3: Repository klonen
-------------------------------------------------
+----------------------------
 
 - Öffne VSCode
 - Klicke unten links auf die Account-Optionen und melde dich mit deinem GitHub-Account an.
@@ -36,7 +37,9 @@ Schritt 4: Abhängigkeiten installieren
 
 - Öffne das Terminal in VSCode mit :code:`Strg + Ö`.
 - Gebe den folgenden Befehl ein und drücke :code:`Enter`:
-  .. code::
+  
+  .. code-block::
+
     poetry install --no-root --with dev
 - Warte dann, bis der Vorgang abgeschlossen ist.
 

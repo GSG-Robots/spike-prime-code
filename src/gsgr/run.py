@@ -1,11 +1,12 @@
 import time
 
+import color
+import hub
+import motor
+
 from .config import cfg
 from .enums import SWSensor
-import hub
 from .menu import ActionMenuItem
-import motor
-import color
 
 
 class Run(ActionMenuItem):
@@ -24,7 +25,7 @@ class Run(ActionMenuItem):
     ):
         """
         :param display_as: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`display_as` initially.
-        :param color: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`color` initially.
+        :param color: Passed to :py:class:`~gsgr.menu.MenuItem`. Sets :py:attr:`color` initially. Use :py:mod:`spike3:color`
         :param config: A context manager to execute the run in. Designed for :py:class:`~gsgr.config.cfg` calls. Sets :py:attr:`context` initially.
         :param run: The run's main function / callback.
         """
@@ -44,14 +45,18 @@ class Run(ActionMenuItem):
         if self.left_sensor is None and self.right_sensor is None:
             return
         if first:
-            self.left_req_dcon = self.left_sensor is not None and not (cfg.LEFT_SW_SENSOR == -1 or (cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.left_sensor[1]))
-            self.right_req_dcon = self.right_sensor is not None and not (cfg.RIGHT_SW_SENSOR == -1 or (cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.right_sensor[1]))
+            self.left_req_dcon = self.left_sensor is not None and not (
+                cfg.LEFT_SW_SENSOR == -1 or (cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.left_sensor[1])
+            )
+            self.right_req_dcon = self.right_sensor is not None and not (
+                cfg.RIGHT_SW_SENSOR == -1 or (cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT == self.right_sensor[1])
+            )
         left_con = True
         right_con = True
         if self.left_sensor is not None:
-            left_con = cfg.LEFT_SENSOR_TYPE == self.left_sensor[0]
+            left_con = self.left_sensor[0] == cfg.LEFT_SENSOR_TYPE
         if self.right_sensor is not None:
-            right_con = cfg.RIGHT_SENSOR_TYPE == self.right_sensor[0]
+            right_con = self.right_sensor[0] == cfg.RIGHT_SENSOR_TYPE
         if self.left_req_dcon:
             left_con = False
             if cfg.LEFT_SENSOR_TYPE is None:

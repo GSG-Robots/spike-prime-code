@@ -1,8 +1,10 @@
 # LEGO type:standard slot:19 autostart
-import hub
-import time
-from spike import PrimeHub
 import random
+import time
+
+import hub
+from spike import PrimeHub
+
 brick = PrimeHub()
 
 number = 0
