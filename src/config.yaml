@@ -5,15 +5,15 @@ gyro_tolerance: 1
 gyro_off: -4
 
 gearbox:
-    drive_shaft: A
-    gear_selector: B
+    drive_shaft: B
+    gear_selector: A
 
     # "Dieses Problem ist softwaretechnisch zu lösen" - danke
-    offset: -7
+    offset: 90
 
 driving_motors:
-    left: D
-    right: C
+    left: C
+    right: D
 
 sensors:
     left: E
