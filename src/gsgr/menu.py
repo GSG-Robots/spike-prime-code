@@ -173,7 +173,7 @@ class ActionMenu(Menu):
         # hw.left_color_sensor.light_up_all(0)
         # hw.right_color_sensor.light_up_all(0)
 
-        result: ActionMenuItem = await self.choose(exit_on_charge=exit_on_charge)
+        result: ActionMenuItem = await self.choose()
         show_image(result.display_as, border_right=True, border_left=True, bright=False)
         result.prepare()
         try:

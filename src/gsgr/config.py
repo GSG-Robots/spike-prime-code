@@ -16,7 +16,7 @@ PORTS = {
     "F": 5,
 }
 
-if sys.platform == "micropython":
+if sys.platform == "SPIKE":
     with open("/flash/src/config.json", "r", encoding="utf-8") as f:
         _config_dict = json.load(f)
 else:
