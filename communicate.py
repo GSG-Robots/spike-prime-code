@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import contextlib
 import hashlib
 import json
@@ -156,7 +157,8 @@ async def expect_OK(BLEIO: BLEIOConnector, ignore=b"="):
 async def send_file(BLEIO: BLEIOConnector, file, cb=None):
     while True:
         await asyncio.sleep(0.001)
-        chunk = file.read(100)
+        chunk = file.read(70)
+        chunk = base64.b64encode(chunk)
         if not chunk:
             break
         await BLEIO.send_packet(b"C", chunk)
@@ -168,8 +170,9 @@ async def send_file(BLEIO: BLEIOConnector, file, cb=None):
 
 def build_py(src: Path, dest: Path):
     result = subprocess.run(
-        ["mpy-cross", src, "-o", dest],
+        ["mpy-cross", "-c", "6.3", src.relative_to(SRC_DIR), "-o", dest],
         check=False,
+        cwd=SRC_DIR,
         stderr=subprocess.PIPE,
     )
     if result.returncode != 0:
@@ -190,7 +193,7 @@ def build_yaml(src: Path, dest: Path):
     return True
 
 
-file_builders = {".py": (copy_py, ".py"), ".yaml": (build_yaml, ".json")}
+file_builders = {".py": (build_py, ".mpy"), ".yaml": (build_yaml, ".json")}
 
 
 def build(files: Iterator[Path]):

@@ -347,7 +347,7 @@ def setup_ble_server():
     def read_file_chunk(data: bytes):
         nonlocal current_buffer
         handle_packet()
-        current_buffer += data
+        current_buffer += binascii.a2b_base64(data)
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"E")
