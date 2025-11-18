@@ -14,7 +14,7 @@ def run():
     # Set Gyro Origin
     gyro_set_origin()
     hold_attachment(Attachment.FRONT_LEFT, await_completion=False)
-    gyro_drive(0, 900, OR(cm(35), wheels_blocked()), accelerate=10, decelerate=40, brake=69)
+    gyro_drive(0, 900, OR(cm(35), wheels_blocked()), accelerate=10, decelerate=40, brake=69.42)
     # gyro_drive(0, -75, cm(0.25), pid=PID(0, 0, 0))
     time.sleep(0.2)
     run_attachment(Attachment.FRONT_LEFT, 1000, 235, stall=True, when_i_say_duration_i_mean_degrees=True)

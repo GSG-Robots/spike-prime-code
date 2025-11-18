@@ -1,4 +1,3 @@
-import time
 import color as col
 
 from ..gsgr.conditions import OR, cm, pickup, wheels_blocked
