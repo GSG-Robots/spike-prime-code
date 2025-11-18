@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import contextlib
 import hashlib
 import json
@@ -70,9 +71,7 @@ class BLEIOConnector:
 
     def get_packet(self):
         if self._pending_packets:
-            packet = self._pending_packets.popleft()
-            # print(22, packet)
-            return packet
+            return self._pending_packets.popleft()
         return None
 
     async def _handle_rx(self, _: bleak.backends.characteristic.BleakGATTCharacteristic, data: bytearray):
@@ -119,7 +118,7 @@ async def get_device():
     consider = [device for device in ble_devices if device.name is not None and device.name.startswith("GSG")]
     if len(consider) == 0:
         raise RuntimeError(f"No devices found: {', '.join(device.name or '?' for device in ble_devices)}")
-    elif len(consider) == 1:
+    if len(consider) == 1:
         print("Only one device found")
         device = consider[0]
     else:
@@ -151,14 +150,15 @@ async def expect_OK(BLEIO: BLEIOConnector, ignore=b"="):
         if nxt != b"K":
             print(f"Expecting OK, Invalid response {nxt}, resetting connection")
             await BLEIO.send_packet(b"$")
-            raise ForceReconnect()
+            raise ForceReconnect
         return True
 
 
 async def send_file(BLEIO: BLEIOConnector, file, cb=None):
     while True:
         await asyncio.sleep(0.001)
-        chunk = file.read(100)
+        chunk = file.read(70)
+        chunk = base64.b64encode(chunk)
         if not chunk:
             break
         await BLEIO.send_packet(b"C", chunk)
@@ -170,8 +170,9 @@ async def send_file(BLEIO: BLEIOConnector, file, cb=None):
 
 def build_py(src: Path, dest: Path):
     result = subprocess.run(
-        ["mpy-cross", src, "-o", dest],
+        ["mpy-cross", "-c", "6.3", src.relative_to(SRC_DIR), "-o", dest],
         check=False,
+        cwd=SRC_DIR,
         stderr=subprocess.PIPE,
     )
     if result.returncode != 0:
@@ -192,7 +193,7 @@ def build_yaml(src: Path, dest: Path):
     return True
 
 
-file_builders = {".py": (copy_py, ".py"), ".yaml": (build_yaml, ".json")}
+file_builders = {".py": (build_py, ".mpy"), ".yaml": (build_yaml, ".json")}
 
 
 def build(files: Iterator[Path]):
@@ -229,7 +230,7 @@ def build(files: Iterator[Path]):
 async def sync_path(BLEIO: BLEIOConnector, file: Path):
     path = file.relative_to(BUILD_DIR).as_posix()
     if path == ".":
-        return
+        return None
 
     if not file.exists():
         await BLEIO.send_packet(b"R", ("/" + path).encode())
@@ -249,10 +250,10 @@ async def sync_path(BLEIO: BLEIOConnector, file: Path):
                 continue
             if nxt == b"K":
                 break
-            elif nxt != b"U":
+            if nxt != b"U":
                 print(f"Expecting OK or U, Invalid response {nxt}, resetting connection")
                 await BLEIO.send_packet(b"$")
-                raise ForceReconnect()
+                raise ForceReconnect
             with tqdm(
                 total=file.stat().st_size,
                 unit="B",

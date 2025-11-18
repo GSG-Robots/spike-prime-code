@@ -1,20 +1,12 @@
 import time
 
 import color as col
-
 import motor
-import hub
+
 from ..gsgr.conditions import OR, cm, pickup, wheels_blocked
-from ..gsgr.config import cfg, configure
+from ..gsgr.config import cfg
 from ..gsgr.enums import Attachment, Pivot
-from ..gsgr.movement import (
-    gyro_drive,
-    gyro_set_origin,
-    gyro_turn,
-    hold_attachment,
-    run_attachment,
-    stop_attachment,
-)
+from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn, hold_attachment, run_attachment
 
 display_as = 3
 color = col.RED

@@ -1,8 +1,9 @@
 # LEGO type:standard slot:10 autostart
 
-from spike import PrimeHub, control
 import random
+
 from hub import led
+from spike import PrimeHub, control
 
 brick = PrimeHub()
 

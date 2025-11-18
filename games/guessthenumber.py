@@ -1,9 +1,11 @@
 # LEGO type:standard slot:5 autostart
 
+import random
 import time
+
 import hub as hb
 from spike import PrimeHub
-import random
+
 hub = PrimeHub()
 numbers = [
     hb.Image("09990:09090:09090:09090:09990"),

@@ -5,7 +5,9 @@ Wissensdatenbank
     :maxdepth: 1
     :caption: Inhalt:
 
-    creating-a-run
+    beginners-guide
+    structure
+    how-to/index
     driving-and-turning
     attachments
     special-features/index

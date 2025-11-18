@@ -1,7 +1,9 @@
 # LEGO type:standard slot:3 autostart
-from spike import Motor, PrimeHub
-import spike.control
 import random
+
+import spike.control
+from spike import Motor, PrimeHub
+
 hub = PrimeHub()
 
 def all_motors(func):

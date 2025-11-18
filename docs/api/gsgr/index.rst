@@ -5,11 +5,13 @@
    :maxdepth: 1
    :caption: Submodules:
 
+   buttons
    config
    conditions
    display
    enums
    exceptions
+   interpolators
    math
    menu
    run

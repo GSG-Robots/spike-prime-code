@@ -1,14 +1,8 @@
-from ..gsgr.conditions import wheels_blocked
 import color as col
-from ..gsgr.enums import Pivot
 
-from ..gsgr.conditions import OR, cm
-from ..gsgr.movement import (
-    gyro_drive,
-    gyro_set_origin,
-    gyro_turn,
-    gyro_wall_align,
-)
+from ..gsgr.conditions import OR, cm, wheels_blocked
+from ..gsgr.enums import Pivot
+from ..gsgr.movement import gyro_drive, gyro_turn, gyro_wall_align
 
 display_as = 7
 color = col.PURPLE

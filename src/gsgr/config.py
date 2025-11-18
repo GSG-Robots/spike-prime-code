@@ -1,9 +1,8 @@
+import json
 import math
+import sys
 from collections import namedtuple
 
-from .enums import SWSensor
-import hub
-import motor
 import motor_pair
 
 PID = namedtuple("PID", ("p", "i", "d"))
@@ -17,22 +16,28 @@ PORTS = {
     "F": 5,
 }
 
-import json
+if sys.platform == "SPIKE":
+    with open("/flash/src/config.json", "r", encoding="utf-8") as f:
+        _config_dict = json.load(f)
+else:
+    import pathlib
 
-with open("/flash/src/config.json", "r", encoding="utf-8") as f:
-    _config_dict = json.load(f)
+    import yaml
+
+    with open(pathlib.Path(__file__).parent.parent / "config.yaml", "r", encoding="utf-8") as f:
+        _config_dict = yaml.load(f, Loader=yaml.Loader)
 
 
 class configure:
     def __init__(self, **kwargs) -> None:
-        self.changes: dict[str, Any] = kwargs
-        self.old: dict[str, Any] = {}
+        self.changes: dict = kwargs
+        self.old: dict = {}
 
-    def gyro_drive(self, pid: PID) -> Self:
+    def gyro_drive(self, pid: PID):
         self.changes["GYRO_DRIVE_PID"] = pid
         return self
 
-    def gyro_turn(self, pid: PID | None = None, minmax_speed: tuple[int, int] | None = None) -> Self:
+    def gyro_turn(self, pid: PID | None = None, minmax_speed: tuple[int, int] | None = None):
         if pid is not None:
             self.changes["GYRO_TURN_PID"] = pid
         if minmax_speed is not None:
@@ -43,7 +48,7 @@ class configure:
     #     self.changes["DEBUG_MODE"] = enabled
     #     return self
 
-    def gyro_tolerance(self, tolernce: int) -> Self:
+    def gyro_tolerance(self, tolernce: int):
         self.changes["GYRO_TOLERANCE"] = tolernce
         return self
 
@@ -52,7 +57,7 @@ class configure:
             self.old[key] = getattr(cfg, key)
             setattr(cfg, key, value)
 
-    def __exit__(self):
+    def __exit__(self, *_):
         for key, value in self.old:
             setattr(cfg, key, value)
 
@@ -144,8 +149,8 @@ class Config:
         #     callback=self.GEAR_SELECTOR.default()["callback"],
         # )
         # self.GEAR_SELECTOR.mode([(1, 0), (2, 0), (3, 0), (0, 0)])
-        LEFT_PORT = PORTS[_config_dict["sensors"]["left"]]
-        RIGHT_PORT = PORTS[_config_dict["sensors"]["right"]]
+        # LEFT_PORT = PORTS[_config_dict["sensors"]["left"]]
+        # RIGHT_PORT = PORTS[_config_dict["sensors"]["right"]]
 
         # @LEFT_PORT.callback
         # def updtl(x):
@@ -170,4 +175,4 @@ class Config:
 cfg = Config()
 
 
-__all__ = ["cfg", "PID", "configure"]
+__all__ = ["PID", "cfg", "configure"]

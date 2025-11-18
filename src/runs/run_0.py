@@ -1,13 +1,6 @@
 import time
-import color as col
-from ..gsgr.enums import Pivot
 
-from ..gsgr.conditions import cm, sec
-from ..gsgr.movement import (
-    gyro_drive,
-    gyro_turn,
-    gyro_wall_align,
-)
+import color as col
 
 display_as = 0
 color = col.RED

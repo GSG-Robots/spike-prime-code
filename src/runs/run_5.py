@@ -1,14 +1,7 @@
 import color as col
-import time
-from ..gsgr.conditions import cm, pickup, sec
-from ..gsgr.enums import Attachment
-from ..gsgr.movement import (
-    gyro_drive,
-    gyro_set_origin,
-    gyro_turn,
-    gyro_wall_align,
-    run_attachment,
-)
+
+from ..gsgr.conditions import cm
+from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn
 
 display_as = 5
 color = col.GREEN

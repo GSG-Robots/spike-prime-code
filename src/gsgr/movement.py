@@ -3,20 +3,17 @@
 import math
 import time
 
-import machine
+import hub
 import motor
 import motor_pair
 
-import hub
-
-from .config import PID, cfg
-from .enums import Pivot, SWSensor
-
-# from typing import Iterator
-from .exceptions import BatteryLowError, StopRun
 from . import buttons
+from .config import PID, cfg
+from .enums import Pivot
+from .exceptions import BatteryLowError, StopRun
 from .interpolators import exponential, linear
-from .math import clamp, sigmoid
+from .math import clamp
+from .types import Condition
 
 
 def check_battery():
@@ -35,7 +32,6 @@ def check_battery():
     # Check if the battery is low and raise an error if it is
     if hub.battery_voltage() < 7850:
         raise BatteryLowError
-
 
 def _wait_until_not_busy(m):
     while motor.status(m) == motor.RUNNING:
@@ -113,7 +109,15 @@ def free_attachments(await_completion: bool = True):
     hold_attachment(motor.absolute_position(cfg.GEAR_SELECTOR) // 90 * 90 + 45, await_completion)
 
 
-def run_attachment(attachment: int, speed: int, duration: int | float | None = None, stall: bool = False, untension: int | None = None, await_completion: bool = True, when_i_say_duration_i_mean_degrees: bool = False) -> None:
+def run_attachment(
+    attachment: int,
+    speed: int,
+    duration: float | None = None,
+    stall: bool = False,
+    untension: int | None = None,
+    await_completion: bool = True,
+    when_i_say_duration_i_mean_degrees: bool = False,
+) -> None:
     """Bewege Ausgang zur angegebenen Zeit oder bis es gestoppt wird
 
     Wenn mit ``duration`` aufgerufen, wird die Funktion ausgeführt, bis die Zeit um ist. Ansonsten wird der Motor nur gestartet.
@@ -157,7 +161,7 @@ def run_attachment(attachment: int, speed: int, duration: int | float | None = N
         _wait_until_not_busy(cfg.GEAR_SHAFT)
 
 
-def stop_attachment(untension: int | Literal[False] = False, await_completion: bool = False):
+def stop_attachment(untension: int = False, await_completion: bool = False):
     """Ausgangsbewegung stoppen.
 
     Nur nötig, falls :py:func:`run_attachment` ohne Zieldauer aufgerufen wurde.
@@ -175,7 +179,7 @@ def gyro_set_origin():
     hub.motion_sensor.reset_yaw(0)
 
 
-def gyro_wall_align(wall_align_duration: int | float = 1, backwards: bool = False):
+def gyro_wall_align(wall_align_duration: float = 1, backwards: bool = False):
     speed = -300 if backwards else 300
     motor_pair.move_tank(cfg.DRIVING_MOTORS, -speed, -speed)
     time.sleep(wall_align_duration / 2)
@@ -185,8 +189,8 @@ def gyro_wall_align(wall_align_duration: int | float = 1, backwards: bool = Fals
 
 
 def gyro_turn(
-    target_angle: float,
-    step_speed: int | float = 120,
+    target_angle: int,
+    step_speed: float = 120,
     pivot: Pivot | int = Pivot.CENTER,
     min_speed: int | None = None,
     max_speed: int | None = None,
@@ -209,6 +213,8 @@ def gyro_turn(
     :param tolerance: Toleranz beim Auslesen des Gyrosensors
                       (Ziel erreicht wenn Gyro-Wert = Ziel-Wert +- Toleranz)
     :param brake: Ob der Roboter nach der Bewegung bremsen soll
+
+    :raises: :py:exc:`~gsgr.exceptions.StopRun`
     """
 
     target_angle = target_angle + cfg.GYRO_OFF / 360 * target_angle
@@ -242,7 +248,9 @@ def gyro_turn(
             target_speed = math.copysign(max_speed, target_speed)
         speed_error = target_speed * 10 - hub.motion_sensor.angular_velocity()[0]
         speed_error_sum += speed_error
-        speed_correction = round(pid.p * speed_error + pid.i * speed_error_sum + pid.d * (speed_error - speed_last_error))
+        speed_correction = round(
+            pid.p * speed_error + pid.i * speed_error_sum + pid.d * (speed_error - speed_last_error),
+        )
 
         if -tolerance < degree_error < tolerance:
             break
@@ -263,14 +271,13 @@ def gyro_turn(
 def sign(n):
     if n < 0:
         return -1
-    else:
-        return 1
+    return 1
 
 
 def gyro_drive(
     target_angle: int,
-    speed: int | float,
-    ending_condition: Generator,
+    speed: float,
+    ending_condition: Condition,
     pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,
@@ -290,6 +297,8 @@ def gyro_drive(
     :param decelerate: Über welche Stecke der Roboter entschleunigen soll;
                        in Prozent von der :code:`ending_condition`
     :param brake: Ob der Roboter nach der Bewegung bremsen soll
+
+    :raises: :py:exc:`~gsgr.exceptions.StopRun`
     """
     target_angle = target_angle + cfg.GYRO_OFF / 360 * target_angle
 
@@ -299,9 +308,7 @@ def gyro_drive(
     last = time.ticks_us()
 
     while (pct := next(ending_condition)) < 100:
-        if hub.button.pressed(hub.button.POWER):
-            while hub.button.pressed(hub.button.POWER):
-                ...
+        if buttons.pressed(hub.button.POWER):
             raise StopRun
         error = target_angle * 10 - hub.motion_sensor.tilt_angles()[0]
         # if abs(error) < cfg.GYRO_TOLERANCE:
@@ -343,14 +350,3 @@ def gyro_drive(
         motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.COAST)
     elif brake:
         motor_pair.stop(cfg.DRIVING_MOTORS, stop=motor.HOLD)
-
-
-def start_with_naR(alpha, radius):
-    assert cfg.LEFT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: left sensor must be the integrated light sensor"
-    assert cfg.RIGHT_SW_SENSOR == SWSensor.INTEGRATED_LIGHT, "naR: right sensor must be the integrated light sensor"
-
-    cfg.LEFT_SENSOR.mode(4)
-    cfg.RIGHT_SENSOR.mode(4)
-    time.sleep(0.1)
-
-    ...
