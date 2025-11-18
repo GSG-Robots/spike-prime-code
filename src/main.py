@@ -6,9 +6,7 @@ import color as col
 import hub
 import orientation
 
-from src.gsgr import buttons
-
-from .gsgr import movement
+from .gsgr import buttons, movement
 from .gsgr.config import cfg
 from .gsgr.enums import Attachment
 from .gsgr.menu import ActionMenu, ActionMenuItem

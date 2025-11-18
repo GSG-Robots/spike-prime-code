@@ -20,13 +20,13 @@ class MenuItem:
     color: int
     """Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist."""
 
-    def __init__(self, display_as: int | str, color: int = color.WHITE) -> None:
+    def __init__(self, display_as: int | str, color_: int = color.WHITE) -> None:
         """
         :param display_as: Symbol oder Bild, welches von der LED-Matrix angezeigt wird, um anzuzeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`display_as`.
         :param color: Farbe der Statuslampe, um zu zeigen, welches Menüelement ausgewählt ist. Setzt :py:attr:`color`. Ist `"white"`, wenn nich angegeben..
         """
         self.display_as = display_as
-        self.color = color
+        self.color = color_
 
     def update(self, first=False) -> bool:
         return False

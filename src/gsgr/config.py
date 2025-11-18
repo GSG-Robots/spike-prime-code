@@ -65,7 +65,7 @@ class configure:
 class Config:
     LEFT_MOTOR: int
     RIGHT_MOTOR: int
-    DRIVING_MOTORS: tuple[int, int]
+    DRIVING_MOTORS: int
     GEAR_SHAFT: int
     GEAR_SELECTOR: int
     GEAR_SELECTOR_OFFSET: int
