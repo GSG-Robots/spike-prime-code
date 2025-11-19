@@ -8,10 +8,10 @@ import shutil
 import subprocess
 import sys
 import time
+import zlib
 from collections import deque
 from pathlib import Path
 from typing import Iterator
-import zlib
 
 import bleak
 import bleak.backends.characteristic
