@@ -6,6 +6,7 @@ import io
 import os
 import sys
 import time
+import zlib
 
 import color
 import hub
@@ -347,7 +348,7 @@ def setup_ble_server():
     def read_file_chunk(data: bytes):
         nonlocal current_buffer
         handle_packet()
-        current_buffer += binascii.a2b_base64(data)
+        current_buffer += data
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"E")
@@ -357,7 +358,7 @@ def setup_ble_server():
         if current_file is None:
             return
         with open(current_file, "wb") as f:
-            f.write(current_buffer)
+            f.write(zlib.decompress(binascii.a2b_base64(current_buffer)))
         current_buffer = b""
         current_file = None
         BLEIO.send_packet(b"K")
