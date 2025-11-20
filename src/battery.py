@@ -43,7 +43,7 @@ async def battery():
                     hub.light.color(hub.light.POWER, color.YELLOW)
                     if lvl >= 99:
                         hub.light.color(hub.light.POWER, color.GREEN)
-                        hub.sound.beep(400, 100, 90)
+                        hub.sound.beep(400, 100, 100)
 
                 if lvl > 9:
                     hub.light_matrix.set_pixel(2, 0, intensity // 2)
