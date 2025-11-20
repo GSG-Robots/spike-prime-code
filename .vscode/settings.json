@@ -1,3 +1,6 @@
 {
-    "makefile.configureOnOpen": true
+    "makefile.configureOnOpen": true,
+    "python.analysis.extraPaths": [
+        "submodules/spike3/stubfiles"
+    ]
 }
