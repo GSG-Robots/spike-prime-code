@@ -18,17 +18,17 @@ def run():
     # gyro_drive(0, -75, cm(0.25), pid=PID(0, 0, 0))
     time.sleep(0.2)
     run_attachment(Attachment.FRONT_LEFT, 1000, 235, stall=True, when_i_say_duration_i_mean_degrees=True)
-    time.sleep(0.2)
+    time.sleep(0.6)
     gyro_drive(
         0,
-        -600,
-        cm(15.75),
-        accelerate=30,
+        -1000,
+        cm(17),
+        accelerate=60,
         decelerate=40,
         brake=False,
     )
     time.sleep(0.2)
-    gyro_turn(-30)
+    gyro_turn(-30, timeout=2500)
     gyro_drive(
         -30,
         -1000,

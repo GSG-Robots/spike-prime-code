@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import time
+import zlib
 from collections import deque
 from pathlib import Path
 from typing import Iterator
@@ -155,10 +156,15 @@ async def expect_OK(BLEIO: BLEIOConnector, ignore=b"="):
 
 
 async def send_file(BLEIO: BLEIOConnector, file, cb=None):
+    data = file.read()
+    data = zlib.compress(data)
+    data = base64.b64encode(data)
+    if cb is not None:
+        cb(len(data))
     while True:
         await asyncio.sleep(0.001)
-        chunk = file.read(70)
-        chunk = base64.b64encode(chunk)
+        chunk = data[:110]
+        data = data[110:]
         if not chunk:
             break
         await BLEIO.send_packet(b"C", chunk)
@@ -255,14 +261,21 @@ async def sync_path(BLEIO: BLEIOConnector, file: Path):
                 await BLEIO.send_packet(b"$")
                 raise ForceReconnect
             with tqdm(
-                total=file.stat().st_size,
+                total=file.stat().st_size*(4/3),
                 unit="B",
                 unit_scale=True,
                 desc=f"Uploading {file.name}",
             ) as bar:
+                first = True
 
                 def tqdmcb(size: int):
-                    bar.update(size)
+                    nonlocal first
+
+                    if first:
+                        bar.reset(size)
+                        first = False
+                    else:
+                        bar.update(size)
 
                 with file.open("rb") as f:
                     await send_file(BLEIO, f, tqdmcb)

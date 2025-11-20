@@ -6,9 +6,7 @@ import color as col
 import hub
 import orientation
 
-from src.gsgr import buttons
-
-from .gsgr import movement
+from .gsgr import buttons, movement
 from .gsgr.config import cfg
 from .gsgr.enums import Attachment
 from .gsgr.menu import ActionMenu, ActionMenuItem
@@ -142,7 +140,7 @@ async def main():
 
     # Load runs from runs/*.py
     for file in sorted(os.listdir("/flash/src/runs"), key=str.lower):
-        run = getattr(__import__("src.runs.%s" % file[:-3]).runs, file[:-3])
+        run = getattr(__import__("src.runs.%s" % file[:-4]).runs, file[:-4])
         display_as = run.display_as
         color = run.color
         run_action = run.run

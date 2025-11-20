@@ -42,14 +42,14 @@ def _wait_until_not_busy(m):
 _LAST_SHAFT_SPEED = 0
 
 
-def _gs_await_completion(timeout: int = 5):
+def _gs_await_completion(timeout: int = 5000):
     if motor.status(cfg.GEAR_SELECTOR) != motor.RUNNING:
         return
-    start = time.time()
+    start = time.ticks_ms()
     sign = 1
     time.sleep(0.1)
     while motor.status(cfg.GEAR_SELECTOR) == motor.RUNNING:
-        if timeout and (time.time() - start) > timeout:
+        if timeout and (time.ticks_ms() - start) > timeout:
             return
         motor.run_for_degrees(cfg.GEAR_SHAFT, sign * 10, 500)
         time.sleep(0.1)
@@ -196,7 +196,7 @@ def gyro_turn(
     max_speed: int | None = None,
     pid: PID | None = None,
     tolerance: int | None = None,
-    timeout: int = 0,
+    timeout: float = 0,
     brake: bool = True,
     premature_ending_condition=None,
 ):
@@ -224,7 +224,7 @@ def gyro_turn(
     max_speed = cfg.GYRO_TURN_MINMAX_SPEED[1] if max_speed is None else max_speed
     tolerance = cfg.GYRO_TOLERANCE if tolerance is None else tolerance
 
-    start_time = time.time()
+    start_time = time.ticks_ms()
 
     if pivot == Pivot.LEFT_WHEEL:
         motor.stop(cfg.LEFT_MOTOR, stop=motor.BRAKE)
@@ -254,7 +254,7 @@ def gyro_turn(
 
         if -tolerance < degree_error < tolerance:
             break
-        if timeout and time.time() - start_time > timeout:
+        if timeout and (time.ticks_ms() - start_time > timeout):
             break
         if pivot == Pivot.CENTER:
             motor_pair.move_tank(motor_pair.PAIR_1, -int(speed_correction / 2), int(speed_correction / 2))
