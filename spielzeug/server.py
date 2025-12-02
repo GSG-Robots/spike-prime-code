@@ -1,6 +1,7 @@
 import asyncio
 import binascii
 import builtins
+import gc
 import hashlib
 import io
 import os
@@ -12,6 +13,10 @@ import color
 import hub
 import machine
 from bleio import BLEIO
+
+
+gc.enable()
+gc.collect()
 
 
 class Light:
@@ -114,6 +119,7 @@ async def program_wrapper(program):
 
 
 async def start_program():
+    gc.collect()
     global prog_task
     if prog_task:
         prog_task.cancel()
@@ -361,6 +367,7 @@ def setup_ble_server():
             f.write(zlib.decompress(binascii.a2b_base64(current_buffer)))
         current_buffer = b""
         current_file = None
+        gc.collect()
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"R")
