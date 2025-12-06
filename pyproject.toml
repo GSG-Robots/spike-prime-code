@@ -40,6 +40,9 @@ dev = ["ruff (>=0.14.0,<0.15.0)", "isort (>=7.0.0,<8.0.0)"]
 packages = [{ include = "*", from = "src" }]
 package-mode = false
 
+[tool.uv]
+package = false
+
 [tool.isort]
 line_length = 120
 
@@ -71,3 +74,6 @@ select = [
     "FLY",
     "PERF",
 ]
+
+[tool.basedpyright]
+stubPath = "submodules/spike3/stubfiles"

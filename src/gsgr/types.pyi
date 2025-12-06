@@ -1,3 +1,3 @@
-from typing import Any, Generator
+from typing import Generator
 
-type Condition = Generator[Any, Any, Any]
+type Condition = Generator[int, None, None]

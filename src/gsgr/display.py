@@ -40,10 +40,12 @@ images = {
 
 
 class Image:
+    pixels: list[int]
+
     def __init__(self):
         self.pixels = [0] * 25
 
-    def set_pixel(self, x, y, brightness=100):
+    def set_pixel(self, x: int, y: int, brightness: int = 100):
         self.pixels[x + y * 5] = brightness
 
     def show(self):
@@ -62,9 +64,9 @@ def show_image(
             tuple[int | float, int | float, int | float],
         ]
     ),
-    border_right=True,
-    border_left=True,
-    bright=True,
+    border_right: bool = True,
+    border_left: bool = True,
+    bright: bool = True,
 ):
     """Zeigt das angegebene Symbol auf der LED-Matrix an.
 
