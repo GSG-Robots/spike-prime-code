@@ -363,6 +363,7 @@ def setup_ble_server():
         handle_packet()
         if current_file is None:
             return
+        gc.collect()
         with open(current_file, "wb") as f:
             f.write(zlib.decompress(binascii.a2b_base64(current_buffer)))
         current_buffer = b""
