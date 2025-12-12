@@ -2,6 +2,7 @@
 
 import math
 import time
+from typing import Callable
 
 import hub
 import motor
@@ -281,7 +282,7 @@ def gyro_drive(
     pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,
-    interpolators=(exponential, linear),
+    interpolators: tuple[Callable[[float, float, float], float], Callable[[float, float, float], float]]=(exponential, linear),
     brake: bool = True,
 ):
     """Fahre mithilfe des Gyrosensors in eine bestimmte Richtung

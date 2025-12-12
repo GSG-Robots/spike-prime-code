@@ -207,6 +207,8 @@ NAME = "GSG-Unknown"
 try:
     with open("/flash/config/hubname", "r", encoding="ascii") as f:
         NAME = f.read()
+except Exception:
+    print("ERROR: Unable to read hubname")
 finally:
     BLEIO = BLEIOConnector(bluetooth.BLE(), NAME)
 
