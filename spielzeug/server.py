@@ -14,7 +14,6 @@ import hub
 import machine
 from bleio import BLEIO
 
-
 gc.enable()
 gc.collect()
 
@@ -71,20 +70,32 @@ def recursive_listdir(path: str):
         if typ == 32768:
             yield apth
         elif typ == 16384:
-            yield apth
             yield from recursive_listdir(apth)
+            yield apth
         else:
             raise RuntimeError
 
 
+FILE = 32768
+DIR = 16384
+
+
+def filetype(path: str):
+    return os.stat(path)[0]
+
+
+def listdir(path: str):
+    return [path + "/" + subpath for subpath, *_ in os.ilistdir(path)]
+
+
 def remove(path: str):
-    path = "/flash/src" + path
-    typ = os.stat(path)[0]
-    if typ == 32768:
+    typ = filetype(path)
+    if typ == FILE:
         os.remove(path)
-    elif typ == 16384:
-        for p in recursive_listdir(path):
-            remove(p[10:])
+    elif typ == DIR:
+        for subpath in listdir(path):
+            # This should never happen!
+            remove(subpath)
         os.rmdir(path)
     else:
         raise RuntimeError
@@ -102,7 +113,33 @@ async def program_wrapper(program):
     except Exception as e:
         send_error(e, b"E")
         hub.light_matrix.show(
-            [100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 30, 100, 0, 0, 0, 100, 100, 100, 100, 0, 0],
+            [
+                100,
+                100,
+                100,
+                0,
+                0,
+                100,
+                0,
+                0,
+                0,
+                30,
+                100,
+                100,
+                0,
+                0,
+                30,
+                100,
+                0,
+                0,
+                0,
+                100,
+                100,
+                100,
+                100,
+                0,
+                0,
+            ],
         )
         hub.light.color(hub.light.CONNECT, color.RED)
         light.delay_override(1000)
@@ -133,7 +170,33 @@ async def start_program():
     except Exception as e:
         send_error(e, b"E")
         hub.light_matrix.show(
-            [100, 100, 100, 0, 0, 100, 0, 0, 0, 100, 100, 100, 0, 0, 30, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0],
+            [
+                100,
+                100,
+                100,
+                0,
+                0,
+                100,
+                0,
+                0,
+                0,
+                100,
+                100,
+                100,
+                0,
+                0,
+                30,
+                100,
+                0,
+                0,
+                0,
+                30,
+                100,
+                100,
+                100,
+                0,
+                0,
+            ],
         )
         hub.light.color(hub.light.CONNECT, color.MAGENTA)
         light.delay_override(1000)
@@ -152,7 +215,33 @@ async def start_program():
     else:
         remote.send(b"E", "You must define a function called 'loop' in '__init__.py'!")
         hub.light_matrix.show(
-            [100, 100, 100, 0, 0, 100, 0, 0, 0, 30, 100, 100, 0, 0, 100, 100, 0, 0, 0, 30, 100, 100, 100, 0, 0],
+            [
+                100,
+                100,
+                100,
+                0,
+                0,
+                100,
+                0,
+                0,
+                0,
+                30,
+                100,
+                100,
+                0,
+                0,
+                100,
+                100,
+                0,
+                0,
+                0,
+                30,
+                100,
+                100,
+                100,
+                0,
+                0,
+            ],
         )
         hub.light.color(hub.light.CONNECT, color.PURPLE)
         light.delay_override(1000)
@@ -180,25 +269,31 @@ def remote_print(*args, sep=" "):
 
 async def handle_connect_button():
     global off
+    advertised = 0
     while True:
         if light.should_turn_off():
             hub.light.color(hub.light.CONNECT, color.BLACK)
         elif not light.should_not_use():
             if BLEIO.is_connected():
                 hub.light.color(hub.light.CONNECT, color.BLUE)
+                advertised = 0
             elif BLEIO.is_advertising():
                 if time.ticks_ms() % 1350 < 150:
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    hub.sound.beep(500, 50)
+                    if advertised < 10:
+                        hub.sound.beep(500, 50)
                     await asyncio.sleep_ms(50)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
                     await asyncio.sleep_ms(40)
                     hub.light.color(hub.light.CONNECT, color.BLUE)
-                    hub.sound.beep(500, 60)
+                    if advertised < 10:
+                        hub.sound.beep(500, 60)
                     await asyncio.sleep_ms(60)
                     hub.light.color(hub.light.CONNECT, color.BLACK)
+                    advertised += 1
             else:
                 hub.light.color(hub.light.CONNECT, color.BLACK)
+                advertised = 0
         if hub.button.pressed(hub.button.CONNECT):
             hub.sound.beep(500, 100)
             if not light.should_not_use():
@@ -263,13 +358,43 @@ async def main():
 
     # Init
     hub.light.color(hub.light.POWER, color.ORANGE)
-    hub.light_matrix.show([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    hub.light_matrix.show(
+        [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            100,
+            0,
+            100,
+            0,
+            100,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
+    )
     try:
         os.mkdir("/flash/src")
     except OSError:
         pass
     setup_ble_server()
-    if not (hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT)):
+    if not (
+        hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT)
+    ):
         await asyncio.sleep_ms(1500)
         await start_program()
 
@@ -287,6 +412,8 @@ def setup_ble_server():
     all_paths = []
     current_file = None
     current_buffer = b""
+
+    BLEIO.start_advertising()
 
     def handle_packet():
         hub.light.color(hub.light.CONNECT, color.GREEN)
@@ -311,19 +438,16 @@ def setup_ble_server():
         nonlocal all_paths
         handle_packet()
         for path in all_paths:
-            remove(path)
+            remove("/flash/src" + path)
         all_paths.clear()
         BLEIO.send_packet(b"K")
 
-    @BLEIO.handles(b"D")
+    @BLEIO.handles(packet_id=b"D")
     def sync_directory(data: bytes):
         handle_packet()
         args = data.decode()
         if args not in all_paths:
-            try:
-                os.mkdir("/flash/src" + args)
-            except OSError:
-                pass
+            os.mkdir("/flash/src" + args)
         if args in all_paths:
             all_paths.remove(args)
         BLEIO.send_packet(b"K")
@@ -375,7 +499,7 @@ def setup_ble_server():
     def remove_any(data: bytes):
         handle_packet()
         args = data.decode()
-        remove(args)
+        remove("/flash/src" + args)
 
     @BLEIO.handles(b"P")
     def start(data: bytes):
