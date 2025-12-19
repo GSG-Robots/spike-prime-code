@@ -2,7 +2,7 @@
 
 import math
 import time
-from typing import Callable
+# from typing import Callable
 
 import hub
 import motor
@@ -241,7 +241,7 @@ def gyro_turn(
     while (premature_ending_condition is None) or (next(premature_ending_condition) != 100):
         if buttons.pressed(hub.button.POWER):
             raise StopRun
-        degree_error = target_angle - hub.motion_sensor.tilt_angles()[0] // 10
+        degree_error = target_angle - hub.motion_sensor.tilt_angles()[0] / 10
         target_speed = step_speed * degree_error
         if -min_speed < target_speed < min_speed:
             target_speed = math.copysign(min_speed, target_speed)
@@ -282,7 +282,7 @@ def gyro_drive(
     pid: PID | None = None,
     accelerate: float = 0,
     decelerate: float = 0,
-    interpolators: tuple[Callable[[float, float, float], float], Callable[[float, float, float], float]]=(exponential, linear),
+    interpolators=(exponential, exponential),
     brake: bool = True,
 ):
     """Fahre mithilfe des Gyrosensors in eine bestimmte Richtung
