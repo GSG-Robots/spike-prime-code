@@ -203,10 +203,10 @@ class BLEIOConnector:
         return self._state == STATE_ADVERTISING
 
 
-NAME = "GSG-Unknown"
+NAME = "SPZG-UnnamedHub"
 try:
     with open("/flash/config/hubname", "r", encoding="ascii") as f:
-        NAME = f.read()
+        NAME = "SPZG-" + f.read()
 except Exception:
     print("ERROR: Unable to read hubname")
 finally:

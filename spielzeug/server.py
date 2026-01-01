@@ -9,6 +9,7 @@ import sys
 import time
 import zlib
 
+from version import PROTOCOL_VERSION, FEATURE_LEVEL
 import color
 import hub
 import machine
@@ -67,6 +68,8 @@ def send_error(e: Exception, symbol=b"!"):
 def recursive_listdir(path: str):
     for pth, typ, *_ in os.ilistdir(path):
         apth = path + "/" + pth
+        if apth == "/flash/src":
+            continue
         if typ == 32768:
             yield apth
         elif typ == 16384:
@@ -392,9 +395,7 @@ async def main():
     except OSError:
         pass
     setup_ble_server()
-    if not (
-        hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT)
-    ):
+    if not (hub.button.pressed(hub.button.LEFT) and hub.button.pressed(hub.button.RIGHT)):
         await asyncio.sleep_ms(1500)
         await start_program()
 
@@ -409,6 +410,7 @@ async def main():
 
 
 def setup_ble_server():
+    transfer_scope = "/flash/src"
     all_paths = []
     current_file = None
     current_buffer = b""
@@ -419,11 +421,24 @@ def setup_ble_server():
         hub.light.color(hub.light.CONNECT, color.GREEN)
         light.delay_override(50)
 
-    @BLEIO.handles(b"Y")
-    def start_sync(data: bytes):
+    @BLEIO.handles(b"V")
+    def version(data: bytes):
         nonlocal all_paths
         handle_packet()
-        all_paths = list(a[10:] for a in recursive_listdir("/flash/src"))
+        BLEIO.send_packet(b"V" + PROTOCOL_VERSION.to_bytes(2, "big") + FEATURE_LEVEL.to_bytes(2, "big"))
+
+    @BLEIO.handles(b"Y")
+    def start_sync(data: bytes):
+        nonlocal all_paths, transfer_scope
+        handle_packet()
+        if data == b"":
+            transfer_scope = "/flash/src"
+        elif data == b"firmware-update":
+            transfer_scope = "/flash"
+        else:
+            BLEIO.send_packet(b"!", b"Unknown sync mode!")
+            return
+        all_paths = list(a[len(transfer_scope) :] for a in recursive_listdir(transfer_scope))
         BLEIO.send_packet(b"K")
 
     @BLEIO.handles(b"$")
@@ -438,7 +453,7 @@ def setup_ble_server():
         nonlocal all_paths
         handle_packet()
         for path in all_paths:
-            remove("/flash/src" + path)
+            remove(transfer_scope + path)
         all_paths.clear()
         BLEIO.send_packet(b"K")
 
@@ -446,8 +461,13 @@ def setup_ble_server():
     def sync_directory(data: bytes):
         handle_packet()
         args = data.decode()
+        assert args[0] == "/"
         if args not in all_paths:
-            os.mkdir("/flash/src" + args)
+            try:
+                os.mkdir(transfer_scope + args)
+            except OSError:
+                print("!!!", args, all_paths)
+                ...
         if args in all_paths:
             all_paths.remove(args)
         BLEIO.send_packet(b"K")
@@ -460,7 +480,7 @@ def setup_ble_server():
         name, hash = args.split(" ", 1)
         assert name[0] == "/"
         try:
-            with open("/flash/src" + name, "rb") as f:
+            with open(transfer_scope + name, "rb") as f:
                 old_hash = binascii.hexlify(hashlib.sha256(f.read()).digest()).decode()
         except OSError:
             old_hash = None
@@ -468,7 +488,7 @@ def setup_ble_server():
         if name in all_paths:
             all_paths.remove(name)
         if old_hash != hash:
-            current_file = "/flash/src" + name
+            current_file = transfer_scope + name
             current_buffer = b""
             BLEIO.send_packet(b"U")
         else:
@@ -499,7 +519,7 @@ def setup_ble_server():
     def remove_any(data: bytes):
         handle_packet()
         args = data.decode()
-        remove("/flash/src" + args)
+        remove(transfer_scope + args)
 
     @BLEIO.handles(b"P")
     def start(data: bytes):
