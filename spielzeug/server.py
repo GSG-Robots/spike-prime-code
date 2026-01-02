@@ -355,7 +355,7 @@ async def handle_connect_button():
 
 async def main():
     # Modify builtins
-    builtins.oprint = builtins.print
+    builtins.serial_print = builtins.print
     builtins.print = remote_print
     builtins.remote = remote
 
@@ -404,9 +404,9 @@ async def main():
     await handle_connect_button()
 
     # Deinit
-    builtins.print = builtins.oprint
+    builtins.print = builtins.serial_print
     del builtins.remote
-    del builtins.oprint
+    del builtins.serial_print
 
 
 def setup_ble_server():
@@ -532,6 +532,38 @@ def setup_ble_server():
         handle_packet()
         asyncio.create_task(kill_program())
         BLEIO.send_packet(b"K")
+
+    @BLEIO.handles(b"I")
+    def identify(data: bytes):
+        handle_packet()
+        BLEIO.send_packet(b"K")
+        for cola, colb in [(color.RED, color.YELLOW), (color.GREEN, color.MAGENTA), (color.BLUE, color.WHITE), (color.AZURE, color.PURPLE), (color.ORANGE, color.TURQUOISE)]:
+            hub.light.color(hub.light.POWER, cola)
+            hub.sound.beep(440, 500, 100)
+            hub.light_matrix.show(
+                [
+                    100,100,100,100,100,
+                    100,0,0,0,100,
+                    100,0,100,0,100,
+                    100,0,0,0,100,
+                    100,100,100,100,100,
+                ],
+            )
+            time.sleep(0.5)
+            hub.light.color(hub.light.POWER, colb)
+            hub.sound.beep(700, 500, 100)
+            hub.light_matrix.show(
+                [
+                    100,100,100,100,100,
+                    100,100,100,100,100,
+                    100,100,100,100,100,
+                    100,100,100,100,100,
+                    100,100,100,100,100,
+                ],
+            )
+            time.sleep(0.5)
+        hub.light.color(hub.light.POWER, color.WHITE)
+        hub.light_matrix.clear()
 
     @BLEIO.handles(b"=")
     def echo(data: bytes):
