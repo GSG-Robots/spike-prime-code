@@ -17,6 +17,8 @@ def get_device():
         device_choice = devices[0]
     else:
         for index, device in enumerate(devices):
+            if device.description != "SPIKE Prime VCP":
+                continue
             print(f"{index + 1:>2}. {device.device}")
         device_choice = devices[int(input("Device: ")) - 1]
 

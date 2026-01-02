@@ -9,11 +9,13 @@ import sys
 import time
 import zlib
 
-from version import PROTOCOL_VERSION, FEATURE_LEVEL
 import color
 import hub
 import machine
-from bleio import BLEIO
+
+from .bleio import BLEIO
+from .identify import loop as identify_program
+from .version import FEATURE_LEVEL, PROTOCOL_VERSION
 
 gc.enable()
 gc.collect()
@@ -158,12 +160,16 @@ async def program_wrapper(program):
         has_stopped.set()
 
 
+async def start_internal_program(prog_loop_coro):
+    global prog_task
+    await kill_program()
+    prog_task = asyncio.create_task(program_wrapper(prog_loop_coro))
+
+
 async def start_program():
     gc.collect()
     global prog_task
-    if prog_task:
-        prog_task.cancel()
-        await has_stopped.wait()
+    await kill_program()
     for module in sys.modules:
         if module == "src" or module.startswith("src."):
             del sys.modules[module]
@@ -536,34 +542,8 @@ def setup_ble_server():
     @BLEIO.handles(b"I")
     def identify(data: bytes):
         handle_packet()
+        asyncio.create_task(start_internal_program(identify_program()))
         BLEIO.send_packet(b"K")
-        for cola, colb in [(color.RED, color.YELLOW), (color.GREEN, color.MAGENTA), (color.BLUE, color.WHITE), (color.AZURE, color.PURPLE), (color.ORANGE, color.TURQUOISE)]:
-            hub.light.color(hub.light.POWER, cola)
-            hub.sound.beep(440, 500, 100)
-            hub.light_matrix.show(
-                [
-                    100,100,100,100,100,
-                    100,0,0,0,100,
-                    100,0,100,0,100,
-                    100,0,0,0,100,
-                    100,100,100,100,100,
-                ],
-            )
-            time.sleep(0.5)
-            hub.light.color(hub.light.POWER, colb)
-            hub.sound.beep(700, 500, 100)
-            hub.light_matrix.show(
-                [
-                    100,100,100,100,100,
-                    100,100,100,100,100,
-                    100,100,100,100,100,
-                    100,100,100,100,100,
-                    100,100,100,100,100,
-                ],
-            )
-            time.sleep(0.5)
-        hub.light.color(hub.light.POWER, color.WHITE)
-        hub.light_matrix.clear()
 
     @BLEIO.handles(b"=")
     def echo(data: bytes):
