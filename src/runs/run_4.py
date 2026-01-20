@@ -24,7 +24,7 @@ def run():
     # Set Gyro Origin
     gyro_wall_align()
     gyro_drive(0, 700, OR(cm(71), wheels_blocked()), decelerate=13)
-    run_attachment(Attachment.FRONT_RIGHT, -250, 2, untension=10)
+    run_attachment(Attachment.FRONT_RIGHT, -250, 1.67, untension=10)
     run_attachment(Attachment.FRONT_LEFT, 700, 0.5, untension=5)
     gyro_drive(0, -500, cm(9))
     gyro_drive(0, 200, cm(3))
