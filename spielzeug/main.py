@@ -11,6 +11,6 @@ if not (
     and hub.button.pressed(hub.button.RIGHT)
     and hub.button.pressed(hub.button.CONNECT)
 ):
-    import server
+    import spzglib.server
 
-    asyncio.run(server.main())
+    asyncio.run(spzglib.server.main())

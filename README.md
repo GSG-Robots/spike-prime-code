@@ -12,6 +12,7 @@ Contributors:
 * [J0J0HA](https://github.com/J0J0HA)
 * [E-r-i-c-Gepard](https://github.com/E-r-i-c-Gepard)
 * [FINNtastisch007](https://github.com/FINNtastisch007)
+* [Fingolfin217](https://github.com/fingolfin217)
 
 ## Getting started
 
