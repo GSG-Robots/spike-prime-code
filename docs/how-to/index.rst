@@ -4,4 +4,6 @@ Anleitungen & How-Tos
 .. toctree::
     :maxdepth: 1
 
-    connect-bluetooth
+    beginners-guide
+    connect-hub
+    setup-devenv

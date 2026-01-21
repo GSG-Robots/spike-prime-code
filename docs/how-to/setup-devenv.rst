@@ -1,3 +1,5 @@
+.. _how-to--setup-devenv:
+
 Dev Environment einrichten
 ==========================
 
@@ -11,16 +13,24 @@ Schritt 1: VSCode, Git & Python installieren
   - Aktiviere "Add Python to PATH".
   - Deaktiviere "Install Python Launcher".
 
-Schritt 2: Poetry installieren
+Schritt 2: UV installieren
 ------------------------------
 
-Öffne Powershell und führe die folgenden Befehle aus:
+Windows
+^^^^^^^
+
+Öffne Powershell und führe den folgenden Befehl aus:
 
 .. code-block:: powershell
 
-    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
-    poetry config virtualenvs.in-project true
-    [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Users\johan\AppData\Roaming\Python\Scripts", "User")
+    irm https://astral.sh/uv/install.ps1 | iex
+
+Linux
+^^^^^
+
+.. code-block:: bash
+    
+    curl -LsSf https://astral.sh/uv/install.sh | sh
 
 Schritt 3: Repository klonen
 ----------------------------
@@ -29,18 +39,19 @@ Schritt 3: Repository klonen
 - Klicke unten links auf die Account-Optionen und melde dich mit deinem GitHub-Account an.
 - Nutze die Tastenkombination :code:`Strg + Shift + P`, gebe "clone" ein und drücke zweimal :code:`Enter`.
 - Gebe "GSG-Robots/competition-programs" ein und wähle den Ordner aus, in dem du das Repository speichern möchtest.
-- Sobald der vorgang abgeschlossen ist, klicke auf "Öffnen".
+- Sobald der Vorgang abgeschlossen ist, klicke auf "Öffnen".
 - Klicke dann auf "Vertrauen".
-  
+
 Schritt 4: Abhängigkeiten installieren
 ------------------------------------------------
 
-- Öffne das Terminal in VSCode mit :code:`Strg + Ö`.
+- Öffne das Terminal in VSCode unter :code:`Terminal > New Terminal`.
 - Gebe den folgenden Befehl ein und drücke :code:`Enter`:
   
   .. code-block::
 
-    poetry install --no-root --with dev
+    uv sync
+  
 - Warte dann, bis der Vorgang abgeschlossen ist.
 
 Schritt 5: VSCode konfigurieren
@@ -62,4 +73,4 @@ Schritt 5: VSCode konfigurieren
   - `Esbonio <vscode:extension/swyddfa.esbonio>`_
 
 - Drücke :code:`Strg + Shift + P` und suche nach "Python: Select Interpreter" ein.
-- Wähle :code:`3.13.x ('.venv')`.
+- Wähle :code:`3.13.x ('competition-programs')`.

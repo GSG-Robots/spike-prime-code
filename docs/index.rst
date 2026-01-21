@@ -10,5 +10,12 @@ GSGR Dokumentation
    :maxdepth: 2
    :caption: Inhalt:
    
-   knowledge/index
+   how-to/index
+   special-features/index
+   typical-issues/index
+
+   structure
+   driving-and-turning
+   attachments
+   config
    api/index

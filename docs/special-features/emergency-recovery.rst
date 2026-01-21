@@ -14,10 +14,10 @@ Dies wird durch einen Signalton und eine lilane Färbung der Bluetooth-LED best�
 Nun kann, noch während der Bluetooth-Knopf gedrückt gehalten wird,
 zwischen diesen Optionen gewählt werden:
 
-* **Rechter Knopf**: Beenden von Spielzeug (Sinn? - Sollte ich mir nochmal ansehen)
+* **Linker Knopf**: Neustart des Hubs
 * **Mittlerer Knopf**: Starten der Menüsoftware
   Hinweis: Funktioniert nur, wenn die Menüsoftware abgestürzt ist.
-* **Linker Knopf**: Neustart des Hubs
+* **Rechter Knopf**: Beenden von Spielzeug
 
 Die Auswahl wird mit einem erneuten Signalton und eine grüne Färbung der Power-LED bestätigt.
 
