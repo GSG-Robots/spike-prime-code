@@ -5,10 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Upload",
+            "name": "Upload & Listen For Changes",
             "type": "f5anything",
             "request": "launch",
-            "command": "poetry run python \"${workspaceFolder}/communicate.py\"",
+            "command": "uv run tigerente live-sync \"${workspaceFolder}/src\"",
+        },
+        {
+            "name": "Upload Once",
+            "type": "f5anything",
+            "request": "launch",
+            "command": "uv run tigerente sync \"${workspaceFolder}/src\"",
         }
     ]
 }

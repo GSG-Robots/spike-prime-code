@@ -4,12 +4,21 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Upload",
+            "label": "Upload & Listen For Changes",
             "type": "shell",
-            "command": "poetry run python \"${workspaceFolder}/communicate.py\"",
+            "command": "uv run tigerente live-sync \"${workspaceFolder}/src\"",
             "group": {
-                "kind": "build",
+                "kind": "none",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "Upload Once",
+            "type": "shell",
+            "command": "uv run tigerente sync \"${workspaceFolder}/src\"",
+            "group": {
+                "kind": "none",
+                "isDefault": false
             }
         }
     ]
