@@ -87,7 +87,7 @@ wheels = [
 
 [[package]]
 name = "bleak"
-version = "1.1.1"
+version = "2.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dbus-fast", marker = "sys_platform == 'linux'" },
@@ -99,13 +99,14 @@ dependencies = [
     { name = "winrt-windows-devices-bluetooth-advertisement", marker = "sys_platform == 'win32'" },
     { name = "winrt-windows-devices-bluetooth-genericattributeprofile", marker = "sys_platform == 'win32'" },
     { name = "winrt-windows-devices-enumeration", marker = "sys_platform == 'win32'" },
+    { name = "winrt-windows-devices-radios", marker = "sys_platform == 'win32'" },
     { name = "winrt-windows-foundation", marker = "sys_platform == 'win32'" },
     { name = "winrt-windows-foundation-collections", marker = "sys_platform == 'win32'" },
     { name = "winrt-windows-storage-streams", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/10/88/6bb2bcb94ef7a2f37c5bd5ec99a4ae9208c4caa3fa6d203f9b601e047e64/bleak-1.1.1.tar.gz", hash = "sha256:eeef18053eb3bd569a25bff62cd4eb9ee56be4d84f5321023a7c4920943e6ccb", size = 116277, upload-time = "2025-09-07T18:44:48.978Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/45/8a/5acbd4da6a5a301fab56ff6d6e9e6b6945e6e4a2d1d213898c21b1d3a19b/bleak-2.1.1.tar.gz", hash = "sha256:4600cc5852f2392ce886547e127623f188e689489c5946d422172adf80635cf9", size = 120634, upload-time = "2025-12-31T20:43:28.697Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/5a/c3378ba7b05abc7c2d95ae492eac0523d937c77afcb9ff7e7f67fe2ca11d/bleak-1.1.1-py3-none-any.whl", hash = "sha256:e601371396e357d95ee3c256db65b7da624c94ef6f051d47dfce93ea8361c22e", size = 136534, upload-time = "2025-09-07T18:44:47.525Z" },
+    { url = "https://files.pythonhosted.org/packages/99/fe/22aec895f040c1e457d6e6fcc79286fbb17d54602600ab2a58837bec7be1/bleak-2.1.1-py3-none-any.whl", hash = "sha256:61ac1925073b580c896a92a8c404088c5e5ec9dc3c5bd6fc17554a15779d83de", size = 141258, upload-time = "2025-12-31T20:43:27.302Z" },
 ]
 
 [[package]]
@@ -194,19 +195,12 @@ wheels = [
 name = "competition-programs"
 version = "0.1.0"
 source = { virtual = "." }
-dependencies = [
-    { name = "bleak" },
-    { name = "mpy-cross" },
-    { name = "pyserial" },
-    { name = "pyyaml" },
-    { name = "tqdm" },
-    { name = "watchdog" },
-]
 
 [package.dev-dependencies]
 dev = [
     { name = "isort" },
     { name = "ruff" },
+    { name = "tigerente" },
 ]
 docs = [
     { name = "chardet" },
@@ -215,24 +209,18 @@ docs = [
     { name = "sphinx-autodoc-typehints" },
     { name = "sphinx-intl" },
     { name = "sphinx-notfound-page" },
+    { name = "sphinx-rtd-dark-mode" },
     { name = "sphinx-rtd-theme" },
     { name = "sphinx-toolbox" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "bleak", specifier = ">=1.1.0,<2.0.0" },
-    { name = "mpy-cross", specifier = ">=1.26.1.post2,<2.0.0" },
-    { name = "pyserial", specifier = ">=3.5,<4.0" },
-    { name = "pyyaml", specifier = ">=6.0.2,<7.0.0" },
-    { name = "tqdm", specifier = ">=4.67.1" },
-    { name = "watchdog", specifier = ">=6.0.0,<7.0.0" },
-]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "isort", specifier = ">=7.0.0,<8.0.0" },
     { name = "ruff", specifier = ">=0.14.0,<0.15.0" },
+    { name = "tigerente", specifier = ">=0.5.1" },
 ]
 docs = [
     { name = "chardet", specifier = ">=5.2.0,<6.0.0" },
@@ -241,6 +229,7 @@ docs = [
     { name = "sphinx-autodoc-typehints", specifier = ">=3.5.1,<4.0.0" },
     { name = "sphinx-intl", specifier = ">=2.3.2,<3.0.0" },
     { name = "sphinx-notfound-page", specifier = ">=1.1.0,<2.0.0" },
+    { name = "sphinx-rtd-dark-mode", specifier = ">=1.3.0" },
     { name = "sphinx-rtd-theme", specifier = ">=3.0.2,<4.0.0" },
     { name = "sphinx-toolbox", specifier = ">=4.0.0,<5.0.0" },
 ]
@@ -376,6 +365,18 @@ wheels = [
 ]
 
 [[package]]
+name = "markdown-it-py"
+version = "4.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mdurl" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5b/f5/4ec618ed16cc4f8fb3b701563655a69816155e79e24a17b651541804721d/markdown_it_py-4.0.0.tar.gz", hash = "sha256:cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3", size = 73070, upload-time = "2025-08-11T12:57:52.854Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/94/54/e7d793b573f298e1c9013b8c4dade17d481164aa517d1d7148619c2cedbf/markdown_it_py-4.0.0-py3-none-any.whl", hash = "sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147", size = 87321, upload-time = "2025-08-11T12:57:51.923Z" },
+]
+
+[[package]]
 name = "markupsafe"
 version = "3.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -406,6 +407,15 @@ wheels = [
 ]
 
 [[package]]
+name = "mdurl"
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba", size = 8729, upload-time = "2022-08-14T12:40:10.846Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979, upload-time = "2022-08-14T12:40:09.779Z" },
+]
+
+[[package]]
 name = "more-itertools"
 version = "10.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -416,16 +426,16 @@ wheels = [
 
 [[package]]
 name = "mpy-cross"
-version = "1.26.1.post2"
+version = "1.27.0.post2"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c3/bb/cd03c8c51c3348d4d70d4be7ff937db6a52fc7db801e948adc17a9ab6dd6/mpy_cross-1.26.1.post2-py2.py3-none-macosx_11_0_universal2.whl", hash = "sha256:fbfb6fb22e4bd60d1f4fc09466efad5e2b0458ace68a47a189a8cca07a4c61ef", size = 1821727, upload-time = "2025-09-13T18:07:10.701Z" },
-    { url = "https://files.pythonhosted.org/packages/79/19/8c8510421582e572d8ff7b1e5681a77304e9b42f7a8cfc6f139caaf5090c/mpy_cross-1.26.1.post2-py2.py3-none-manylinux1_i686.whl", hash = "sha256:ce23cc77a9285ed7c3982a13614dd37971bcd5182c401b4e1441eaf0eed6cbcc", size = 1046829, upload-time = "2025-09-13T18:07:12.812Z" },
-    { url = "https://files.pythonhosted.org/packages/d1/a8/4cf9aceeb5ce75f305004a4aec26809678b8b0c7037402e7d715c9dfb686/mpy_cross-1.26.1.post2-py2.py3-none-manylinux1_x86_64.whl", hash = "sha256:a21322a88412bff215daab2720d71de419792ff203501f4a1ed1b6a5e6e8d83e", size = 923714, upload-time = "2025-09-13T18:07:14.795Z" },
-    { url = "https://files.pythonhosted.org/packages/3c/49/f9669e36d9d5e552f7e19f5747909c93e1b37580707e8cc3a8c424ae1e64/mpy_cross-1.26.1.post2-py2.py3-none-manylinux2014_aarch64.whl", hash = "sha256:e013864faadeef27e622b688b2a4556aa483a2daafebdaef81de453efc01019b", size = 1151605, upload-time = "2025-09-13T18:07:16.84Z" },
-    { url = "https://files.pythonhosted.org/packages/d3/16/e23b3eb048f9b4823e1797b856d6eb571a85a3fda92c13dfb73c3d72084e/mpy_cross-1.26.1.post2-py2.py3-none-manylinux2014_armv7l.whl", hash = "sha256:2ffbdad8a12dd9f10c0a4309130ff84a76bb54ed13c65d54a610a221854eb056", size = 1055887, upload-time = "2025-09-13T18:07:18.817Z" },
-    { url = "https://files.pythonhosted.org/packages/54/b3/7b6e9d5f8214b5da74dfb08211b04ed05a41480f34a166f44639e6997bcc/mpy_cross-1.26.1.post2-py2.py3-none-win32.whl", hash = "sha256:17cd3f5fca205ea0f478466cf2e811fb995b245014588752d1ed4ae3391f054b", size = 1082240, upload-time = "2025-09-13T18:07:20.744Z" },
-    { url = "https://files.pythonhosted.org/packages/84/04/f5c60e4ea47afa2394ec93b4205914311e87843edc33a19455c9fe31db6e/mpy_cross-1.26.1.post2-py2.py3-none-win_amd64.whl", hash = "sha256:8955b7721188ee73c0d22bd6f853fd19c50d9c443e16137c89d27070e47d62d4", size = 1166159, upload-time = "2025-09-13T18:07:22.623Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/82/48b9dd1ed5fe739ca94a122a5d957150c661ffc8e274d4541fada83eda1f/mpy_cross-1.27.0.post2-py2.py3-none-macosx_11_0_universal2.whl", hash = "sha256:9a7a7027d58c336a98f4d78eb43da42f5a23d81be268e113e8f0b863ec7849fc", size = 1821699, upload-time = "2025-12-13T17:12:51.987Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/54/098d4c292c555be8746e53bbadd5a0060550d7694518771a1da0a7cf06f3/mpy_cross-1.27.0.post2-py2.py3-none-manylinux1_i686.whl", hash = "sha256:d264ab8fef6c21cd7d842c8d3e9bea59694fefadd8f529bf93a168e25c201c0a", size = 1046954, upload-time = "2025-12-13T17:12:53.967Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/96/22553824dad4f7b3a9dc1fb437b0edf37bb09d17ce0ecb6bc7a209326477/mpy_cross-1.27.0.post2-py2.py3-none-manylinux1_x86_64.whl", hash = "sha256:28821aeaac4e2b1e365605afc0c0767505be4f4acded4f652c07d8f76b9409a6", size = 1052470, upload-time = "2025-12-13T17:12:55.931Z" },
+    { url = "https://files.pythonhosted.org/packages/88/9e/7b21955c32d286ae2ee0b13a4b9909445931ec326442141f4aed63323a7f/mpy_cross-1.27.0.post2-py2.py3-none-manylinux2014_aarch64.whl", hash = "sha256:d0454bf49ce6a4cd4b67a51c3ff43cc1040d12bec05adbcb20209e2983d75d83", size = 1151815, upload-time = "2025-12-13T17:12:57.812Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/a5/feac9c5a51e5fca35c9ee5069819721949de6cdbf79f6e270e705a48e835/mpy_cross-1.27.0.post2-py2.py3-none-manylinux2014_armv7l.whl", hash = "sha256:d66d2b265cc1ec65f223019e721a9a66d8a999ad656cea31e3e0145e406e4d0b", size = 1056046, upload-time = "2025-12-13T17:12:59.705Z" },
+    { url = "https://files.pythonhosted.org/packages/32/4e/6f18221bd52df032914aa489ce78cd8dc353c8f7b8f03a9cd585563f1c7e/mpy_cross-1.27.0.post2-py2.py3-none-win32.whl", hash = "sha256:1379497695e1a75087e43ce06c4044a6385f5fc28ed9073921d98b49322caad6", size = 1082278, upload-time = "2025-12-13T17:13:01.485Z" },
+    { url = "https://files.pythonhosted.org/packages/30/ad/3bcdc53142c0058a44b5b9036142896af882ccf406982f29c259c7b8136c/mpy_cross-1.27.0.post2-py2.py3-none-win_amd64.whl", hash = "sha256:c2a4060b256c0946a51630511507678a4cca3ad071b4f60583c34742e3a692d5", size = 1166245, upload-time = "2025-12-13T17:13:03.168Z" },
 ]
 
 [[package]]
@@ -572,6 +582,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c9/74/b3ff8e6c8446842c3f5c837e9c3dfcfe2018ea6ecef224c710c85ef728f4/requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf", size = 134517, upload-time = "2025-08-18T20:46:02.573Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/db/4254e3eabe8020b458f1a747140d32277ec7a271daf1d235b70dc0b4e6e3/requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6", size = 64738, upload-time = "2025-08-18T20:46:00.542Z" },
+]
+
+[[package]]
+name = "rich"
+version = "14.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "markdown-it-py" },
+    { name = "pygments" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fb/d2/8920e102050a0de7bfabeb4c4614a49248cf8d5d7a8d01885fbb24dc767a/rich-14.2.0.tar.gz", hash = "sha256:73ff50c7c0c1c77c8243079283f4edb376f0f6442433aecb8ce7e6d0b92d1fe4", size = 219990, upload-time = "2025-10-09T14:16:53.064Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/25/7a/b0178788f8dc6cafce37a212c99565fa1fe7872c70c6c9c1e1a372d9d88f/rich-14.2.0-py3-none-any.whl", hash = "sha256:76bc51fe2e57d2b1be1f96c524b890b816e334ab4c1e45888799bfaab0021edd", size = 243393, upload-time = "2025-10-09T14:16:51.245Z" },
 ]
 
 [[package]]
@@ -783,6 +806,18 @@ wheels = [
 ]
 
 [[package]]
+name = "sphinx-rtd-dark-mode"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sphinx-rtd-theme" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fb/7c/bb1c20458f498d907d78a357b246a0ee1a3a94ee5a5ec39378726e646661/sphinx_rtd_dark_mode-1.3.0.tar.gz", hash = "sha256:0272bf3d9ef620921adc67e5634a66969419e744da84ea18830adacfdb160ea8", size = 8627, upload-time = "2023-09-19T22:22:14.692Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ab/f1/16b919bf5d33b282f13c0c39be687c658a33debb2caf4137a63be4bb21f6/sphinx_rtd_dark_mode-1.3.0-py3-none-any.whl", hash = "sha256:478da69c72a2a2ed7665c1f633cc612039f5801df416fd5f7c4820c2fe08c9c5", size = 10031, upload-time = "2023-09-19T22:22:13.642Z" },
+]
+
+[[package]]
 name = "sphinx-rtd-theme"
 version = "3.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -935,15 +970,22 @@ wheels = [
 ]
 
 [[package]]
-name = "tqdm"
-version = "4.67.1"
+name = "tigerente"
+version = "0.5.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "bleak" },
+    { name = "click" },
+    { name = "mpy-cross" },
+    { name = "pyserial" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "rich" },
+    { name = "watchdog" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/e4/93e6a5188bb1c2094f7c6e9752deb24f40b1b574cf6879885648ea88771a/tigerente-0.5.1.tar.gz", hash = "sha256:28b53b2fbdb4a4b98030e4fa5c402c4238c52654af9e49674e41759208006435", size = 17559, upload-time = "2026-01-10T16:36:11.207Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540, upload-time = "2024-11-24T20:12:19.698Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/c1/129102e5c9156ed8b26107f92c069a2fd878cd6b19268682db3b4988b35c/tigerente-0.5.1-py3-none-any.whl", hash = "sha256:ebdbd9eb9fdd4625e18373890fffef46fb9274405e386e3845c425e110c95d6a", size = 22672, upload-time = "2026-01-10T16:36:06.296Z" },
 ]
 
 [[package]]
@@ -1129,6 +1171,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ff/7d/ebd712ab8ccd599c593796fbcd606abe22b5a8e20db134aa87987d67ac0e/winrt_windows_devices_enumeration-3.2.1-cp313-cp313-win32.whl", hash = "sha256:14a71cdcc84f624c209cbb846ed6bd9767a9a9437b2bf26b48ac9a91599da6e9", size = 130276, upload-time = "2025-06-06T07:02:05.178Z" },
     { url = "https://files.pythonhosted.org/packages/70/de/f30daaaa0e6f4edb6bd7ddb3e058bd453c9ad90c032a4545c4d4639338aa/winrt_windows_devices_enumeration-3.2.1-cp313-cp313-win_amd64.whl", hash = "sha256:6ca40d334734829e178ad46375275c4f7b5d6d2d4fc2e8879690452cbfb36015", size = 141536, upload-time = "2025-06-06T07:02:06.067Z" },
     { url = "https://files.pythonhosted.org/packages/75/4b/9a6aafdc74a085c550641a325be463bf4b811f6f605766c9cd4f4b5c19d2/winrt_windows_devices_enumeration-3.2.1-cp313-cp313-win_arm64.whl", hash = "sha256:2d14d187f43e4409c7814b7d1693c03a270e77489b710d92fcbbaeca5de260d4", size = 135362, upload-time = "2025-06-06T07:02:06.997Z" },
+]
+
+[[package]]
+name = "winrt-windows-devices-radios"
+version = "3.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "winrt-runtime" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5e/02/9704ea359ad8b0d6faa1011f98fb477e8fb6eac5201f39d19e73c2407e7b/winrt_windows_devices_radios-3.2.1.tar.gz", hash = "sha256:4dc9b9d1501846049eb79428d64ec698d6476c27a357999b78a8331072e18a0b", size = 5908, upload-time = "2025-06-06T14:41:44.868Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/94/c22a14fd424632f3f3c0b25672218db9e8f4ae9e1355e0b148f2fe6015b5/winrt_windows_devices_radios-3.2.1-cp313-cp313-win32.whl", hash = "sha256:ae4a0065927fcd2d10215223f8a46be6fb89bad71cb4edd25dae3d01c137b3a8", size = 38613, upload-time = "2025-06-06T07:08:04.077Z" },
+    { url = "https://files.pythonhosted.org/packages/39/c1/24cec0cc228642554b48d436a7617d7162fb952919c55fc26e2d99c310bd/winrt_windows_devices_radios-3.2.1-cp313-cp313-win_amd64.whl", hash = "sha256:bf1a975f46a2aa271ffea1340be0c7e64985050d07433e701343dddc22a72290", size = 40180, upload-time = "2025-06-06T07:08:04.849Z" },
+    { url = "https://files.pythonhosted.org/packages/ca/d3/776453af26e78c0d0c0e1bfa89f86fd81322872f31a3e5dafb344dd47bf2/winrt_windows_devices_radios-3.2.1-cp313-cp313-win_arm64.whl", hash = "sha256:10b298ed154c5824cea2de174afce1694ed2aabfb58826de814074027ffef96f", size = 36989, upload-time = "2025-06-06T07:08:05.576Z" },
 ]
 
 [[package]]

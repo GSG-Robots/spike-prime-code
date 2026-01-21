@@ -20,7 +20,7 @@ Der Roboter ruckelt hin und her
 -------------------------------
 
 Das liegt an einer zu starken p-Korrektur. Das Problem lässt sich meistens aber durch das Herunterstellen des p-Korrekturwertes nicht lösen, sondern nur verschieben.
-Stellt man den p-Korrekturwert herunter ruckelt der Roboter nämlich nicht mehr hin und her, fährt aber womöglich eine leichte Kurve.
+Stellt man den p-Korrekturwert herunter, ruckelt der Roboter nämlich nicht mehr hin und her, fährt aber womöglich eine leichte Kurve.
 
 Der Ursprung ist meistens schwache Batterieladung (je schwächer die Batterie, desto ungleicher fahren die Motoren) oder eine einseitige Belastung des Roboters.
 Ist der Roboter einseitig belastet, sollte sich das Problem lösen lassen, indem man den i-Korrekturwert minimal anhebt und dafür den p-Korrekturwert senkt.
@@ -35,7 +35,9 @@ Siehe auch: :ref:`problem-gyro`
 Der Roboter dreht sich im Kreis
 -------------------------------
 
-Siehe: :ref:`problem-gyro`
+Beachte bei Drehbewegungen, dass keine zu hohe Geschwindigkeit eingestellt ist und die Zielgradzahl zwischen -180 und 180 liegt.
+
+Siehe auch: :ref:`problem-gyro`
 
 Der Roboter fährt nicht (und macht Summgeräusche)
 -------------------------------------------------
@@ -44,14 +46,12 @@ Das kann daran liegen, dass die Geschwindigkeit zu niedrig ist. Das kann entwede
 Wenn die Batterie schwach ist oder die Motoren mehr Kraft als gewöhnlich aufbringen müssen (schwere Anbaute) kann das auch passieren.
 
 Zur Lösung solltest du darauf achten, das keine Be-/Entschleunigungsstrecke länger als 5-10 cm ist und die Geschwindigkeit nicht zu niedrig eingestellt ist.
-Ohne Anbaute braucht der Roboter etwa eine Geschwindigkeit von 5, um loszufahren.
+Ohne Anbaute braucht der Roboter etwa eine Geschwindigkeit von 50, um loszufahren.
 
 Beachte, dass die Geschwindigkeit bei der Verwendung von Be-/Entschleunigung am Anfang und Ende der Bewegung niedriger als die eingestellte Geschwindigkeit ist. Sollte das Gewicht des Roboters
-es erfordern, die 5 zu überschreiten solltest du auf die Be- und Entschleunigungsfunktionen größtenteils verzichten oder die Stecken auf 1-3 cm heruntersetzen.
+es erfordern, die 50 zu überschreiten solltest du auf die Be- und Entschleunigungsfunktionen größtenteils verzichten oder die Stecken auf 1-3 cm heruntersetzen.
 
 Tritt dieses Problem beim Schalten auf, siehe ebenfalls: :ref:`problem-gearselector`
-
-Tritt dieses Problem beim Drehen auf, siehe ebenfalls: :ref:`problem-gyro`
 
 Das Statuslicht blinkt rot und der Roboter fährt nicht weiter/los
 -----------------------------------------------------------------
@@ -78,4 +78,11 @@ Alternativ kannst du auch versuchen, :code:`gyro-off` in der Konfiguration anzup
 Der Schaltmotor macht nichts
 ----------------------------
 
-TODO
+Das kann passieren, wenn die vorangehende Motorbewegung einen starken Widerstand beim Schalten erzeugt hat.
+Das passiert z.B. wenn ein Arm geben eine Blockade gedreht wird. Durch die Spannung kann sich das Schaltzahnrad
+nur noch schwer drehen, und eventuell reicht die Kraft des Motors dafür nicht aus.
+
+Dieses Problem sollte lösbar sein, indem bei der vorangehenden Motorbewegung :code:`untension=5` angegeben wird.
+:code:`untension=5` bedeutet, dass der Motor nach abgeschlossener Bewegung noch einmal um 5° zurückgedreht werden soll.
+Wenn große Übersetzungen an dem Ausgang hängen, kann es nötig sein, diese Zahl anzupassen, aber 5 ist ein guter Richtwert,
+der in den meisten Fällen funktioniert.

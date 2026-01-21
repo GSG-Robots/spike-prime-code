@@ -314,7 +314,7 @@ async def handle_connect_button():
             while hub.button.pressed(hub.button.CONNECT):
                 await asyncio.sleep_ms(100)
                 took += 1
-                if took > 30:
+                if took > 10:
                     break
             else:
                 if not light.should_not_use():
@@ -342,6 +342,7 @@ async def handle_connect_button():
                     hub.light.color(hub.light.CONNECT, color.GREEN)
                     hub.sound.beep(800, 400)
                     time.sleep(0.4)
+                    import _system.default
                     del sys.modules["_system.default"]
                     break
                 if hub.button.pressed(hub.button.POWER):

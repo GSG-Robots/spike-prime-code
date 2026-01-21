@@ -7,6 +7,10 @@ Dieses Kapitel bringt dir die Grundlagen bei, um deinen ersten eigenen Run zu er
     :depth: 2
     :local:
 
+.. hint::
+    Du bist an einem neuen PC?
+    Schaue zuerst einmal :ref:`hier <how-to--setup-devenv>` vorbei, um alles vorzubereiten, bevor du mit diesem Tutorial startest.
+
 Dein erster Run
 ---------------
 
@@ -61,8 +65,8 @@ Jetzt kannst du in der ``run``-Funktion folgendes schreiben: (Die Kommentare mus
                                     # Die Geschwindigkeit wird in zehntel Prozent
                                     # (also quasi Promille) angegeben.
 
-Wenn der Roboter nicht bereits mit dem Computer verbunden ist, verbinde ihn jetzt über Bluetooth.
-Siehe dazu: :ref:`how-to--connect-bluetooth`.
+Wenn der Roboter nicht bereits mit dem Computer verbunden ist, verbinde ihn jetzt.
+Siehe dazu: :ref:`how-to--connect-hub`.
 
 Sobald eine Verbindung besteht, werden Änderungen automatisch Live auf den Roboter übertragen.
 
@@ -129,17 +133,16 @@ Und ändere die ``run`` Funktion zu:
     def run():
         gyro_set_origin()  # Setzt den Gyro-Sensor zurück.
 
-        gyro_drive(0, 500, cm(20))    # Fahre 20 cm vorwärts.
-        gyro_turn(90)                 # Drehe um 90° nach rechts mit 30% Geschwindigkeit.
-        gyro_drive(90, 500, cm(20))   # Fahre 20 cm vorwärts.
+        gyro_drive(0, 500, cm(20))    # Fahre 20 cm vorwärts (500‰ Geschwindigkeit)
+        gyro_turn(90)                 # Drehe um 90° nach rechts
+        gyro_drive(90, 500, cm(20))   # Fahre 20 cm vorwärts (500‰ Geschwindigkeit)
         # Jetzt wieder zurück:
-        gyro_drive(90, -500, cm(20))  # Fahre 20 cm rückwärts.
-        gyro_turn(0)                  # Drehe um 90° nach rechts mit 30% Geschwindigkeit.
-        gyro_drive(0, -500, cm(20))   # Fahre 20 cm rückwärts.
+        gyro_drive(90, -500, cm(20))  # Fahre 20 cm rückwärts (500‰ Geschwindigkeit)
+        gyro_turn(0)                  # Drehe um 90° nach links
+        gyro_drive(0, -500, cm(20))   # Fahre 20 cm rückwärts (500‰ Geschwindigkeit)
 
-Wenn die Verbundung abgebrochen ist, verbinde den Roboter wieder über Bluetooth: :ref:`how-to--connect-bluetooth`.
-
-Warte Übertragungen ab und starte den Run wieder am Roboter.
+Warte Übertragungen ab (im Terminal sollte immer ein Balken den Fortschritt anzeigen)
+und starte den Run wieder am Roboter.
 
 Der Roboter sollte jetzt eine Art L fahren.
 
@@ -181,15 +184,10 @@ dann schaue dir diese Kapitel als nächstes an:
 
 Um Runs zu erstellen:
 
-* :doc:`/knowledge/driving-and-turning`
-* :doc:`/knowledge/attachments`
+* :doc:`/driving-and-turning`
+* :doc:`/attachments`
 * :doc:`API-Referenz </api/gsgr/index>`
 
 Um die Konfiguration zu bearbeiten:
 
-* :doc:`/knowledge/config`
-
-Um einen neuen PC einzurichten:
-
-* :doc:`/knowledge/setup-devenv`
-
+* :doc:`/config`
