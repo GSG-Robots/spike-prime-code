@@ -1,9 +1,9 @@
 import device
 
+from .battery import battery
+
 
 async def loop():
-    from .battery import battery
-
     while not (device.ready(2) and device.ready(3)):
         await battery()
 

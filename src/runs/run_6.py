@@ -13,7 +13,7 @@ config = configure().gyro_drive(PID(1.2, 0, -0.2))
 
 def run():
     # Set Gyro Origin
-    gyro_wall_align(0.5)
+    gyro_wall_align(0.3)
     # run_attachment(Attachment.FRONT_LEFT, 100, stall=True, await_completion=False)
     gyro_drive(0, 800, cm(57.5), accelerate=10, decelerate=30)
     # stop_attachment(Attachment.FRONT_LEFT)
@@ -30,7 +30,7 @@ def run():
     run_attachment(Attachment.FRONT_LEFT, 300, 200, stall=True, when_i_say_duration_i_mean_degrees=True)
     gyro_drive(0, 700, cm(6), accelerate=10, decelerate=30)
     gyro_drive(0, 1000, sec(0.5), pid=PID(0, 0, 0))
-    run_attachment(Attachment.FRONT_RIGHT, 1000, 5)
+    run_attachment(Attachment.FRONT_RIGHT, 1000, 5.25)
     run_attachment(Attachment.FRONT_RIGHT, -600, 1.3, stall=True)
     hold_attachment(Attachment.FRONT_LEFT)
     gyro_drive(0, -500, cm(15.5), accelerate=10, decelerate=30)

@@ -10,7 +10,7 @@ color = col.PURPLE
 
 def run():
     # Set Gyro Origin
-    gyro_wall_align(0.5)
+    gyro_wall_align(0.3)
     gyro_drive(0, 900, cm(10), accelerate=10, brake=False)
     gyro_turn(-37, pivot=Pivot.RIGHT_WHEEL, brake=False)
     gyro_drive(-37, 500, OR(cm(37), wheels_blocked()), decelerate=60)

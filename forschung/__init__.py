@@ -1,6 +1,7 @@
+import asyncio
+
 import hub
 import motor
-import asyncio
 
 
 async def loop():
