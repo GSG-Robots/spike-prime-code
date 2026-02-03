@@ -12,6 +12,15 @@ from .gsgr.enums import Attachment
 from .gsgr.menu import ActionMenu, ActionMenuItem
 from .gsgr.run import Run
 
+
+TEN = [
+    100, 0, 100, 100, 100,
+    100, 0, 100, 0, 100,
+    100, 0, 100, 0, 100,
+    100, 0, 100, 0, 100,
+    100, 0, 100, 100, 100,
+]
+
 RIGHT_ARROW = [
     0,
     100,
@@ -106,17 +115,30 @@ def run_motorcontrol():
                 hub.light_matrix.set_pixel(4, 4, 100)
                 motor = Attachment.BACK_RIGHT
             movement.hold_attachment(motor, False)
-    speed = 1000
+    direction_speed = 1
+    speed = 10
     is_inverted = motor in (Attachment.FRONT_RIGHT, Attachment.BACK_RIGHT)
     hub.light_matrix.clear()
     hub.light_matrix.show(RIGHT_ARROW if is_inverted else LEFT_ARROW)
     while not buttons.pressed(hub.button.POWER):
         if buttons.pressed(hub.button.RIGHT):
-            speed = 1000
+            direction_speed = 1
             hub.light_matrix.show(RIGHT_ARROW if is_inverted else LEFT_ARROW)
         if buttons.pressed(hub.button.LEFT):
-            speed = -1000
+            direction_speed = -1
             hub.light_matrix.show(LEFT_ARROW if is_inverted else RIGHT_ARROW)
+    hub.light_matrix.show(TEN)
+    while not buttons.pressed(hub.button.POWER):
+        if buttons.pressed(hub.button.RIGHT):
+            speed = min(speed + 1, 10)
+            if speed == 10:
+                hub.light_matrix.show(TEN)
+            else:
+                hub.light_matrix.write(str(speed))
+        if buttons.pressed(hub.button.LEFT):
+            speed = max(speed - 1, 0)
+            hub.light_matrix.write(str(speed))
+    speed = direction_speed * 100 * speed
     movement.run_attachment(motor, speed)
     while not buttons.pressed(hub.button.POWER):
         time.sleep(0.1)
