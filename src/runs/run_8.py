@@ -1,13 +1,8 @@
-import time
 import color as col
-import hub
-import motor_pair
-import random
 
-from ..gsgr.config import cfg
-from ..gsgr.conditions import OR, cm, wheels_blocked
-from ..gsgr.enums import Pivot, Attachment
-from ..gsgr.movement import gyro_drive, gyro_turn, gyro_set_origin, run_attachment
+from ..gsgr.conditions import cm
+from ..gsgr.enums import Attachment, Pivot
+from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn, run_attachment
 
 display_as = 8
 color = col.WHITE
@@ -16,7 +11,7 @@ color = col.WHITE
 def run():
     # Set Gyro Origin
     gyro_set_origin()
-    gyro_drive(0, 800, cm(80), accelerate=10, decelerate=10)
+    gyro_drive(0, 800, cm(76), accelerate=10, decelerate=10)
     gyro_turn(64, 120, Pivot.LEFT_WHEEL)
     gyro_drive(64, 800, cm(70), accelerate=10, decelerate=10)
     run_attachment(Attachment.FRONT_RIGHT, 200, 2)

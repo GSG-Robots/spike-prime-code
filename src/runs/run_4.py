@@ -1,19 +1,9 @@
-import time
-
 import color as col
 
 from ..gsgr.conditions import OR, cm, impact, pickup, wheels_blocked
-from ..gsgr.config import PID, configure
+from ..gsgr.config import configure
 from ..gsgr.enums import Attachment
-from ..gsgr.movement import (
-    free_attachments,
-    gyro_drive,
-    gyro_set_origin,
-    gyro_turn,
-    gyro_wall_align,
-    run_attachment,
-    stop_attachment,
-)
+from ..gsgr.movement import gyro_drive, gyro_wall_align, run_attachment
 
 display_as = 4
 color = col.GREEN

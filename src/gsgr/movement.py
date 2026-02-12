@@ -2,7 +2,6 @@
 
 import math
 import time
-# from typing import Callable
 
 import hub
 import motor
@@ -33,6 +32,7 @@ def check_battery():
     # Check if the battery is low and raise an error if it is
     if hub.battery_voltage() < 7850:
         raise BatteryLowError
+
 
 def _wait_until_not_busy(m):
     while motor.status(m) == motor.RUNNING:

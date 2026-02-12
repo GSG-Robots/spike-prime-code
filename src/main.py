@@ -12,13 +12,32 @@ from .gsgr.enums import Attachment
 from .gsgr.menu import ActionMenu, ActionMenuItem
 from .gsgr.run import Run
 
-
 TEN = [
-    100, 0, 100, 100, 100,
-    100, 0, 100, 0, 100,
-    100, 0, 100, 0, 100,
-    100, 0, 100, 0, 100,
-    100, 0, 100, 100, 100,
+    100,
+    0,
+    100,
+    100,
+    100,
+    100,
+    0,
+    100,
+    0,
+    100,
+    100,
+    0,
+    100,
+    0,
+    100,
+    100,
+    0,
+    100,
+    0,
+    100,
+    100,
+    0,
+    100,
+    100,
+    100,
 ]
 
 RIGHT_ARROW = [

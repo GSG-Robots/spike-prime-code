@@ -28,22 +28,11 @@ def run():
         brake=False,
     )
     time.sleep(0.2)
-    gyro_turn(-30, timeout=2500)
+    gyro_turn(30, timeout=2500)
     gyro_drive(
-        -30,
+        30,
         -1000,
-        cm(10),
-        accelerate=100,
+        cm(30),
+        accelerate=10,
         brake=False,
-    )
-    gyro_turn(
-        25,
-        200,
-        tolerance=2,
-        brake=False,
-    )
-    gyro_drive(
-        35,
-        -1000,
-        pickup(cm(30)),
     )

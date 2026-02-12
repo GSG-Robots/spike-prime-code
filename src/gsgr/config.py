@@ -71,7 +71,7 @@ class Config:
     GEAR_SELECTOR_OFFSET: int
     TIRE_CIRCUMFRENCE: float
     DEBUG_NOSCROLL: bool
-    DEBUG_FOCUS: bool
+    DEBUG_FOCUS: int
     DEBUG_RAISE_BATTERY: bool
     DEBUG_DISPLAY_ERRORS: bool
     LOOP_THROTTLE: float
