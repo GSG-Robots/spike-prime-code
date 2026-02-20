@@ -11,8 +11,8 @@ LOW_VOLTAGE = 7850
 
 # in ms
 SCREEN_TIMEOUT = 10000
-CHARGING_TIMEOUT = 100
-FULL_TIMEOUT = 500
+CHARGING_TIMEOUT = 1000
+FULL_TIMEOUT = 1000
 
 POWER_OFF_WHEN_NOT_CHARGING_FOR = 60000
 ALERT_LOUDER_WHEN_NOT_CHARGING_FOR = 20000
@@ -37,7 +37,7 @@ def render_percentage(percentage: float):
 
 class TimingOutBoolean:
     def __init__(self):
-        self.last_true = 0
+        self.last_true = -100000
 
     def set_current(self, value: bool):
         if value:
@@ -49,6 +49,7 @@ class TimingOutBoolean:
 
 async def battery():
     IN_USE = TimingOutBoolean()
+    IN_USE.set_current(True)
     CHARGING = TimingOutBoolean()
     FULL = TimingOutBoolean()
 
@@ -69,7 +70,7 @@ async def battery():
         ))
 
         # Update timing out booleans
-        CHARGING.set_current(ct > 10)
+        CHARGING.set_current(ct > 9)
         FULL.set_current(perfect_voltage_reached)
         IN_USE.set_current(
             bool(
@@ -103,11 +104,12 @@ async def battery():
 
         elif not is_charging and was_charging:
             was_charging = False
-            hub.sound.beep(600, 35, 50, waveform=hub.sound.WAVEFORM_SINE)
+            hub.sound.beep(800, 35, 50, waveform=hub.sound.WAVEFORM_SINE)
             await asyncio.sleep_ms(40)
             hub.sound.beep(400, 35, 50, waveform=hub.sound.WAVEFORM_SINE)
 
         if is_in_use:
+            hub.light_matrix.clear()
             render_percentage(percentage)
         elif is_charging:
             hub.light_matrix.clear()
@@ -134,7 +136,8 @@ async def battery():
 
         # Power off when not charging for a long time
         if not CHARGING.in_the_last(POWER_OFF_WHEN_NOT_CHARGING_FOR):
-            hub.power_off()
+            if not is_in_use:
+                hub.power_off()
 
         # Skip alerting when the battery is full but not charging
         elif not is_charging and is_full:
