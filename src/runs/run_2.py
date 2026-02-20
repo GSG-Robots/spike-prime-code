@@ -2,7 +2,7 @@ import time
 
 import color as col
 
-from ..gsgr.conditions import OR, cm, pickup, wheels_blocked
+from ..gsgr.conditions import OR, cm, wheels_blocked
 from ..gsgr.enums import Attachment
 from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn, hold_attachment, run_attachment
 
@@ -18,11 +18,11 @@ def run():
     # gyro_drive(0, -75, cm(0.25), pid=PID(0, 0, 0))
     time.sleep(0.2)
     run_attachment(Attachment.FRONT_LEFT, 1000, 235, stall=True, when_i_say_duration_i_mean_degrees=True)
-    time.sleep(0.6)
+    time.sleep(0.4)
     gyro_drive(
         0,
         -1000,
-        cm(17),
+        cm(19),
         accelerate=60,
         decelerate=40,
         brake=False,
@@ -34,5 +34,5 @@ def run():
         -1000,
         cm(30),
         accelerate=10,
-        brake=False,
     )
+    gyro_turn(70, timeout=2500)
