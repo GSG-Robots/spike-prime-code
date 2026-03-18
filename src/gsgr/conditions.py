@@ -3,6 +3,7 @@
 import math
 import time
 
+import device
 import hub
 import motor
 
@@ -146,40 +147,61 @@ def deg(angle: int) -> Condition:
         )
 
 
-def light_left(threshold: float, below: bool = False):
+# def light_left(threshold: float, below: bool = False):
+#     yield 0
+
+#     assert cfg.LEFT_SW_SENSOR in (
+#         SWSensor.INTEGRATED_LIGHT,
+#         SWSensor.EXTERNAL_LIGHT,
+#     ), "light_left: left sensor must be a light sensor"
+
+#     cfg.LEFT_SENSOR.mode(4)
+#     time.sleep(0.1)
+
+#     while below:
+#         yield 100 if cfg.LEFT_SENSOR.get(0)[0] / 10.24 < threshold else 0
+
+#     while True:
+#         yield 100 if cfg.LEFT_SENSOR.get(0)[0] / 10.24 > threshold else 0
+
+
+# def light_right(threshold: float, below: bool = False):
+#     yield 0
+
+#     assert cfg.RIGHT_SW_SENSOR in (
+#         SWSensor.INTEGRATED_LIGHT,
+#         SWSensor.EXTERNAL_LIGHT,
+#     ), "light_right: right sensor must be a light sensor"
+
+#     cfg.RIGHT_SENSOR.mode(4)
+#     time.sleep(0.1)
+
+#     while below:
+#         yield 100 if cfg.RIGHT_SENSOR.get(0)[0] / 10.24 < threshold else 0
+
+#     while True:
+#         yield 100 if cfg.RIGHT_SENSOR.get(0)[0] / 10.24 > threshold else 0
+
+def light_left_red(threshold: float, below: bool = False):
     yield 0
 
     assert cfg.LEFT_SW_SENSOR in (
         SWSensor.INTEGRATED_LIGHT,
         SWSensor.EXTERNAL_LIGHT,
-    ), "light_left: left sensor must be a light sensor"
-
-    cfg.LEFT_SENSOR.mode(4)
-    time.sleep(0.1)
+    ), "light_left_red: left sensor must be a light sensor"
 
     while below:
-        yield 100 if cfg.LEFT_SENSOR.get(0)[0] / 10.24 < threshold else 0
+        yield 100 if device.data(cfg.LEFT_SENSOR)[2] < threshold else 0
 
     while True:
-        yield 100 if cfg.LEFT_SENSOR.get(0)[0] / 10.24 > threshold else 0
+        yield 100 if device.data(cfg.LEFT_SENSOR)[2] > threshold else 0
 
-
-def light_right(threshold: float, below: bool = False):
-    yield 0
-
-    assert cfg.RIGHT_SW_SENSOR in (
-        SWSensor.INTEGRATED_LIGHT,
-        SWSensor.EXTERNAL_LIGHT,
-    ), "light_right: right sensor must be a light sensor"
-
-    cfg.RIGHT_SENSOR.mode(4)
-    time.sleep(0.1)
-
-    while below:
-        yield 100 if cfg.RIGHT_SENSOR.get(0)[0] / 10.24 < threshold else 0
-
+def debug_cond(cond: Condition, color: int):
     while True:
-        yield 100 if cfg.RIGHT_SENSOR.get(0)[0] / 10.24 > threshold else 0
+        val = next(cond)
+        if val >= 100:
+            hub.light.color(hub.light.CONNECT, color)
+        yield val
 
 
 def THEN(first: Condition, second: Condition) -> Condition:

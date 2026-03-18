@@ -324,12 +324,12 @@ def gyro_drive(
             -1500,
             1500,
         )
-
         if sign(error) != sign(error_sum):
             error_sum = 0
             # last_error = 0
 
         left_speed, right_speed = speed - correction // 2, speed + correction // 2
+
         if pct < accelerate:
             speed_multiplier = interpolators[0](0.2, 1, pct / accelerate)
             left_speed, right_speed = (

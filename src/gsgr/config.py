@@ -3,7 +3,10 @@ import math
 import sys
 from collections import namedtuple
 
+import device
 import motor_pair
+
+from .enums import SWSensor
 
 PID = namedtuple("PID", ("p", "i", "d"))
 
@@ -81,8 +84,6 @@ class Config:
     GYRO_TURN_MINMAX_SPEED: tuple[int, int]
     LEFT_SENSOR: int
     RIGHT_SENSOR: int
-    LEFT_SENSOR_TYPE: int | None
-    RIGHT_SENSOR_TYPE: int | None
     LANDSCAPE: bool
     LEFT_SW_SENSOR: int
     RIGHT_SW_SENSOR: int
@@ -149,27 +150,28 @@ class Config:
         #     callback=self.GEAR_SELECTOR.default()["callback"],
         # )
         # self.GEAR_SELECTOR.mode([(1, 0), (2, 0), (3, 0), (0, 0)])
-        # LEFT_PORT = PORTS[_config_dict["sensors"]["left"]]
-        # RIGHT_PORT = PORTS[_config_dict["sensors"]["right"]]
+        self.LEFT_SENSOR = PORTS[_config_dict["sensors"]["left"]]
+        self.RIGHT_SENSOR = PORTS[_config_dict["sensors"]["right"]]
 
-        # @LEFT_PORT.callback
-        # def updtl(x):
-        #     self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
-
-        # @RIGHT_PORT.callback
-        # def updtr(x):
-        #     self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
-
-        # self.LEFT_SENSOR_TYPE = LEFT_PORT.info().get("type")
-        # self.RIGHT_SENSOR_TYPE = RIGHT_PORT.info().get("type")
-
-        # self.LEFT_SENSOR = LEFT_PORT.device
-        # self.RIGHT_SENSOR = RIGHT_PORT.device
-        # self.LEFT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
-        # self.RIGHT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
+        self.LEFT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
+        self.RIGHT_SW_SENSOR = SWSensor.INTEGRATED_LIGHT
 
         self.LANDSCAPE = _config_dict["landscape"]
         self.GYRO_OFF = _config_dict["gyro_off"]
+
+    @property
+    def LEFT_SENSOR_TYPE(self):
+        try:
+            return device.id(self.LEFT_SENSOR)
+        except OSError:
+            return None
+
+    @property
+    def RIGHT_SENSOR_TYPE(self):
+        try:
+            return device.id(self.RIGHT_SENSOR)
+        except OSError:
+            return None
 
 
 cfg = Config()
