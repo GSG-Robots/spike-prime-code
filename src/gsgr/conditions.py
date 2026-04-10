@@ -196,6 +196,20 @@ def light_left_red(threshold: float, below: bool = False):
     while True:
         yield 100 if device.data(cfg.LEFT_SENSOR)[2] > threshold else 0
 
+def light_right_red(threshold: float, below: bool = False):
+    yield 0
+
+    assert cfg.RIGHT_SW_SENSOR in (
+        SWSensor.INTEGRATED_LIGHT,
+        SWSensor.EXTERNAL_LIGHT,
+    ), "light_right_red: right sensor must be a light sensor"
+
+    while below:
+        yield 100 if device.data(cfg.RIGHT_SENSOR)[2] < threshold else 0
+
+    while True:
+        yield 100 if device.data(cfg.RIGHT_SENSOR)[2] > threshold else 0
+
 def debug_cond(cond: Condition, color: int):
     while True:
         val = next(cond)

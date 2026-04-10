@@ -1,13 +1,8 @@
-import time
-
 import color as col
-import device
-import hub
-from ..gsgr.config import cfg
 
 from ..gsgr.conditions import THEN, cm, debug_cond, light_left_red
-from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn  #
 from ..gsgr.enums import Sensor
+from ..gsgr.movement import gyro_drive, gyro_set_origin, gyro_turn
 
 display_as = 5
 color = col.GREEN
