@@ -189,7 +189,7 @@ def sonar(target_angle: int, distance: int):
     # menschzeil = (
     #     ergebnis + math.degrees(math.asin((distance_to_drive * math.sin(math.radians(angle_to_drive))) / distance)) * (1 if ergebnis < target_angle else -1)
     # )
-    menschzeil = (180 - ergebnis - (hub.motion_sensor.tilt_angles()[0] / 10 + 90)) + (180 - angle_to_drive)
+    menschzeil = (180 - (90 - ergebnis) - angle_to_drive)
     target_angle_gyro = menschzeil - 90
     print("asdasd", menschzeil, target_angle_gyro)
     time.sleep(0.2)
