@@ -1,7 +1,7 @@
 import math
 import time
-# from sre_constants import POSSESSIVE_REPEAT_ONE
 
+# from sre_constants import POSSESSIVE_REPEAT_ONE
 import color as col
 import device
 import hub
@@ -103,9 +103,11 @@ def calc_way(start_angle, end_angle, distance):
 
 def sonar(target_angle: int, distance: int):
     ergebnis = 0
+    exitant = Side.LEFT
+    deltar = 0
 
     def end():
-        nonlocal ergebnis
+        nonlocal ergebnis, exitant, deltar
         for x in cm(2):
             yield x // 2
             if x >= 100:
@@ -172,7 +174,9 @@ def sonar(target_angle: int, distance: int):
             abs(hub.motion_sensor.tilt_angles()[0] / 10) + 90,
             sonar_calc(delta_mit_vorzeichen, abs(hub.motion_sensor.tilt_angles()[0] / 10) + 90),
         )
-        ergebnis = sonar_calc(delta_mit_vorzeichen, abs(hub.motion_sensor.tilt_angles()[0] / 10) + 90) # ?? abs?
+        ergebnis = sonar_calc(delta_mit_vorzeichen, abs(hub.motion_sensor.tilt_angles()[0] / 10) + 90)  # ?? abs?
+        exitant = first_side
+        deltar = delta_mit_vorzeichen
 
         for x in cm(5):
             yield 50 + x // 2
@@ -181,15 +185,16 @@ def sonar(target_angle: int, distance: int):
 
     # Grad messen
     gyro_drive(hub.motion_sensor.tilt_angles()[0] // 10, 700, end(), accelerate=10, decelerate=50, brake=True)
+    time.sleep(0.2)
+    if exitant == Side.LEFT:
+        _dist = deltar
+        gyro_drive(hub.motion_sensor.tilt_angles()[0] // 10, math.copysign(500, _dist), cm(abs(_dist) / 10), accelerate=10, decelerate=30, brake=True)
     distance_to_drive, angle_to_drive = calc_way(ergebnis, target_angle, distance)
 
     print(234, distance_to_drive, angle_to_drive)
-
-    # target_angle_gyro = -(180 - angle_to_drive + ergebnis - 90)
-    # menschzeil = (
-    #     ergebnis + math.degrees(math.asin((distance_to_drive * math.sin(math.radians(angle_to_drive))) / distance)) * (1 if ergebnis < target_angle else -1)
-    # )
-    menschzeil = (180 - (90 - ergebnis) - angle_to_drive)
+    if ergebnis > target_angle:
+        angle_to_drive = 360 - angle_to_drive
+    menschzeil = 180 - (90 - ergebnis) - angle_to_drive + 90
     target_angle_gyro = menschzeil - 90
     print("asdasd", menschzeil, target_angle_gyro)
     time.sleep(0.2)
