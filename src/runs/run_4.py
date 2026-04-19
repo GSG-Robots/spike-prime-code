@@ -16,7 +16,7 @@ def run():
     gyro_drive(0, 700, OR(cm(71), wheels_blocked()), decelerate=13)
     run_attachment(Attachment.FRONT_RIGHT, -250, 1.67, untension=10)
     run_attachment(Attachment.FRONT_LEFT, 1000, 1.5, untension=5)
-    gyro_drive(0, -500, cm(9))
+    gyro_drive(0, -500, cm(9-1))
     gyro_drive(0, 200, cm(3))
     run_attachment(Attachment.BACK_LEFT, 700, 0.9, untension=5)
     gyro_drive(0, -500, OR(cm(20), pickup(impact(wheels_blocked()))), brake=False)

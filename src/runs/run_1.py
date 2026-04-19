@@ -20,7 +20,7 @@ def run():
         decelerate=20,
     )
     run_attachment(Attachment.FRONT_RIGHT, 1000, 0.9, untension=25, stall=True)
-    gyro_drive(10, -900, cm(9.5), accelerate=10, decelerate=30)
+    gyro_drive(10, -900, cm(9.5+2), accelerate=10, decelerate=30)
     gyro_turn(90, 120)
     gyro_drive(90, -900, cm(27.5), accelerate=10, decelerate=30)
     gyro_drive(90, 900, cm(32), accelerate=10, decelerate=30)

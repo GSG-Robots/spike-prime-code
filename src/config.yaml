@@ -34,7 +34,7 @@ correctors:
         i: 0.01
         d: -1
 
-competition: no
+competition: yes
 debugging:
     no_autoscroll: yes
     initial_focus: 0
